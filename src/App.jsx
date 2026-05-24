@@ -166,8 +166,8 @@ export default function DeanCRM() {
     setResendCountdown(30);
   };
 
-  const verifyOTP = async () => {
-    const token = code.join("");
+  const verifyOTPWithCode = async (codeArr) => {
+    const token = codeArr.join("");
     if (token.length !== 6) return setAuthError("Please enter the full 6-digit code");
     setAuthLoading(true); setAuthError("");
     const res = await authFetch("verify", { email: email.trim(), token, type: "email" });
@@ -187,6 +187,8 @@ export default function DeanCRM() {
     }
   };
 
+  const verifyOTP = () => verifyOTPWithCode(code);
+
   const handleCodeInput = (i, val) => {
     const digit = val.replace(/\D/g, "").slice(-1);
     const next = [...code];
@@ -195,8 +197,8 @@ export default function DeanCRM() {
     setAuthError("");
     if (digit && i < 5) codeRefs[i + 1].current?.focus();
     if (next.every(d => d !== "")) {
-      // Auto-verify when all 6 digits entered
-      setTimeout(() => verifyOTP(), 80);
+      // Auto-verify: pass code array directly to avoid stale state
+      setTimeout(() => verifyOTPWithCode(next), 80);
     }
   };
 
@@ -217,9 +219,10 @@ export default function DeanCRM() {
   const handleCodePaste = (e) => {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (pasted.length === 6) {
-      setCode(pasted.split(""));
+      const arr = pasted.split("");
+      setCode(arr);
       codeRefs[5].current?.focus();
-      setTimeout(() => verifyOTP(), 80);
+      setTimeout(() => verifyOTPWithCode(arr), 80);
     }
   };
 
