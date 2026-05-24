@@ -152,7 +152,13 @@ export default function DeanCRM() {
   const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    const res = await authFetch("otp", { email: email.trim(), create_user: true });
+    // Pass empty emailRedirectTo so Supabase sends a code instead of a magic link
+    const res = await authFetch("otp", {
+      email: email.trim(),
+      create_user: true,
+      email_redirect_to: null,
+      go_true_enabled: false,
+    });
     setAuthLoading(false);
     if (res.error) return setAuthError(res.error.message || "Something went wrong");
     setAuthStep("code");
@@ -166,7 +172,12 @@ export default function DeanCRM() {
     setAuthLoading(true); setAuthError("");
     const res = await authFetch("verify", { email: email.trim(), token, type: "email" });
     setAuthLoading(false);
-    if (res.error) return setAuthError("Invalid or expired code. Please try again.");
+    if (res.error) {
+      setAuthError("Invalid or expired code. Please try again.");
+      setCode(["","","","","",""]);
+      setTimeout(() => codeRefs[0].current?.focus(), 50);
+      return;
+    }
     if (res.access_token) {
       const userData = await getUser(res.access_token);
       const sess = { access_token: res.access_token, refresh_token: res.refresh_token, user: userData };
