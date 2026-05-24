@@ -3,17 +3,20 @@ import { useState, useEffect } from "react";
 const SUPABASE_URL = "https://ecjinukgzizwysiezoyz.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjamludWtneml6d3lzaWV6b3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTU0NTksImV4cCI6MjA5NTEzMTQ1OX0._T6LNKlodbxYhb5IaIubn9oac3ToQgCjp3UQcmA1-8U";
 
-const api = (path, opts = {}) =>
-  fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+const api = async (path, opts = {}) => {
+  const token = opts.token || SUPABASE_ANON;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
       apikey: SUPABASE_ANON,
-      Authorization: `Bearer ${SUPABASE_ANON}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      Prefer: opts.prefer || "return=representation",
+      Prefer: opts.prefer !== undefined ? opts.prefer : "return=representation",
       ...opts.headers,
     },
     ...opts,
   });
+  return res;
+};
 
 const authApi = (path, body) =>
   fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
@@ -21,6 +24,13 @@ const authApi = (path, body) =>
     headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).then((r) => r.json());
+
+const getUser = async (access_token) => {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${access_token}` },
+  });
+  return res.json();
+};
 
 const formatDate = (d) => {
   if (!d) return "";
@@ -52,12 +62,13 @@ const blankContact = () => ({
 
 export default function DeanCRM() {
   const [session, setSession] = useState(null);
-  const [authStep, setAuthStep] = useState("login"); // login | sent
+  const [userId, setUserId] = useState(null);
+  const [authStep, setAuthStep] = useState("login");
   const [email, setEmail] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
-  const payload = { ...fields, touch_log: touch_log || [], user_id: session.user?.id };
+
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("list");
@@ -88,38 +99,49 @@ export default function DeanCRM() {
 
   // Check for magic link token in URL on load
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.replace("#", "?"));
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-      if (access_token) {
-        const sess = { access_token, refresh_token };
-        setSession(sess);
-        localStorage.setItem("dean_crm_session", JSON.stringify(sess));
-        window.history.replaceState(null, "", window.location.pathname);
-        setCheckingSession(false);
-        return;
+    const init = async () => {
+      const hash = window.location.hash;
+      if (hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.replace("#", "?"));
+        const access_token = params.get("access_token");
+        const refresh_token = params.get("refresh_token");
+        if (access_token) {
+          const userData = await getUser(access_token);
+          const sess = { access_token, refresh_token, user: userData };
+          setSession(sess);
+          setUserId(userData.id);
+          localStorage.setItem("dean_crm_session", JSON.stringify(sess));
+          window.history.replaceState(null, "", window.location.pathname);
+          setCheckingSession(false);
+          return;
+        }
       }
-    }
-    // Check stored session
-    try {
-      const stored = JSON.parse(localStorage.getItem("dean_crm_session"));
-      if (stored?.access_token) setSession(stored);
-    } catch {}
-    setCheckingSession(false);
+      try {
+        const stored = JSON.parse(localStorage.getItem("dean_crm_session"));
+        if (stored?.access_token) {
+          const userData = await getUser(stored.access_token);
+          if (userData.id) {
+            setSession({ ...stored, user: userData });
+            setUserId(userData.id);
+          } else {
+            localStorage.removeItem("dean_crm_session");
+          }
+        }
+      } catch {}
+      setCheckingSession(false);
+    };
+    init();
   }, []);
 
-  // Load contacts when session is ready
   useEffect(() => {
-    if (session) fetchContacts();
-  }, [session]);
+    if (session && userId) fetchContacts();
+  }, [session, userId]);
 
   const fetchContacts = async () => {
     setLoading(true);
     try {
       const res = await api("contacts?order=name.asc", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        token: session.access_token,
         prefer: "",
       });
       if (res.ok) {
@@ -142,34 +164,40 @@ export default function DeanCRM() {
   };
 
   const signOut = () => {
-    setSession(null);
+    setSession(null); setUserId(null);
     localStorage.removeItem("dean_crm_session");
     setContacts([]); setView("list"); setSelected(null);
   };
 
   const saveEntry = async () => {
     if (!editEntry.name.trim()) return showToast("Name is required");
+    if (!userId) return showToast("Not logged in");
     const isNew = editEntry._isNew;
     const { _isNew, id, touch_log, ...fields } = editEntry;
-    const payload = { ...fields, touch_log: touch_log || [] };
+    const payload = { ...fields, touch_log: touch_log || [], user_id: userId };
 
     try {
       if (isNew) {
         const res = await api("contacts", {
           method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          token: session.access_token,
           body: JSON.stringify(payload),
         });
         if (res.ok) {
-          const [created] = await res.json();
-          setContacts((prev) => [...prev, { ...created, touch_log: created.touch_log || [] }].sort((a,b) => a.name.localeCompare(b.name)));
-          setSelected(null);
+          const created = await res.json();
+          const newContact = Array.isArray(created) ? created[0] : created;
+          setContacts((prev) => [...prev, { ...newContact, touch_log: newContact.touch_log || [] }].sort((a,b) => a.name.localeCompare(b.name)));
           showToast("Contact added!");
+        } else {
+          const err = await res.json();
+          showToast("Error: " + (err.message || err.hint || "Could not save"));
+          return;
         }
       } else {
         const res = await api(`contacts?id=eq.${id}`, {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          token: session.access_token,
+          prefer: "",
           body: JSON.stringify(fields),
         });
         if (res.ok) {
@@ -178,14 +206,14 @@ export default function DeanCRM() {
         }
       }
       setView("profile");
-    } catch { showToast("Error saving contact"); }
+    } catch (e) { showToast("Error saving contact"); }
   };
 
   const deleteContact = async (id) => {
     try {
       await api(`contacts?id=eq.${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        token: session.access_token,
         prefer: "",
       });
       setContacts((prev) => prev.filter((c) => c.id !== id));
@@ -202,7 +230,8 @@ export default function DeanCRM() {
     try {
       await api(`contacts?id=eq.${contact.id}`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        token: session.access_token,
+        prefer: "",
         body: JSON.stringify({ touch_log: updatedLog }),
       });
       setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, touch_log: updatedLog } : c));
@@ -217,7 +246,8 @@ export default function DeanCRM() {
     try {
       await api(`contacts?id=eq.${contactId}`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        token: session.access_token,
+        prefer: "",
         body: JSON.stringify({ touch_log: updatedLog }),
       });
       setContacts((prev) => prev.map((c) => c.id === contactId ? { ...c, touch_log: updatedLog } : c));
@@ -251,7 +281,6 @@ export default function DeanCRM() {
 
   const contact = selected !== null ? contacts[selected] : null;
 
-  // ── LOADING SCREEN ──
   if (checkingSession) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -262,7 +291,6 @@ export default function DeanCRM() {
     </div>
   );
 
-  // ── AUTH SCREEN ──
   if (!session) return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -270,20 +298,15 @@ export default function DeanCRM() {
         <div style={styles.authLogo}>D</div>
         <h1 style={styles.authTitle}>Dean CRM</h1>
         <p style={styles.authSub}>Your contacts, always in sync</p>
-
         {authStep === "login" ? (
           <div style={styles.authCard}>
             <p style={styles.authCardTitle}>Sign in with Magic Link</p>
             <p style={styles.authCardSub}>Enter your email and we'll send you a tap-to-login link — no password needed.</p>
             <input
-              style={styles.authInput}
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              style={styles.authInput} type="email" placeholder="your@email.com"
+              value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
-              autoCapitalize="none"
-              autoCorrect="off"
+              autoCapitalize="none" autoCorrect="off"
             />
             {authError && <div style={styles.authError}>{authError}</div>}
             <button style={styles.authBtn} onClick={sendMagicLink} disabled={authLoading}>
@@ -302,7 +325,6 @@ export default function DeanCRM() {
     </div>
   );
 
-  // ── MAIN APP ──
   return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -335,7 +357,6 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {/* HEADER */}
       <div style={styles.header}>
         {view !== "list" ? (
           <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView(view === "profile" ? "list" : "profile"); }}>
@@ -361,7 +382,6 @@ export default function DeanCRM() {
         )}
       </div>
 
-      {/* LIST VIEW */}
       {view === "list" && (
         <div style={styles.body}>
           <div style={styles.searchWrap}>
@@ -409,7 +429,6 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {/* PROFILE VIEW */}
       {view === "profile" && contact && (
         <div style={styles.body}>
           <div style={styles.profileScroll}>
@@ -476,7 +495,6 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {/* ADD / EDIT VIEW */}
       {(view === "add" || view === "edit") && editEntry && (
         <div style={styles.body}>
           <div style={styles.formScroll}>
@@ -592,7 +610,6 @@ const styles = {
   modalTitle: { fontSize: 18, fontWeight: 700, color: "#0d1b2e", margin: "0 0 6px" },
   modalSub: { fontSize: 14, color: "#888", margin: 0 },
   phoneHint: { fontSize: 11, color: "#1560e8", marginTop: 4, textAlign: "right", letterSpacing: "0.04em" },
-  // Auth screens
   splashScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0d1b2e", gap: 16 },
   splashLogo: { width: 72, height: 72, borderRadius: 20, background: "#1a6fc4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif" },
   splashTitle: { fontSize: 24, fontWeight: 700, color: "#eef2f8", fontFamily: "'Georgia', serif", letterSpacing: "0.04em" },
