@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const SUPABASE_URL = "https://ecjinukgzizwysiezoyz.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjamludWtneml6d3lzaWV6b3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTU0NTksImV4cCI6MjA5NTEzMTQ1OX0._T6LNKlodbxYhb5IaIubn9oac3ToQgCjp3UQcmA1-8U";
 
 const api = async (path, opts = {}) => {
   const token = opts.token || SUPABASE_ANON;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
       apikey: SUPABASE_ANON,
       Authorization: `Bearer ${token}`,
@@ -15,10 +15,9 @@ const api = async (path, opts = {}) => {
     },
     ...opts,
   });
-  return res;
 };
 
-const authApi = (path, body) =>
+const authFetch = (path, body) =>
   fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
     method: "POST",
     headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
@@ -63,11 +62,14 @@ const blankContact = () => ({
 export default function DeanCRM() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [authStep, setAuthStep] = useState("login");
+  const [authStep, setAuthStep] = useState("email"); // email | code
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState(["","","","","",""]);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const codeRefs = [useRef(),useRef(),useRef(),useRef(),useRef(),useRef()];
 
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -81,7 +83,6 @@ export default function DeanCRM() {
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
 
-  // Inject PWA meta tags
   useEffect(() => {
     const metas = [
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -97,25 +98,8 @@ export default function DeanCRM() {
     });
   }, []);
 
-  // Check for magic link token in URL on load
   useEffect(() => {
     const init = async () => {
-      const hash = window.location.hash;
-      if (hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.replace("#", "?"));
-        const access_token = params.get("access_token");
-        const refresh_token = params.get("refresh_token");
-        if (access_token) {
-          const userData = await getUser(access_token);
-          const sess = { access_token, refresh_token, user: userData };
-          setSession(sess);
-          setUserId(userData.id);
-          localStorage.setItem("dean_crm_session", JSON.stringify(sess));
-          window.history.replaceState(null, "", window.location.pathname);
-          setCheckingSession(false);
-          return;
-        }
-      }
       try {
         const stored = JSON.parse(localStorage.getItem("dean_crm_session"));
         if (stored?.access_token) {
@@ -137,13 +121,24 @@ export default function DeanCRM() {
     if (session && userId) fetchContacts();
   }, [session, userId]);
 
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const t = setTimeout(() => setResendCountdown(r => r - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [resendCountdown]);
+
+  // Auto-focus first code box when entering code step
+  useEffect(() => {
+    if (authStep === "code") {
+      setTimeout(() => codeRefs[0].current?.focus(), 100);
+    }
+  }, [authStep]);
+
   const fetchContacts = async () => {
     setLoading(true);
     try {
-      const res = await api("contacts?order=name.asc", {
-        token: session.access_token,
-        prefer: "",
-      });
+      const res = await api("contacts?order=name.asc", { token: session.access_token, prefer: "" });
       if (res.ok) {
         const data = await res.json();
         setContacts(data.map((c) => ({ ...c, touch_log: c.touch_log || [] })));
@@ -154,19 +149,74 @@ export default function DeanCRM() {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2400); };
 
-  const sendMagicLink = async () => {
+  const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    const res = await authApi("magiclink", { email: email.trim() });
+    const res = await authFetch("otp", { email: email.trim(), create_user: true });
     setAuthLoading(false);
     if (res.error) return setAuthError(res.error.message || "Something went wrong");
-    setAuthStep("sent");
+    setAuthStep("code");
+    setCode(["","","","","",""]);
+    setResendCountdown(30);
+  };
+
+  const verifyOTP = async () => {
+    const token = code.join("");
+    if (token.length !== 6) return setAuthError("Please enter the full 6-digit code");
+    setAuthLoading(true); setAuthError("");
+    const res = await authFetch("verify", { email: email.trim(), token, type: "email" });
+    setAuthLoading(false);
+    if (res.error) return setAuthError("Invalid or expired code. Please try again.");
+    if (res.access_token) {
+      const userData = await getUser(res.access_token);
+      const sess = { access_token: res.access_token, refresh_token: res.refresh_token, user: userData };
+      setSession(sess);
+      setUserId(userData.id);
+      localStorage.setItem("dean_crm_session", JSON.stringify(sess));
+    }
+  };
+
+  const handleCodeInput = (i, val) => {
+    const digit = val.replace(/\D/g, "").slice(-1);
+    const next = [...code];
+    next[i] = digit;
+    setCode(next);
+    setAuthError("");
+    if (digit && i < 5) codeRefs[i + 1].current?.focus();
+    if (next.every(d => d !== "")) {
+      // Auto-verify when all 6 digits entered
+      setTimeout(() => verifyOTP(), 80);
+    }
+  };
+
+  const handleCodeKeyDown = (i, e) => {
+    if (e.key === "Backspace") {
+      if (code[i]) {
+        const next = [...code]; next[i] = ""; setCode(next);
+      } else if (i > 0) {
+        codeRefs[i - 1].current?.focus();
+        const next = [...code]; next[i - 1] = ""; setCode(next);
+      }
+    }
+    if (e.key === "ArrowLeft" && i > 0) codeRefs[i - 1].current?.focus();
+    if (e.key === "ArrowRight" && i < 5) codeRefs[i + 1].current?.focus();
+  };
+
+  // Handle paste of full code
+  const handleCodePaste = (e) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setCode(pasted.split(""));
+      codeRefs[5].current?.focus();
+      setTimeout(() => verifyOTP(), 80);
+    }
   };
 
   const signOut = () => {
     setSession(null); setUserId(null);
     localStorage.removeItem("dean_crm_session");
     setContacts([]); setView("list"); setSelected(null);
+    setAuthStep("email"); setCode(["","","","","",""]);
   };
 
   const saveEntry = async () => {
@@ -175,14 +225,9 @@ export default function DeanCRM() {
     const isNew = editEntry._isNew;
     const { _isNew, id, touch_log, ...fields } = editEntry;
     const payload = { ...fields, touch_log: touch_log || [], user_id: userId };
-
     try {
       if (isNew) {
-        const res = await api("contacts", {
-          method: "POST",
-          token: session.access_token,
-          body: JSON.stringify(payload),
-        });
+        const res = await api("contacts", { method: "POST", token: session.access_token, body: JSON.stringify(payload) });
         if (res.ok) {
           const created = await res.json();
           const newContact = Array.isArray(created) ? created[0] : created;
@@ -194,28 +239,19 @@ export default function DeanCRM() {
           return;
         }
       } else {
-        const res = await api(`contacts?id=eq.${id}`, {
-          method: "PATCH",
-          token: session.access_token,
-          prefer: "",
-          body: JSON.stringify(fields),
-        });
+        const res = await api(`contacts?id=eq.${id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify(fields) });
         if (res.ok) {
           setContacts((prev) => prev.map((c) => c.id === id ? { ...c, ...fields } : c));
           showToast("Contact updated!");
         }
       }
       setView("profile");
-    } catch (e) { showToast("Error saving contact"); }
+    } catch { showToast("Error saving contact"); }
   };
 
   const deleteContact = async (id) => {
     try {
-      await api(`contacts?id=eq.${id}`, {
-        method: "DELETE",
-        token: session.access_token,
-        prefer: "",
-      });
+      await api(`contacts?id=eq.${id}`, { method: "DELETE", token: session.access_token, prefer: "" });
       setContacts((prev) => prev.filter((c) => c.id !== id));
     } catch {}
     setView("list"); setSelected(null); setConfirmDelete(null);
@@ -228,12 +264,7 @@ export default function DeanCRM() {
     const entry = { id: Date.now(), text: newNote.trim(), createdAt: new Date().toISOString() };
     const updatedLog = [entry, ...(contact.touch_log || [])];
     try {
-      await api(`contacts?id=eq.${contact.id}`, {
-        method: "PATCH",
-        token: session.access_token,
-        prefer: "",
-        body: JSON.stringify({ touch_log: updatedLog }),
-      });
+      await api(`contacts?id=eq.${contact.id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify({ touch_log: updatedLog }) });
       setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, touch_log: updatedLog } : c));
       setNewNote(""); setAddingNote(false);
       showToast("Note added!");
@@ -244,16 +275,10 @@ export default function DeanCRM() {
     const contact = contacts.find((c) => c.id === contactId);
     const updatedLog = contact.touch_log.filter((t) => t.id !== touchId);
     try {
-      await api(`contacts?id=eq.${contactId}`, {
-        method: "PATCH",
-        token: session.access_token,
-        prefer: "",
-        body: JSON.stringify({ touch_log: updatedLog }),
-      });
+      await api(`contacts?id=eq.${contactId}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify({ touch_log: updatedLog }) });
       setContacts((prev) => prev.map((c) => c.id === contactId ? { ...c, touch_log: updatedLog } : c));
     } catch {}
-    setConfirmDeleteTouch(null);
-    showToast("Note removed");
+    setConfirmDeleteTouch(null); showToast("Note removed");
   };
 
   const exportCSV = () => {
@@ -278,9 +303,9 @@ export default function DeanCRM() {
     acc[letter].push({ ...c, _origIdx: contacts.findIndex((x) => x.id === c.id) });
     return acc;
   }, {});
-
   const contact = selected !== null ? contacts[selected] : null;
 
+  // ── SPLASH ──
   if (checkingSession) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -291,6 +316,7 @@ export default function DeanCRM() {
     </div>
   );
 
+  // ── AUTH ──
   if (!session) return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -298,33 +324,70 @@ export default function DeanCRM() {
         <div style={styles.authLogo}>D</div>
         <h1 style={styles.authTitle}>Dean CRM</h1>
         <p style={styles.authSub}>Your contacts, always in sync</p>
-        {authStep === "login" ? (
+
+        {authStep === "email" ? (
           <div style={styles.authCard}>
-            <p style={styles.authCardTitle}>Sign in with Magic Link</p>
-            <p style={styles.authCardSub}>Enter your email and we'll send you a tap-to-login link — no password needed.</p>
+            <p style={styles.authCardTitle}>Sign In</p>
+            <p style={styles.authCardSub}>Enter your email and we'll send you a 6-digit code.</p>
             <input
               style={styles.authInput} type="email" placeholder="your@email.com"
-              value={email} onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
+              value={email} onChange={(e) => { setEmail(e.target.value); setAuthError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && sendOTP()}
               autoCapitalize="none" autoCorrect="off"
             />
             {authError && <div style={styles.authError}>{authError}</div>}
-            <button style={styles.authBtn} onClick={sendMagicLink} disabled={authLoading}>
-              {authLoading ? "Sending…" : "Send Magic Link ✉️"}
+            <button style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1 }} onClick={sendOTP} disabled={authLoading}>
+              {authLoading ? "Sending…" : "Send Code →"}
             </button>
           </div>
         ) : (
           <div style={styles.authCard}>
-            <div style={styles.sentIcon}>✉️</div>
-            <p style={styles.authCardTitle}>Check your email!</p>
-            <p style={styles.authCardSub}>We sent a login link to <strong>{email}</strong>. Tap it to sign in — it expires in 1 hour.</p>
-            <button style={styles.authBtnSecondary} onClick={() => { setAuthStep("login"); setAuthError(""); }}>Use a different email</button>
+            <p style={styles.authCardTitle}>Enter your code</p>
+            <p style={styles.authCardSub}>We sent a 6-digit code to <strong>{email}</strong></p>
+
+            {/* 6-digit code boxes */}
+            <div style={styles.codeRow} onPaste={handleCodePaste}>
+              {code.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={codeRefs[i]}
+                  style={{ ...styles.codeBox, borderColor: digit ? "#1a6fc4" : authError ? "#c0392b" : "#cdd8ea" }}
+                  type="text" inputMode="numeric" maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleCodeInput(i, e.target.value)}
+                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                  onFocus={(e) => e.target.select()}
+                />
+              ))}
+            </div>
+
+            {authError && <div style={{ ...styles.authError, marginTop: 8 }}>{authError}</div>}
+
+            <button
+              style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1, marginTop: 16 }}
+              onClick={verifyOTP} disabled={authLoading}>
+              {authLoading ? "Verifying…" : "Verify Code ✓"}
+            </button>
+
+            <div style={styles.resendRow}>
+              {resendCountdown > 0 ? (
+                <span style={styles.resendTimer}>Resend in {resendCountdown}s</span>
+              ) : (
+                <button style={styles.resendBtn} onClick={() => { setCode(["","","","","",""]); sendOTP(); }}>
+                  Resend code
+                </button>
+              )}
+              <button style={styles.changeEmailBtn} onClick={() => { setAuthStep("email"); setAuthError(""); setCode(["","","","","",""]); }}>
+                Change email
+              </button>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 
+  // ── MAIN APP ──
   return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -359,7 +422,7 @@ export default function DeanCRM() {
 
       <div style={styles.header}>
         {view !== "list" ? (
-          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView(view === "profile" ? "list" : "profile"); }}>
+          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView("list"); }} title="Back to contacts">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
         ) : (
@@ -378,6 +441,11 @@ export default function DeanCRM() {
         {view === "profile" && (
           <button style={styles.exportBtn} onClick={() => { setEditEntry({ ...contact }); setView("edit"); }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        )}
+        {(view === "profile" || view === "add" || view === "edit") && (
+          <button style={styles.homeBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView("list"); }} title="All contacts">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
         )}
       </div>
@@ -412,9 +480,7 @@ export default function DeanCRM() {
                         <div style={styles.rowName}>{c.name}</div>
                         <div style={styles.rowSub}>{c.company || c.email || c.phone || "—"}</div>
                       </div>
-                      {(c.touch_log||[]).length > 0 && (
-                        <span style={styles.touchBadge}>{c.touch_log.length}</span>
-                      )}
+                      {(c.touch_log||[]).length > 0 && <span style={styles.touchBadge}>{c.touch_log.length}</span>}
                       <svg style={styles.chevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
                     </div>
                   ))}
@@ -473,10 +539,10 @@ export default function DeanCRM() {
                   </div>
                 </div>
               )}
-              {(contact.touch_log || []).length === 0 && !addingNote ? (
+              {(contact.touch_log||[]).length === 0 && !addingNote ? (
                 <div style={styles.touchEmpty}>No touch log entries yet. Tap "+ Add Note" to record an interaction.</div>
               ) : (
-                (contact.touch_log || []).map((touch, i) => (
+                (contact.touch_log||[]).map((touch, i) => (
                   <div key={touch.id} style={{ ...styles.touchEntry, borderTop: i === 0 ? "none" : "1px solid #d6e2f0" }}>
                     <div style={styles.touchEntryHeader}>
                       <span style={styles.touchEntryDate}>{formatDateTime(touch.createdAt)}</span>
@@ -514,10 +580,10 @@ export default function DeanCRM() {
                   inputMode={f.key === "phone" ? "numeric" : undefined}
                   onChange={(e) => {
                     if (f.key === "phone") {
-                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      const digits = e.target.value.replace(/\D/g,"").slice(0,10);
                       let fmt = digits;
-                      if (digits.length > 6) fmt = digits.slice(0,3) + "-" + digits.slice(3,6) + "-" + digits.slice(6);
-                      else if (digits.length > 3) fmt = digits.slice(0,3) + "-" + digits.slice(3);
+                      if (digits.length > 6) fmt = digits.slice(0,3)+"-"+digits.slice(3,6)+"-"+digits.slice(6);
+                      else if (digits.length > 3) fmt = digits.slice(0,3)+"-"+digits.slice(3);
                       setEditEntry({ ...editEntry, phone: fmt });
                     } else setEditEntry({ ...editEntry, [f.key]: e.target.value });
                   }}
@@ -527,7 +593,7 @@ export default function DeanCRM() {
             ))}
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Notes</label>
-              <textarea style={styles.formTextarea} placeholder="General notes about this contact…" value={editEntry.notes || ""} onChange={(e) => setEditEntry({ ...editEntry, notes: e.target.value })} rows={4}/>
+              <textarea style={styles.formTextarea} placeholder="General notes about this contact…" value={editEntry.notes||""} onChange={(e) => setEditEntry({ ...editEntry, notes: e.target.value })} rows={4}/>
             </div>
             <button style={styles.btnPrimary} onClick={saveEntry}>{view === "add" ? "Add Contact" : "Save Changes"}</button>
             <button style={styles.btnSecondaryFull} onClick={() => setView(view === "add" ? "list" : "profile")}>Cancel</button>
@@ -540,92 +606,98 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell: { width: "100%", height: "100dvh", display: "flex", flexDirection: "column", fontFamily: "'Georgia', 'Times New Roman', serif", background: "#eef2f8", color: "#0d1b2e", position: "relative", overflow: "hidden", paddingBottom: "env(safe-area-inset-bottom)" },
-  header: { background: "#0d1b2e", color: "#eef2f8", paddingTop: "calc(14px + env(safe-area-inset-top))", paddingBottom: "14px", paddingLeft: "max(16px, env(safe-area-inset-left))", paddingRight: "max(16px, env(safe-area-inset-right))", display: "flex", alignItems: "center", gap: 10, minHeight: "calc(56px + env(safe-area-inset-top))", flexShrink: 0, position: "relative", borderBottom: "2px solid #1a6fc4" },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: 700, letterSpacing: "0.04em", fontFamily: "'Georgia', serif" },
-  backBtn: { background: "none", border: "none", color: "#eef2f8", cursor: "pointer", padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center" },
-  signOutBtn: { background: "none", border: "none", color: "#eef2f8", cursor: "pointer", padding: "6px 8px", borderRadius: 6, display: "flex", alignItems: "center", opacity: 0.75 },
-  exportBtn: { background: "none", border: "none", color: "#eef2f8", cursor: "pointer", padding: "6px 8px", borderRadius: 6, display: "flex", alignItems: "center", opacity: 0.85 },
-  body: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" },
-  searchWrap: { margin: "12px 14px 4px", background: "#fff", borderRadius: 12, display: "flex", alignItems: "center", padding: "8px 12px", gap: 8, border: "1.5px solid #cdd8ea", flexShrink: 0 },
-  searchIcon: { flexShrink: 0, color: "#888" },
-  searchInput: { flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", fontFamily: "inherit", color: "#0d1b2e" },
-  clearSearch: { background: "none", border: "none", cursor: "pointer", color: "#999", fontSize: 14, padding: 2 },
-  listScroll: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" },
-  sectionHeader: { padding: "10px 16px 4px", fontSize: 12, fontWeight: 700, color: "#1a6fc4", letterSpacing: "0.12em", textTransform: "uppercase", background: "#eef2f8" },
-  contactRow: { display: "flex", alignItems: "center", padding: "10px 16px", gap: 12, cursor: "pointer", borderBottom: "1px solid #d6e2f0", background: "#fff", transition: "background 0.12s" },
-  avatar: { width: 42, height: 42, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", flexShrink: 0, letterSpacing: "0.04em" },
-  rowInfo: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 16, fontWeight: 600, color: "#0d1b2e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-  rowSub: { fontSize: 13, color: "#888", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-  touchBadge: { background: "#1a6fc4", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 10, padding: "2px 7px", marginRight: 4, fontFamily: "sans-serif" },
-  chevron: { color: "#ccc", flexShrink: 0 },
-  fab: { position: "absolute", bottom: "calc(24px + env(safe-area-inset-bottom))", right: "max(20px, env(safe-area-inset-right))", width: 58, height: 58, borderRadius: "50%", background: "#1a6fc4", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(26,111,196,0.45)", transition: "transform 0.15s, box-shadow 0.15s", zIndex: 10 },
-  empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, textAlign: "center" },
-  emptyIcon: { fontSize: 52, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: 600, color: "#444", marginBottom: 6 },
-  emptySub: { fontSize: 14, color: "#999" },
-  profileScroll: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 0 20px" },
-  profileHero: { background: "#0d1b2e", padding: "32px 20px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, borderBottom: "2px solid #1a6fc4" },
-  avatarLg: { width: 78, height: 78, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "#fff", letterSpacing: "0.04em" },
-  profileName: { fontSize: 22, fontWeight: 700, color: "#eef2f8", margin: 0, textAlign: "center" },
-  profileCompany: { fontSize: 14, color: "#8aafd4", margin: 0, textAlign: "center" },
-  card: { background: "#fff", margin: "14px 14px 0", borderRadius: 14, padding: "4px 0", border: "1px solid #d6e2f0", overflow: "hidden" },
-  fieldRow: { display: "flex", alignItems: "flex-start", padding: "12px 16px", gap: 12, borderBottom: "1px solid #e8f0fa" },
-  fieldIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
-  fieldBody: { flex: 1, minWidth: 0 },
-  fieldLabel: { fontSize: 11, color: "#1a6fc4", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 },
-  fieldValue: { fontSize: 15, color: "#0d1b2e", textDecoration: "none", wordBreak: "break-all" },
-  notesLabel: { fontSize: 12, color: "#1a6fc4", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 16px 4px" },
-  notesText: { fontSize: 14, color: "#444", padding: "0 16px 14px", lineHeight: 1.7, whiteSpace: "pre-wrap" },
-  touchSection: { margin: "14px 14px 0", background: "#fff", borderRadius: 14, border: "1px solid #d6e2f0", overflow: "hidden" },
-  touchHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #d6e2f0", background: "#f4f8ff" },
-  touchHeaderTitle: { fontSize: 13, fontWeight: 700, color: "#1a6fc4", letterSpacing: "0.08em", textTransform: "uppercase" },
-  addNoteBtn: { background: "#1a6fc4", color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" },
-  addNotePanel: { padding: "14px 16px", borderBottom: "1px solid #d6e2f0", background: "#f0f6ff" },
-  addNoteDate: { fontSize: 11, color: "#1a6fc4", fontWeight: 600, marginBottom: 8, letterSpacing: "0.04em" },
-  addNoteTextarea: { width: "100%", padding: "10px 12px", border: "1.5px solid #cdd8ea", borderRadius: 10, fontSize: 14, color: "#0d1b2e", fontFamily: "inherit", outline: "none", boxSizing: "border-box", resize: "vertical", lineHeight: 1.6, background: "#fff" },
-  saveNoteBtn: { flex: 1, padding: "10px", background: "#1a6fc4", border: "none", color: "#fff", borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" },
-  cancelNoteBtn: { flex: 1, padding: "10px", background: "transparent", border: "1.5px solid #b0c4de", color: "#666", borderRadius: 9, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  touchEmpty: { padding: "16px", fontSize: 13, color: "#999", textAlign: "center", lineHeight: 1.6 },
-  touchEntry: { padding: "12px 16px" },
-  touchEntryHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
-  touchEntryDate: { fontSize: 11, color: "#1a6fc4", fontWeight: 600, letterSpacing: "0.03em" },
-  touchDeleteBtn: { background: "none", border: "none", cursor: "pointer", color: "#bbb", padding: "2px 4px", display: "flex", alignItems: "center", borderRadius: 4 },
-  touchEntryText: { fontSize: 14, color: "#1c2a3a", lineHeight: 1.65, whiteSpace: "pre-wrap" },
-  btnDangerFull: { display: "block", width: "calc(100% - 28px)", margin: "14px 14px 0", padding: "13px", background: "transparent", border: "1.5px solid #c0392b", color: "#c0392b", borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  formScroll: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "16px 14px" },
-  formGroup: { marginBottom: 14 },
-  formLabel: { display: "block", fontSize: 12, color: "#1a6fc4", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 5 },
-  required: { color: "#c0392b" },
-  formInput: { width: "100%", padding: "12px 14px", background: "#fff", border: "1.5px solid #cdd8ea", borderRadius: 10, fontSize: 15, color: "#0d1b2e", fontFamily: "inherit", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s" },
-  formTextarea: { width: "100%", padding: "12px 14px", background: "#fff", border: "1.5px solid #cdd8ea", borderRadius: 10, fontSize: 15, color: "#0d1b2e", fontFamily: "inherit", outline: "none", boxSizing: "border-box", resize: "vertical", lineHeight: 1.6 },
-  btnPrimary: { display: "block", width: "100%", padding: "14px", background: "#1a6fc4", border: "none", color: "#fff", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 10, letterSpacing: "0.02em" },
-  btnSecondaryFull: { display: "block", width: "100%", padding: "13px", background: "transparent", border: "1.5px solid #b0c4de", color: "#666", borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  btnSecondary: { flex: 1, padding: "12px", background: "transparent", border: "1.5px solid #b0c4de", color: "#555", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  btnDanger: { flex: 1, padding: "12px", background: "#c0392b", border: "none", color: "#fff", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" },
-  toast: { position: "absolute", bottom: "calc(94px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)", background: "#0d1b2e", color: "#eef2f8", padding: "10px 20px", borderRadius: 30, fontSize: 13, fontWeight: 600, zIndex: 100, whiteSpace: "nowrap", boxShadow: "0 4px 20px rgba(0,0,0,0.3)", letterSpacing: "0.03em" },
-  overlay: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 30 },
-  modal: { background: "#fff", borderRadius: 16, padding: "24px 22px", width: "100%", maxWidth: 320, textAlign: "center" },
-  modalTitle: { fontSize: 18, fontWeight: 700, color: "#0d1b2e", margin: "0 0 6px" },
-  modalSub: { fontSize: 14, color: "#888", margin: 0 },
-  phoneHint: { fontSize: 11, color: "#1560e8", marginTop: 4, textAlign: "right", letterSpacing: "0.04em" },
-  splashScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0d1b2e", gap: 16 },
-  splashLogo: { width: 72, height: 72, borderRadius: 20, background: "#1a6fc4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif" },
-  splashTitle: { fontSize: 24, fontWeight: 700, color: "#eef2f8", fontFamily: "'Georgia', serif", letterSpacing: "0.04em" },
-  splashSpinner: { width: 28, height: 28, border: "3px solid rgba(255,255,255,0.2)", borderTop: "3px solid #1a6fc4", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-  authScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0d1b2e", padding: "30px 24px", paddingTop: "calc(30px + env(safe-area-inset-top))" },
-  authLogo: { width: 68, height: 68, borderRadius: 18, background: "#1a6fc4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, fontWeight: 700, color: "#fff", fontFamily: "'Georgia', serif", marginBottom: 12 },
-  authTitle: { fontSize: 26, fontWeight: 700, color: "#eef2f8", margin: "0 0 6px", fontFamily: "'Georgia', serif" },
-  authSub: { fontSize: 14, color: "#8aafd4", margin: "0 0 32px", textAlign: "center" },
-  authCard: { background: "#fff", borderRadius: 18, padding: "24px 20px", width: "100%", maxWidth: 360 },
-  authCardTitle: { fontSize: 17, fontWeight: 700, color: "#0d1b2e", margin: "0 0 8px", textAlign: "center" },
-  authCardSub: { fontSize: 13, color: "#666", margin: "0 0 18px", textAlign: "center", lineHeight: 1.6 },
-  authInput: { width: "100%", padding: "13px 14px", border: "1.5px solid #cdd8ea", borderRadius: 10, fontSize: 15, color: "#0d1b2e", fontFamily: "inherit", outline: "none", boxSizing: "border-box", marginBottom: 10 },
-  authError: { fontSize: 13, color: "#c0392b", marginBottom: 10, textAlign: "center" },
-  authBtn: { display: "block", width: "100%", padding: "14px", background: "#1a6fc4", border: "none", color: "#fff", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" },
-  authBtnSecondary: { display: "block", width: "100%", padding: "13px", background: "transparent", border: "1.5px solid #cdd8ea", color: "#666", borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", marginTop: 12 },
-  sentIcon: { fontSize: 42, textAlign: "center", marginBottom: 10 },
+  shell: { width:"100%", height:"100dvh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#eef2f8", color:"#0d1b2e", position:"relative", overflow:"hidden", paddingBottom:"env(safe-area-inset-bottom)" },
+  header: { background:"#0d1b2e", color:"#eef2f8", paddingTop:"calc(14px + env(safe-area-inset-top))", paddingBottom:"14px", paddingLeft:"max(16px, env(safe-area-inset-left))", paddingRight:"max(16px, env(safe-area-inset-right))", display:"flex", alignItems:"center", gap:10, minHeight:"calc(56px + env(safe-area-inset-top))", flexShrink:0, borderBottom:"2px solid #1a6fc4" },
+  headerTitle: { flex:1, fontSize:20, fontWeight:700, letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
+  backBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"4px 6px", borderRadius:6, display:"flex", alignItems:"center" },
+  signOutBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.75 },
+  exportBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.85 },
+  body: { flex:1, display:"flex", flexDirection:"column", overflow:"hidden", position:"relative" },
+  searchWrap: { margin:"12px 14px 4px", background:"#fff", borderRadius:12, display:"flex", alignItems:"center", padding:"8px 12px", gap:8, border:"1.5px solid #cdd8ea", flexShrink:0 },
+  searchIcon: { flexShrink:0, color:"#888" },
+  searchInput: { flex:1, border:"none", outline:"none", fontSize:15, background:"transparent", fontFamily:"inherit", color:"#0d1b2e" },
+  clearSearch: { background:"none", border:"none", cursor:"pointer", color:"#999", fontSize:14, padding:2 },
+  listScroll: { flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" },
+  sectionHeader: { padding:"10px 16px 4px", fontSize:12, fontWeight:700, color:"#1a6fc4", letterSpacing:"0.12em", textTransform:"uppercase", background:"#eef2f8" },
+  contactRow: { display:"flex", alignItems:"center", padding:"10px 16px", gap:12, cursor:"pointer", borderBottom:"1px solid #d6e2f0", background:"#fff", transition:"background 0.12s" },
+  avatar: { width:42, height:42, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700, color:"#fff", flexShrink:0, letterSpacing:"0.04em" },
+  rowInfo: { flex:1, minWidth:0 },
+  rowName: { fontSize:16, fontWeight:600, color:"#0d1b2e", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" },
+  rowSub: { fontSize:13, color:"#888", marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" },
+  touchBadge: { background:"#1a6fc4", color:"#fff", fontSize:11, fontWeight:700, borderRadius:10, padding:"2px 7px", marginRight:4, fontFamily:"sans-serif" },
+  chevron: { color:"#ccc", flexShrink:0 },
+  fab: { position:"absolute", bottom:"calc(24px + env(safe-area-inset-bottom))", right:"max(20px, env(safe-area-inset-right))", width:58, height:58, borderRadius:"50%", background:"#1a6fc4", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 20px rgba(26,111,196,0.45)", transition:"transform 0.15s, box-shadow 0.15s", zIndex:10 },
+  empty: { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:40, textAlign:"center" },
+  emptyIcon: { fontSize:52, marginBottom:16 },
+  emptyTitle: { fontSize:18, fontWeight:600, color:"#444", marginBottom:6 },
+  emptySub: { fontSize:14, color:"#999" },
+  profileScroll: { flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"0 0 20px" },
+  profileHero: { background:"#0d1b2e", padding:"32px 20px 28px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, borderBottom:"2px solid #1a6fc4" },
+  avatarLg: { width:78, height:78, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, fontWeight:700, color:"#fff", letterSpacing:"0.04em" },
+  profileName: { fontSize:22, fontWeight:700, color:"#eef2f8", margin:0, textAlign:"center" },
+  profileCompany: { fontSize:14, color:"#8aafd4", margin:0, textAlign:"center" },
+  card: { background:"#fff", margin:"14px 14px 0", borderRadius:14, padding:"4px 0", border:"1px solid #d6e2f0", overflow:"hidden" },
+  fieldRow: { display:"flex", alignItems:"flex-start", padding:"12px 16px", gap:12, borderBottom:"1px solid #e8f0fa" },
+  fieldIcon: { fontSize:18, flexShrink:0, marginTop:1 },
+  fieldBody: { flex:1, minWidth:0 },
+  fieldLabel: { fontSize:11, color:"#1a6fc4", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:2 },
+  fieldValue: { fontSize:15, color:"#0d1b2e", textDecoration:"none", wordBreak:"break-all" },
+  notesLabel: { fontSize:12, color:"#1a6fc4", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", padding:"12px 16px 4px" },
+  notesText: { fontSize:14, color:"#444", padding:"0 16px 14px", lineHeight:1.7, whiteSpace:"pre-wrap" },
+  touchSection: { margin:"14px 14px 0", background:"#fff", borderRadius:14, border:"1px solid #d6e2f0", overflow:"hidden" },
+  touchHeader: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", borderBottom:"1px solid #d6e2f0", background:"#f4f8ff" },
+  touchHeaderTitle: { fontSize:13, fontWeight:700, color:"#1a6fc4", letterSpacing:"0.08em", textTransform:"uppercase" },
+  addNoteBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:8, padding:"6px 12px", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
+  addNotePanel: { padding:"14px 16px", borderBottom:"1px solid #d6e2f0", background:"#f0f6ff" },
+  addNoteDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, marginBottom:8, letterSpacing:"0.04em" },
+  addNoteTextarea: { width:"100%", padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"vertical", lineHeight:1.6, background:"#fff" },
+  saveNoteBtn: { flex:1, padding:"10px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:9, fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
+  cancelNoteBtn: { flex:1, padding:"10px", background:"transparent", border:"1.5px solid #b0c4de", color:"#666", borderRadius:9, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  touchEmpty: { padding:"16px", fontSize:13, color:"#999", textAlign:"center", lineHeight:1.6 },
+  touchEntry: { padding:"12px 16px" },
+  touchEntryHeader: { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 },
+  touchEntryDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, letterSpacing:"0.03em" },
+  touchDeleteBtn: { background:"none", border:"none", cursor:"pointer", color:"#bbb", padding:"2px 4px", display:"flex", alignItems:"center", borderRadius:4 },
+  touchEntryText: { fontSize:14, color:"#1c2a3a", lineHeight:1.65, whiteSpace:"pre-wrap" },
+  btnDangerFull: { display:"block", width:"calc(100% - 28px)", margin:"14px 14px 0", padding:"13px", background:"transparent", border:"1.5px solid #c0392b", color:"#c0392b", borderRadius:12, fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  formScroll: { flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"16px 14px" },
+  formGroup: { marginBottom:14 },
+  formLabel: { display:"block", fontSize:12, color:"#1a6fc4", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:5 },
+  required: { color:"#c0392b" },
+  formInput: { width:"100%", padding:"12px 14px", background:"#fff", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", transition:"border-color 0.15s" },
+  formTextarea: { width:"100%", padding:"12px 14px", background:"#fff", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"vertical", lineHeight:1.6 },
+  btnPrimary: { display:"block", width:"100%", padding:"14px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:12, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"inherit", marginBottom:10 },
+  btnSecondaryFull: { display:"block", width:"100%", padding:"13px", background:"transparent", border:"1.5px solid #b0c4de", color:"#666", borderRadius:12, fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  btnSecondary: { flex:1, padding:"12px", background:"transparent", border:"1.5px solid #b0c4de", color:"#555", borderRadius:10, fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  btnDanger: { flex:1, padding:"12px", background:"#c0392b", border:"none", color:"#fff", borderRadius:10, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
+  toast: { position:"absolute", bottom:"calc(94px + env(safe-area-inset-bottom))", left:"50%", transform:"translateX(-50%)", background:"#0d1b2e", color:"#eef2f8", padding:"10px 20px", borderRadius:30, fontSize:13, fontWeight:600, zIndex:100, whiteSpace:"nowrap", boxShadow:"0 4px 20px rgba(0,0,0,0.3)" },
+  overlay: { position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:30 },
+  modal: { background:"#fff", borderRadius:16, padding:"24px 22px", width:"100%", maxWidth:320, textAlign:"center" },
+  modalTitle: { fontSize:18, fontWeight:700, color:"#0d1b2e", margin:"0 0 6px" },
+  modalSub: { fontSize:14, color:"#888", margin:0 },
+  phoneHint: { fontSize:11, color:"#1560e8", marginTop:4, textAlign:"right" },
+  splashScreen: { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"#0d1b2e", gap:16 },
+  splashLogo: { width:72, height:72, borderRadius:20, background:"#1a6fc4", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, fontWeight:700, color:"#fff", fontFamily:"'Georgia',serif" },
+  splashTitle: { fontSize:24, fontWeight:700, color:"#eef2f8", fontFamily:"'Georgia',serif", letterSpacing:"0.04em" },
+  splashSpinner: { width:28, height:28, border:"3px solid rgba(255,255,255,0.2)", borderTop:"3px solid #1a6fc4", borderRadius:"50%", animation:"spin 0.8s linear infinite" },
+  authScreen: { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"#0d1b2e", padding:"30px 24px", paddingTop:"calc(30px + env(safe-area-inset-top))" },
+  authLogo: { width:68, height:68, borderRadius:18, background:"#1a6fc4", display:"flex", alignItems:"center", justifyContent:"center", fontSize:34, fontWeight:700, color:"#fff", fontFamily:"'Georgia',serif", marginBottom:12 },
+  authTitle: { fontSize:26, fontWeight:700, color:"#eef2f8", margin:"0 0 6px", fontFamily:"'Georgia',serif" },
+  authSub: { fontSize:14, color:"#8aafd4", margin:"0 0 32px", textAlign:"center" },
+  authCard: { background:"#fff", borderRadius:18, padding:"24px 20px", width:"100%", maxWidth:360 },
+  authCardTitle: { fontSize:17, fontWeight:700, color:"#0d1b2e", margin:"0 0 8px", textAlign:"center" },
+  authCardSub: { fontSize:13, color:"#666", margin:"0 0 18px", textAlign:"center", lineHeight:1.6 },
+  authInput: { width:"100%", padding:"13px 14px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", marginBottom:10 },
+  authError: { fontSize:13, color:"#c0392b", textAlign:"center" },
+  authBtn: { display:"block", width:"100%", padding:"14px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:12, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
+  authBtnSecondary: { display:"block", width:"100%", padding:"13px", background:"transparent", border:"1.5px solid #cdd8ea", color:"#666", borderRadius:12, fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit", marginTop:12 },
+  codeRow: { display:"flex", gap:8, justifyContent:"center", margin:"4px 0 0" },
+  codeBox: { width:42, height:52, textAlign:"center", fontSize:22, fontWeight:700, color:"#0d1b2e", border:"2px solid #cdd8ea", borderRadius:10, outline:"none", fontFamily:"'Georgia',serif", background:"#f8faff", transition:"border-color 0.15s" },
+  homeBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.85, marginLeft:2 },
+  resendRow: { display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:14 },
+  resendTimer: { fontSize:12, color:"#999" },
+  resendBtn: { fontSize:13, color:"#1a6fc4", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:600, padding:0 },
+  changeEmailBtn: { fontSize:13, color:"#888", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", padding:0 },
 };
 
 const css = `
