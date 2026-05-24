@@ -57,7 +57,7 @@ export default function DeanCRM() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
-
+  const payload = { ...fields, touch_log: touch_log || [], user_id: session.user?.id };
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("list");
