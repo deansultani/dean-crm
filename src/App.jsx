@@ -54,9 +54,28 @@ const avatarColor = (name) => {
   return colors[h];
 };
 
+// Parse MM/DD/YYYY → "YYYY-MM-DD" for comparison, or "" if invalid
+const parseNextTouch = (val) => {
+  if (!val) return "";
+  const m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return "";
+  const [, mm, dd, yyyy] = m;
+  return `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+};
+
+const nextTouchStatus = (val) => {
+  const iso = parseNextTouch(val);
+  if (!iso) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  if (iso < today) return "overdue";
+  if (iso === today) return "today";
+  return "upcoming";
+};
+
 const blankContact = () => ({
   name: "", company: "", phone: "", email: "", notes: "",
   date: new Date().toISOString().slice(0, 10),
+  next_touch: "",
   touch_log: []
 });
 
@@ -333,6 +352,7 @@ export default function DeanCRM() {
       "Phone": c.phone || "",
       "Email": c.email || "",
       "Date Added": c.date ? formatDate(c.date) : "",
+      "Next Touch": c.next_touch || "",
       "Touch Count": (c.touch_log || []).length,
       "Notes": (c.notes || "").replace(/\n/g, " "),
     }));
@@ -344,6 +364,7 @@ export default function DeanCRM() {
       { wch: 16 }, // Phone
       { wch: 28 }, // Email
       { wch: 16 }, // Date Added
+      { wch: 14 }, // Next Touch
       { wch: 13 }, // Touch Count
       { wch: 40 }, // Notes
     ];
@@ -606,6 +627,16 @@ export default function DeanCRM() {
                       <div style={styles.rowInfo}>
                         <div style={styles.rowName}>{c.name}</div>
                         <div style={styles.rowSub}>{c.company || c.email || c.phone || "—"}</div>
+                        {c.next_touch && (() => {
+                          const status = nextTouchStatus(c.next_touch);
+                          const chipStyle = status === "overdue"
+                            ? styles.touchChipOverdue
+                            : status === "today"
+                            ? styles.touchChipToday
+                            : styles.touchChipUpcoming;
+                          const label = status === "overdue" ? "⚠ Overdue · " : status === "today" ? "📌 Today · " : "🗓 ";
+                          return <div style={chipStyle}>{label}{c.next_touch}</div>;
+                        })()}
                       </div>
                       {(c.touch_log||[]).length > 0 && <span style={styles.touchBadge}>{c.touch_log.length}</span>}
                       <svg style={styles.chevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
@@ -634,7 +665,8 @@ export default function DeanCRM() {
               {[
                 { icon: "📞", label: "Phone", val: contact.phone, href: `tel:${contact.phone}` },
                 { icon: "✉️", label: "Email", val: contact.email, href: `mailto:${contact.email}` },
-                { icon: "📅", label: "Date", val: formatDate(contact.date) },
+                { icon: "📅", label: "Date Added", val: formatDate(contact.date) },
+                { icon: "🗓", label: "Next Touch", val: contact.next_touch || "" },
               ].filter(f => f.val).map((f) => (
                 <div key={f.label} style={styles.fieldRow}>
                   <span style={styles.fieldIcon}>{f.icon}</span>
@@ -696,7 +728,7 @@ export default function DeanCRM() {
               { key: "company", label: "Company", placeholder: "Acme Corp", type: "text" },
               { key: "phone", label: "Phone", placeholder: "916-213-4051", type: "tel" },
               { key: "email", label: "Email", placeholder: "jane@acme.com", type: "email" },
-              { key: "date", label: "Date", placeholder: "", type: "date" },
+              { key: "date", label: "Date Added", placeholder: "", type: "date" },
             ].map((f) => (
               <div key={f.key} style={styles.formGroup}>
                 <label style={styles.formLabel}>{f.label}{f.required && <span style={styles.required}> *</span>}</label>
@@ -718,6 +750,32 @@ export default function DeanCRM() {
                 {f.key === "phone" && <div style={styles.phoneHint}>{(editEntry.phone||"").replace(/\D/g,"").length}/10 digits</div>}
               </div>
             ))}
+            {/* Next Touch Date — free-text MM/DD/YYYY */}
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Next Touch Date</label>
+              <input
+                style={styles.formInput}
+                type="text"
+                placeholder="MM/DD/YYYY"
+                value={editEntry.next_touch || ""}
+                maxLength={10}
+                inputMode="numeric"
+                onChange={(e) => {
+                  // Auto-format as MM/DD/YYYY while typing
+                  const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  let fmt = raw;
+                  if (raw.length > 4) fmt = raw.slice(0,2) + "/" + raw.slice(2,4) + "/" + raw.slice(4);
+                  else if (raw.length > 2) fmt = raw.slice(0,2) + "/" + raw.slice(2);
+                  setEditEntry({ ...editEntry, next_touch: fmt });
+                }}
+              />
+              <div style={styles.phoneHint}>
+                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
+                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "today" && <span style={{color:"#e67e22"}}>📌 Today</span>}
+                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
+                {!editEntry.next_touch && <span style={{color:"#aaa"}}>optional</span>}
+              </div>
+            </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Notes</label>
               <textarea style={styles.formTextarea} placeholder="General notes about this contact…" value={editEntry.notes||""} onChange={(e) => setEditEntry({ ...editEntry, notes: e.target.value })} rows={4}/>
@@ -758,6 +816,9 @@ const styles = {
   rowName: { fontSize:16, fontWeight:600, color:"#0d1b2e", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" },
   rowSub: { fontSize:13, color:"#888", marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" },
   touchBadge: { background:"#1a6fc4", color:"#fff", fontSize:11, fontWeight:700, borderRadius:10, padding:"2px 7px", marginRight:4, fontFamily:"sans-serif" },
+  touchChipOverdue: { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#c0392b", background:"#fdecea", borderRadius:6, padding:"2px 7px" },
+  touchChipToday: { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#b7580a", background:"#fff3e0", borderRadius:6, padding:"2px 7px" },
+  touchChipUpcoming: { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#1a6fc4", background:"#e8f0fc", borderRadius:6, padding:"2px 7px" },
   chevron: { color:"#ccc", flexShrink:0 },
   fab: { position:"absolute", bottom:"calc(24px + env(safe-area-inset-bottom))", right:"max(20px, env(safe-area-inset-right))", width:58, height:58, borderRadius:"50%", background:"#1a6fc4", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 20px rgba(26,111,196,0.45)", transition:"transform 0.15s, box-shadow 0.15s", zIndex:10 },
   empty: { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:40, textAlign:"center" },
