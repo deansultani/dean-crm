@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
 
 const SUPABASE_URL = "https://ecjinukgzizwysiezoyz.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjamludWtneml6d3lzaWV6b3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTU0NTksImV4cCI6MjA5NTEzMTQ1OX0._T6LNKlodbxYhb5IaIubn9oac3ToQgCjp3UQcmA1-8U";
@@ -62,7 +63,7 @@ const blankContact = () => ({
 export default function DeanCRM() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [authStep, setAuthStep] = useState("email"); // email | code
+  const [authStep, setAuthStep] = useState("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState(["","","","","",""]);
   const [authLoading, setAuthLoading] = useState(false);
@@ -82,6 +83,7 @@ export default function DeanCRM() {
   const [confirmDeleteTouch, setConfirmDeleteTouch] = useState(null);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   useEffect(() => {
     const metas = [
@@ -107,9 +109,30 @@ export default function DeanCRM() {
           if (userData.id) {
             setSession({ ...stored, user: userData });
             setUserId(userData.id);
-          } else {
-            localStorage.removeItem("dean_crm_session");
+            setCheckingSession(false);
+            return;
           }
+          if (stored.refresh_token) {
+            const refreshed = await authFetch("token?grant_type=refresh_token", {
+              refresh_token: stored.refresh_token,
+            });
+            if (refreshed.access_token) {
+              const userData2 = await getUser(refreshed.access_token);
+              if (userData2.id) {
+                const newSess = {
+                  access_token: refreshed.access_token,
+                  refresh_token: refreshed.refresh_token || stored.refresh_token,
+                  user: userData2,
+                };
+                setSession(newSess);
+                setUserId(userData2.id);
+                localStorage.setItem("dean_crm_session", JSON.stringify(newSess));
+                setCheckingSession(false);
+                return;
+              }
+            }
+          }
+          localStorage.removeItem("dean_crm_session");
         }
       } catch {}
       setCheckingSession(false);
@@ -128,12 +151,19 @@ export default function DeanCRM() {
     }
   }, [resendCountdown]);
 
-  // Auto-focus first code box when entering code step
   useEffect(() => {
     if (authStep === "code") {
       setTimeout(() => codeRefs[0].current?.focus(), 100);
     }
   }, [authStep]);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handler = () => setExportMenuOpen(false);
+    setTimeout(() => document.addEventListener("click", handler), 0);
+    return () => document.removeEventListener("click", handler);
+  }, [exportMenuOpen]);
 
   const fetchContacts = async () => {
     setLoading(true);
@@ -152,7 +182,6 @@ export default function DeanCRM() {
   const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    // Pass empty emailRedirectTo so Supabase sends a code instead of a magic link
     const res = await authFetch("otp", {
       email: email.trim(),
       create_user: true,
@@ -197,7 +226,6 @@ export default function DeanCRM() {
     setAuthError("");
     if (digit && i < 5) codeRefs[i + 1].current?.focus();
     if (next.every(d => d !== "")) {
-      // Auto-verify: pass code array directly to avoid stale state
       setTimeout(() => verifyOTPWithCode(next), 80);
     }
   };
@@ -215,7 +243,6 @@ export default function DeanCRM() {
     if (e.key === "ArrowRight" && i < 5) codeRefs[i + 1].current?.focus();
   };
 
-  // Handle paste of full code
   const handleCodePaste = (e) => {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (pasted.length === 6) {
@@ -295,6 +322,64 @@ export default function DeanCRM() {
     setConfirmDeleteTouch(null); showToast("Note removed");
   };
 
+  // ── XLSX EXPORT ──
+  const exportXLSX = () => {
+    const wb = XLSX.utils.book_new();
+
+    // ── Sheet 1: Contacts ──
+    const contactRows = contacts.map((c) => ({
+      "Name": c.name || "",
+      "Company": c.company || "",
+      "Phone": c.phone || "",
+      "Email": c.email || "",
+      "Date Added": c.date ? formatDate(c.date) : "",
+      "Touch Count": (c.touch_log || []).length,
+      "Notes": (c.notes || "").replace(/\n/g, " "),
+    }));
+
+    const ws1 = XLSX.utils.json_to_sheet(contactRows);
+    ws1["!cols"] = [
+      { wch: 24 }, // Name
+      { wch: 22 }, // Company
+      { wch: 16 }, // Phone
+      { wch: 28 }, // Email
+      { wch: 16 }, // Date Added
+      { wch: 13 }, // Touch Count
+      { wch: 40 }, // Notes
+    ];
+    XLSX.utils.book_append_sheet(wb, ws1, "Contacts");
+
+    // ── Sheet 2: Touch Log ──
+    const touchRows = [];
+    contacts.forEach((c) => {
+      (c.touch_log || []).forEach((t) => {
+        touchRows.push({
+          "Contact Name": c.name || "",
+          "Company": c.company || "",
+          "Date & Time": formatDateTime(t.createdAt),
+          "Note": t.text || "",
+        });
+      });
+    });
+
+    if (touchRows.length > 0) {
+      const ws2 = XLSX.utils.json_to_sheet(touchRows);
+      ws2["!cols"] = [
+        { wch: 24 }, // Contact Name
+        { wch: 22 }, // Company
+        { wch: 22 }, // Date & Time
+        { wch: 50 }, // Note
+      ];
+      XLSX.utils.book_append_sheet(wb, ws2, "Touch Log");
+    }
+
+    const filename = `DeanCRM_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast("Exported to spreadsheet!");
+    setExportMenuOpen(false);
+  };
+
+  // ── CSV EXPORT (kept as fallback) ──
   const exportCSV = () => {
     const headers = ["Name","Company","Phone","Email","Notes","Date","Touch Log"];
     const rows = contacts.map((c) => {
@@ -304,8 +389,9 @@ export default function DeanCRM() {
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = "DeanCRM_contacts.csv"; a.click();
+    a.download = `DeanCRM_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     showToast("Exported to CSV!");
+    setExportMenuOpen(false);
   };
 
   const filtered = contacts.filter((c) =>
@@ -358,8 +444,6 @@ export default function DeanCRM() {
           <div style={styles.authCard}>
             <p style={styles.authCardTitle}>Enter your code</p>
             <p style={styles.authCardSub}>We sent a 6-digit code to <strong>{email}</strong></p>
-
-            {/* 6-digit code boxes */}
             <div style={styles.codeRow} onPaste={handleCodePaste}>
               {code.map((digit, i) => (
                 <input
@@ -374,15 +458,12 @@ export default function DeanCRM() {
                 />
               ))}
             </div>
-
             {authError && <div style={{ ...styles.authError, marginTop: 8 }}>{authError}</div>}
-
             <button
               style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1, marginTop: 16 }}
               onClick={verifyOTP} disabled={authLoading}>
               {authLoading ? "Verifying…" : "Verify Code ✓"}
             </button>
-
             <div style={styles.resendRow}>
               {resendCountdown > 0 ? (
                 <span style={styles.resendTimer}>Resend in {resendCountdown}s</span>
@@ -447,11 +528,43 @@ export default function DeanCRM() {
         <span style={styles.headerTitle}>
           {view === "list" ? "Dean CRM" : view === "profile" ? contact?.name || "Contact" : view === "add" ? "New Contact" : "Edit Contact"}
         </span>
+
+        {/* Export button — list view only */}
         {view === "list" && (
-          <button style={styles.exportBtn} onClick={exportCSV} title="Export CSV">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </button>
+          <div style={{ position: "relative" }}>
+            <button
+              style={styles.exportBtn}
+              onClick={(e) => { e.stopPropagation(); setExportMenuOpen(o => !o); }}
+              title="Export"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            {exportMenuOpen && (
+              <div style={styles.exportMenu} onClick={e => e.stopPropagation()}>
+                <button style={styles.exportMenuItem} onClick={exportXLSX}>
+                  <span style={styles.exportMenuIcon}>📊</span>
+                  <div>
+                    <div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div>
+                    <div style={styles.exportMenuSub}>Best for Google Sheets</div>
+                  </div>
+                </button>
+                <div style={styles.exportMenuDivider}/>
+                <button style={styles.exportMenuItem} onClick={exportCSV}>
+                  <span style={styles.exportMenuIcon}>📄</span>
+                  <div>
+                    <div style={styles.exportMenuLabel}>CSV (.csv)</div>
+                    <div style={styles.exportMenuSub}>Plain text, universal</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         )}
+
         {view === "profile" && (
           <button style={styles.exportBtn} onClick={() => { setEditEntry({ ...contact }); setView("edit"); }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -626,6 +739,12 @@ const styles = {
   backBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"4px 6px", borderRadius:6, display:"flex", alignItems:"center" },
   signOutBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.75 },
   exportBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.85 },
+  exportMenu: { position:"absolute", top:"calc(100% + 8px)", right:0, background:"#fff", borderRadius:14, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", border:"1px solid #d6e2f0", zIndex:300, minWidth:210, overflow:"hidden" },
+  exportMenuItem: { display:"flex", alignItems:"center", gap:12, width:"100%", padding:"13px 16px", background:"none", border:"none", cursor:"pointer", fontFamily:"'Georgia',serif", textAlign:"left" },
+  exportMenuIcon: { fontSize:22, flexShrink:0 },
+  exportMenuLabel: { fontSize:14, fontWeight:700, color:"#0d1b2e" },
+  exportMenuSub: { fontSize:11, color:"#999", marginTop:1 },
+  exportMenuDivider: { height:1, background:"#e8f0fa", margin:"0 14px" },
   body: { flex:1, display:"flex", flexDirection:"column", overflow:"hidden", position:"relative" },
   searchWrap: { margin:"12px 14px 4px", background:"#fff", borderRadius:12, display:"flex", alignItems:"center", padding:"8px 12px", gap:8, border:"1.5px solid #cdd8ea", flexShrink:0 },
   searchIcon: { flexShrink:0, color:"#888" },
@@ -704,7 +823,6 @@ const styles = {
   authInput: { width:"100%", padding:"13px 14px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", marginBottom:10 },
   authError: { fontSize:13, color:"#c0392b", textAlign:"center" },
   authBtn: { display:"block", width:"100%", padding:"14px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:12, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
-  authBtnSecondary: { display:"block", width:"100%", padding:"13px", background:"transparent", border:"1.5px solid #cdd8ea", color:"#666", borderRadius:12, fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit", marginTop:12 },
   codeRow: { display:"flex", gap:8, justifyContent:"center", margin:"4px 0 0" },
   codeBox: { width:42, height:52, textAlign:"center", fontSize:22, fontWeight:700, color:"#0d1b2e", border:"2px solid #cdd8ea", borderRadius:10, outline:"none", fontFamily:"'Georgia',serif", background:"#f8faff", transition:"border-color 0.15s" },
   homeBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"6px 8px", borderRadius:6, display:"flex", alignItems:"center", opacity:0.85, marginLeft:2 },
@@ -715,15 +833,16 @@ const styles = {
 };
 
 const css = `
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .contact-row:hover { background: #f0f5fc !important; }
-  .fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(26,111,196,0.55) !important; }
-  input[type="date"] { color-scheme: light; }
-  input:focus, textarea:focus { border-color: #1a6fc4 !important; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: #a8bcd4; border-radius: 4px; }
-  html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0d1b2e; }
-  body { -webkit-user-select: none; user-select: none; }
-  input, textarea { -webkit-user-select: text; user-select: text; }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.contact-row:hover { background: #f0f5fc !important; }
+.fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(26,111,196,0.55) !important; }
+input[type="date"] { color-scheme: light; }
+input:focus, textarea:focus { border-color: #1a6fc4 !important; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #a8bcd4; border-radius: 4px; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0d1b2e; }
+body { -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+button:hover { opacity: 0.85; }
 `;
