@@ -79,6 +79,19 @@ const blankContact = () => ({
   touch_log: []
 });
 
+const NextTouchChip = ({ val }) => {
+  if (!val) return null;
+  const status = nextTouchStatus(val);
+  if (!status) return null;
+  const chipStyle = status === "overdue"
+    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#c0392b", background:"#fdecea", borderRadius:6, padding:"2px 7px" }
+    : status === "today"
+    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#b7580a", background:"#fff3e0", borderRadius:6, padding:"2px 7px" }
+    : { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#1a6fc4", background:"#e8f0fc", borderRadius:6, padding:"2px 7px" };
+  const label = status === "overdue" ? `⚠ Overdue · ${val}` : status === "today" ? `📌 Today · ${val}` : `🗓 ${val}`;
+  return <div style={chipStyle}>{label}</div>;
+};
+
 export default function DeanCRM() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -627,16 +640,7 @@ export default function DeanCRM() {
                       <div style={styles.rowInfo}>
                         <div style={styles.rowName}>{c.name}</div>
                         <div style={styles.rowSub}>{c.company || c.email || c.phone || "—"}</div>
-                        {c.next_touch && (() => {
-                          const status = nextTouchStatus(c.next_touch);
-                          const chipStyle = status === "overdue"
-                            ? styles.touchChipOverdue
-                            : status === "today"
-                            ? styles.touchChipToday
-                            : styles.touchChipUpcoming;
-                          const label = status === "overdue" ? "⚠ Overdue · " : status === "today" ? "📌 Today · " : "🗓 ";
-                          return <div style={chipStyle}>{label}{c.next_touch}</div>;
-                        })()}
+                        <NextTouchChip val={c.next_touch} />
                       </div>
                       {(c.touch_log||[]).length > 0 && <span style={styles.touchBadge}>{c.touch_log.length}</span>}
                       <svg style={styles.chevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
