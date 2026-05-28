@@ -160,14 +160,14 @@ function MiniCalendar({ value, onChange, onClose }) {
 }
 
 const calStyles = {
-  wrap: { background:"#fff", border:"1.5px solid #1a6fc4", borderRadius:12, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)" },
-  header: { background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px" },
-  nav: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", fontSize:18, padding:"0 6px", lineHeight:1, fontFamily:"inherit" },
-  month: { fontSize:13, fontWeight:700, color:"#eef2f8", letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
-  grid: { padding:"6px 8px 8px" },
-  dayNames: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:4 },
-  dayName: { fontSize:9, fontWeight:700, color:"#1a6fc4", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
-  days: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 },
+  wrap: { background:"#fff", border:"1.5px solid #1a6fc4", borderRadius:10, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)", maxWidth:280 },
+  header: { background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 10px" },
+  nav: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", fontSize:15, padding:"0 4px", lineHeight:1, fontFamily:"inherit" },
+  month: { fontSize:12, fontWeight:700, color:"#eef2f8", letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
+  grid: { padding:"4px 6px 6px" },
+  dayNames: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:2 },
+  dayName: { fontSize:8, fontWeight:700, color:"#1a6fc4", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
+  days: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:1 },
   day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#0d1b2e", borderRadius:"50%", cursor:"pointer", fontFamily:"'Georgia',serif" },
   daySelected: { background:"#1a6fc4", color:"#fff", fontWeight:700 },
   dayToday: { border:"1.5px solid #1a6fc4", color:"#1a6fc4", fontWeight:700 },
@@ -956,7 +956,7 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell: { width:"100%", height:"100dvh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#eef2f8", color:"#0d1b2e", position:"relative", overflow:"hidden", paddingBottom:"env(safe-area-inset-bottom)" },
+  shell: { width:"100%", maxWidth:480, margin:"0 auto", height:"100dvh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#eef2f8", color:"#0d1b2e", position:"relative", overflow:"hidden", paddingBottom:"env(safe-area-inset-bottom)" },
   header: { background:"#0d1b2e", color:"#eef2f8", paddingTop:"calc(14px + env(safe-area-inset-top))", paddingBottom:"14px", paddingLeft:"max(16px, env(safe-area-inset-left))", paddingRight:"max(16px, env(safe-area-inset-right))", display:"flex", alignItems:"center", gap:10, minHeight:"calc(56px + env(safe-area-inset-top))", flexShrink:0, borderBottom:"2px solid #1a6fc4" },
   headerTitle: { flex:1, fontSize:20, fontWeight:700, letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
   backBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"4px 6px", borderRadius:6, display:"flex", alignItems:"center" },
