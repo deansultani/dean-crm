@@ -187,13 +187,6 @@ function NextTouchInput({ value, onChange, inputStyle, compact }) {
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-        <input
-          style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
-          type="text" placeholder="MM/DD/YYYY"
-          value={value} maxLength={10} inputMode="numeric"
-          onChange={handleTextChange}
-          onFocus={() => setCalOpen(false)}
-        />
         <button
           style={{ width:38, height:38, background:"#1a6fc4", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}
           onClick={() => setCalOpen(o => !o)}
@@ -202,6 +195,13 @@ function NextTouchInput({ value, onChange, inputStyle, compact }) {
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
+        <input
+          style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
+          type="text" placeholder="MM/DD/YYYY"
+          value={value} maxLength={10} inputMode="numeric"
+          onChange={handleTextChange}
+          onFocus={() => setCalOpen(false)}
+        />
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
