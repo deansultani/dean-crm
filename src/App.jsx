@@ -116,6 +116,8 @@ export default function DeanCRM() {
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
   const [inlineNextTouch, setInlineNextTouch] = useState("");
+  const [editingNextTouch, setEditingNextTouch] = useState(false);
+  const [nextTouchDraft, setNextTouchDraft] = useState("");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -321,6 +323,16 @@ export default function DeanCRM() {
       }
       setView("profile");
     } catch { showToast("Error saving contact"); }
+  };
+
+  const saveNextTouch = async () => {
+    const contact = contacts[selected];
+    try {
+      await api(`contacts?id=eq.${contact.id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify({ next_touch: nextTouchDraft.trim() }) });
+      setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, next_touch: nextTouchDraft.trim() } : c));
+      setEditingNextTouch(false);
+      showToast("Next touch updated!");
+    } catch { showToast("Error saving"); }
   };
 
   const deleteContact = async (id) => {
@@ -554,7 +566,7 @@ export default function DeanCRM() {
 
       <div style={styles.header}>
         {view !== "list" ? (
-          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView("list"); }} title="Back to contacts">
+          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="Back to contacts">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
         ) : (
@@ -608,7 +620,7 @@ export default function DeanCRM() {
           </button>
         )}
         {(view === "profile" || view === "add" || view === "edit") && (
-          <button style={styles.homeBtn} onClick={() => { setAddingNote(false); setNewNote(""); setView("list"); }} title="All contacts">
+          <button style={styles.homeBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="All contacts">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
         )}
@@ -673,7 +685,6 @@ export default function DeanCRM() {
                 { icon: "📞", label: "Phone", val: contact.phone, href: `tel:${contact.phone}` },
                 { icon: "✉️", label: "Email", val: contact.email, href: `mailto:${contact.email}` },
                 { icon: "📅", label: "Date Added", val: formatDate(contact.date) },
-                { icon: "🗓", label: "Next Touch", val: contact.next_touch || "" },
               ].filter(f => f.val).map((f) => (
                 <div key={f.label} style={styles.fieldRow}>
                   <span style={styles.fieldIcon}>{f.icon}</span>
@@ -683,6 +694,45 @@ export default function DeanCRM() {
                   </div>
                 </div>
               ))}
+              {/* ── Next Touch row with inline edit ── */}
+              <div style={styles.fieldRow}>
+                <span style={styles.fieldIcon}>🗓</span>
+                <div style={styles.fieldBody}>
+                  <div style={styles.fieldLabel}>Next Touch</div>
+                  {editingNextTouch ? (
+                    <div style={{display:"flex", alignItems:"center", gap:6, marginTop:2}}>
+                      <input
+                        style={{...styles.nextTouchInlineInput, border:"1.5px solid #1a6fc4", borderRadius:8, padding:"5px 9px", fontSize:14, background:"#f4f8ff", flex:1}}
+                        type="text" placeholder="MM/DD/YYYY"
+                        value={nextTouchDraft} maxLength={10} inputMode="numeric" autoFocus
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/\D/g,"").slice(0,8);
+                          let fmt = raw;
+                          if (raw.length > 4) fmt = raw.slice(0,2)+"/"+raw.slice(2,4)+"/"+raw.slice(4);
+                          else if (raw.length > 2) fmt = raw.slice(0,2)+"/"+raw.slice(2);
+                          setNextTouchDraft(fmt);
+                        }}
+                      />
+                      <button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button>
+                      <button style={styles.ntCancelBtn} onClick={() => setEditingNextTouch(false)}>✕</button>
+                    </div>
+                  ) : (
+                    <div style={{display:"flex", alignItems:"center", gap:8, marginTop:2}}>
+                      <div style={styles.fieldValue}>{contact.next_touch || <span style={{color:"#aaa"}}>Not set</span>}</div>
+                      <button style={styles.ntEditBtn} onClick={() => { setNextTouchDraft(contact.next_touch || ""); setEditingNextTouch(true); }}>
+                        Update Next Touch
+                      </button>
+                    </div>
+                  )}
+                  {editingNextTouch && nextTouchDraft && (
+                    <div style={{marginTop:4, fontSize:10, fontWeight:600}}>
+                      {nextTouchStatus(nextTouchDraft) === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
+                      {nextTouchStatus(nextTouchDraft) === "today" && <span style={{color:"#b7580a"}}>📌 Today</span>}
+                      {nextTouchStatus(nextTouchDraft) === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             {contact.notes && (
               <div style={styles.card}>
@@ -878,7 +928,9 @@ const styles = {
   addNotePanel: { padding:"14px 16px", borderBottom:"1px solid #d6e2f0", background:"#f0f6ff" },
   addNoteDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, marginBottom:8, letterSpacing:"0.04em" },
   addNoteDivider: { display:"flex", alignItems:"center", gap:8, margin:"10px 0 0", fontSize:10, color:"#999", fontWeight:600, letterSpacing:"0.04em", textTransform:"uppercase" },
-  nextTouchInline: { display:"flex", alignItems:"center", gap:8, padding:"9px 12px", background:"#fff", border:"1.5px solid #cdd8ea", borderRadius:10, marginTop:6 },
+  ntEditBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:7, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", flexShrink:0 },
+  ntSaveBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:7, padding:"5px 12px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", flexShrink:0 },
+  ntCancelBtn: { background:"none", border:"1.5px solid #cdd8ea", color:"#888", borderRadius:7, padding:"5px 8px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit", flexShrink:0 }, display:"flex", alignItems:"center", gap:8, padding:"9px 12px", background:"#fff", border:"1.5px solid #cdd8ea", borderRadius:10, marginTop:6 },
   nextTouchInlineLabel: { fontSize:11, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em", whiteSpace:"nowrap", flexShrink:0 },
   nextTouchInlineInput: { flex:1, border:"none", outline:"none", fontSize:14, color:"#0d1b2e", fontFamily:"inherit", background:"transparent", minWidth:0 },
   addNoteTextarea: { width:"100%", padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"vertical", lineHeight:1.6, background:"#fff" },
