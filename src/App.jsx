@@ -956,7 +956,7 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell: { width:"100%", maxWidth:480, margin:"0 auto", height:"100dvh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#eef2f8", color:"#0d1b2e", position:"relative", overflow:"hidden", paddingBottom:"env(safe-area-inset-bottom)" },
+  shell: { width:"100%", height:"100dvh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#eef2f8", color:"#0d1b2e", position:"relative", overflow:"hidden", paddingBottom:"env(safe-area-inset-bottom)" },
   header: { background:"#0d1b2e", color:"#eef2f8", paddingTop:"calc(14px + env(safe-area-inset-top))", paddingBottom:"14px", paddingLeft:"max(16px, env(safe-area-inset-left))", paddingRight:"max(16px, env(safe-area-inset-right))", display:"flex", alignItems:"center", gap:10, minHeight:"calc(56px + env(safe-area-inset-top))", flexShrink:0, borderBottom:"2px solid #1a6fc4" },
   headerTitle: { flex:1, fontSize:20, fontWeight:700, letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
   backBtn: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", padding:"4px 6px", borderRadius:6, display:"flex", alignItems:"center" },
