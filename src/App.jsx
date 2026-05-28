@@ -92,6 +92,135 @@ const NextTouchChip = ({ val }) => {
   return <div style={chipStyle}>{label}</div>;
 };
 
+// ── Mini Calendar ──
+const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function MiniCalendar({ value, onChange, onClose }) {
+  const today = new Date();
+  const getInitial = () => {
+    const iso = parseNextTouch(value);
+    if (iso) { const d = new Date(iso + "T00:00:00"); return { y: d.getFullYear(), m: d.getMonth() }; }
+    return { y: today.getFullYear(), m: today.getMonth() };
+  };
+  const [view, setView] = useState(getInitial);
+  const selectedIso = parseNextTouch(value);
+  const todayIso = today.toISOString().slice(0,10);
+
+  const firstDay = new Date(view.y, view.m, 1).getDay();
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const pick = (d) => {
+    const mm = String(view.m + 1).padStart(2,"0");
+    const dd = String(d).padStart(2,"0");
+    onChange(`${mm}/${dd}/${view.y}`);
+    onClose();
+  };
+
+  const prevMonth = () => setView(v => v.m === 0 ? { y: v.y-1, m: 11 } : { y: v.y, m: v.m-1 });
+  const nextMonth = () => setView(v => v.m === 11 ? { y: v.y+1, m: 0 } : { y: v.y, m: v.m+1 });
+
+  return (
+    <div style={calStyles.wrap}>
+      <div style={calStyles.header}>
+        <button style={calStyles.nav} onClick={prevMonth}>‹</button>
+        <span style={calStyles.month}>{MONTHS[view.m]} {view.y}</span>
+        <button style={calStyles.nav} onClick={nextMonth}>›</button>
+      </div>
+      <div style={calStyles.grid}>
+        <div style={calStyles.dayNames}>
+          {DAYS.map(d => <div key={d} style={calStyles.dayName}>{d}</div>)}
+        </div>
+        <div style={calStyles.days}>
+          {cells.map((d, i) => {
+            if (!d) return <div key={`e${i}`}/>;
+            const iso = `${view.y}-${String(view.m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+            const isSelected = iso === selectedIso;
+            const isToday = iso === todayIso;
+            return (
+              <div
+                key={d}
+                onClick={() => pick(d)}
+                style={{
+                  ...calStyles.day,
+                  ...(isSelected ? calStyles.daySelected : {}),
+                  ...(isToday && !isSelected ? calStyles.dayToday : {}),
+                }}
+              >{d}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const calStyles = {
+  wrap: { background:"#fff", border:"1.5px solid #1a6fc4", borderRadius:12, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)" },
+  header: { background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px" },
+  nav: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", fontSize:18, padding:"0 6px", lineHeight:1, fontFamily:"inherit" },
+  month: { fontSize:13, fontWeight:700, color:"#eef2f8", letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
+  grid: { padding:"6px 8px 8px" },
+  dayNames: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:4 },
+  dayName: { fontSize:9, fontWeight:700, color:"#1a6fc4", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
+  days: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 },
+  day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#0d1b2e", borderRadius:"50%", cursor:"pointer", fontFamily:"'Georgia',serif" },
+  daySelected: { background:"#1a6fc4", color:"#fff", fontWeight:700 },
+  dayToday: { border:"1.5px solid #1a6fc4", color:"#1a6fc4", fontWeight:700 },
+};
+
+// ── NextTouchInput — text field + calendar button + dropdown ──
+function NextTouchInput({ value, onChange, inputStyle, compact }) {
+  const [calOpen, setCalOpen] = useState(false);
+  const handleTextChange = (e) => {
+    const raw = e.target.value.replace(/\D/g,"").slice(0,8);
+    let fmt = raw;
+    if (raw.length > 4) fmt = raw.slice(0,2)+"/"+raw.slice(2,4)+"/"+raw.slice(4);
+    else if (raw.length > 2) fmt = raw.slice(0,2)+"/"+raw.slice(2);
+    onChange(fmt);
+  };
+  const status = nextTouchStatus(value);
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+        <input
+          style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
+          type="text" placeholder="MM/DD/YYYY"
+          value={value} maxLength={10} inputMode="numeric"
+          onChange={handleTextChange}
+          onFocus={() => setCalOpen(false)}
+        />
+        <button
+          style={{ width:38, height:38, background:"#1a6fc4", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}
+          onClick={() => setCalOpen(o => !o)}
+          title="Pick from calendar"
+          type="button"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </button>
+      </div>
+      {value && (
+        <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
+          {status === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
+          {status === "today" && <span style={{color:"#b7580a"}}>📌 Today</span>}
+          {status === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
+        </div>
+      )}
+      {calOpen && (
+        <MiniCalendar
+          value={value}
+          onChange={(v) => { onChange(v); setCalOpen(false); }}
+          onClose={() => setCalOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function DeanCRM() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -700,21 +829,16 @@ export default function DeanCRM() {
                 <div style={styles.fieldBody}>
                   <div style={styles.fieldLabel}>Next Touch</div>
                   {editingNextTouch ? (
-                    <div style={{display:"flex", alignItems:"center", gap:6, marginTop:2}}>
-                      <input
-                        style={{...styles.nextTouchInlineInput, border:"1.5px solid #1a6fc4", borderRadius:8, padding:"5px 9px", fontSize:14, background:"#f4f8ff", flex:1}}
-                        type="text" placeholder="MM/DD/YYYY"
-                        value={nextTouchDraft} maxLength={10} inputMode="numeric" autoFocus
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g,"").slice(0,8);
-                          let fmt = raw;
-                          if (raw.length > 4) fmt = raw.slice(0,2)+"/"+raw.slice(2,4)+"/"+raw.slice(4);
-                          else if (raw.length > 2) fmt = raw.slice(0,2)+"/"+raw.slice(2);
-                          setNextTouchDraft(fmt);
-                        }}
+                    <div style={{marginTop:2}}>
+                      <NextTouchInput
+                        value={nextTouchDraft}
+                        onChange={setNextTouchDraft}
+                        inputStyle={{flex:1, border:"1.5px solid #1a6fc4", borderRadius:8, padding:"5px 9px", fontSize:14, background:"#f4f8ff", fontFamily:"inherit", outline:"none", boxSizing:"border-box", width:"100%"}}
                       />
-                      <button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button>
-                      <button style={styles.ntCancelBtn} onClick={() => setEditingNextTouch(false)}>✕</button>
+                      <div style={{display:"flex", gap:6, marginTop:8}}>
+                        <button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button>
+                        <button style={styles.ntCancelBtn} onClick={() => setEditingNextTouch(false)}>Cancel</button>
+                      </div>
                     </div>
                   ) : (
                     <div style={{display:"flex", alignItems:"center", gap:8, marginTop:2}}>
@@ -722,13 +846,6 @@ export default function DeanCRM() {
                       <button style={styles.ntEditBtn} onClick={() => { setNextTouchDraft(contact.next_touch || ""); setEditingNextTouch(true); }}>
                         Update Next Touch
                       </button>
-                    </div>
-                  )}
-                  {editingNextTouch && nextTouchDraft && (
-                    <div style={{marginTop:4, fontSize:10, fontWeight:600}}>
-                      {nextTouchStatus(nextTouchDraft) === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
-                      {nextTouchStatus(nextTouchDraft) === "today" && <span style={{color:"#b7580a"}}>📌 Today</span>}
-                      {nextTouchStatus(nextTouchDraft) === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
                     </div>
                   )}
                 </div>
@@ -752,28 +869,11 @@ export default function DeanCRM() {
 
                   {/* ── Inline Next Touch ── */}
                   <div style={styles.addNoteDivider}><span>also update next touch</span></div>
-                  <div style={styles.nextTouchInline}>
-                    <span style={{fontSize:15, flexShrink:0}}>🗓</span>
-                    <span style={styles.nextTouchInlineLabel}>Next Touch</span>
-                    <input
-                      style={styles.nextTouchInlineInput}
-                      type="text"
-                      placeholder="MM/DD/YYYY"
-                      value={inlineNextTouch}
-                      maxLength={10}
-                      inputMode="numeric"
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
-                        let fmt = raw;
-                        if (raw.length > 4) fmt = raw.slice(0,2) + "/" + raw.slice(2,4) + "/" + raw.slice(4);
-                        else if (raw.length > 2) fmt = raw.slice(0,2) + "/" + raw.slice(2);
-                        setInlineNextTouch(fmt);
-                      }}
-                    />
-                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "overdue" && <span style={{fontSize:10, fontWeight:700, color:"#c0392b", whiteSpace:"nowrap"}}>⚠ Past</span>}
-                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "today" && <span style={{fontSize:10, fontWeight:700, color:"#b7580a", whiteSpace:"nowrap"}}>📌 Today</span>}
-                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "upcoming" && <span style={{fontSize:10, fontWeight:600, color:"#1a6fc4", whiteSpace:"nowrap"}}>✓ Upcoming</span>}
-                  </div>
+                  <NextTouchInput
+                    value={inlineNextTouch}
+                    onChange={setInlineNextTouch}
+                    inputStyle={{ flex:1, padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
+                  />
 
                   <div style={{display:"flex",gap:8,marginTop:10}}>
                     <button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button>
@@ -833,31 +933,13 @@ export default function DeanCRM() {
                 {f.key === "phone" && <div style={styles.phoneHint}>{(editEntry.phone||"").replace(/\D/g,"").length}/10 digits</div>}
               </div>
             ))}
-            {/* Next Touch Date — free-text MM/DD/YYYY */}
+            {/* Next Touch Date */}
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Next Touch Date</label>
-              <input
-                style={styles.formInput}
-                type="text"
-                placeholder="MM/DD/YYYY"
+              <NextTouchInput
                 value={editEntry.next_touch || ""}
-                maxLength={10}
-                inputMode="numeric"
-                onChange={(e) => {
-                  // Auto-format as MM/DD/YYYY while typing
-                  const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
-                  let fmt = raw;
-                  if (raw.length > 4) fmt = raw.slice(0,2) + "/" + raw.slice(2,4) + "/" + raw.slice(4);
-                  else if (raw.length > 2) fmt = raw.slice(0,2) + "/" + raw.slice(2);
-                  setEditEntry({ ...editEntry, next_touch: fmt });
-                }}
+                onChange={(v) => setEditEntry({ ...editEntry, next_touch: v })}
               />
-              <div style={styles.phoneHint}>
-                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
-                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "today" && <span style={{color:"#e67e22"}}>📌 Today</span>}
-                {editEntry.next_touch && nextTouchStatus(editEntry.next_touch) === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
-                {!editEntry.next_touch && <span style={{color:"#aaa"}}>optional</span>}
-              </div>
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Notes</label>
