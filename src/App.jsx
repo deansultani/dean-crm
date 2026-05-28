@@ -115,6 +115,7 @@ export default function DeanCRM() {
   const [confirmDeleteTouch, setConfirmDeleteTouch] = useState(null);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
+  const [inlineNextTouch, setInlineNextTouch] = useState("");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -336,11 +337,13 @@ export default function DeanCRM() {
     const contact = contacts[selected];
     const entry = { id: Date.now(), text: newNote.trim(), createdAt: new Date().toISOString() };
     const updatedLog = [entry, ...(contact.touch_log || [])];
+    const patch = { touch_log: updatedLog };
+    if (inlineNextTouch.trim()) patch.next_touch = inlineNextTouch.trim();
     try {
-      await api(`contacts?id=eq.${contact.id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify({ touch_log: updatedLog }) });
-      setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, touch_log: updatedLog } : c));
-      setNewNote(""); setAddingNote(false);
-      showToast("Note added!");
+      await api(`contacts?id=eq.${contact.id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify(patch) });
+      setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, touch_log: updatedLog, ...(inlineNextTouch.trim() ? { next_touch: inlineNextTouch.trim() } : {}) } : c));
+      setNewNote(""); setAddingNote(false); setInlineNextTouch("");
+      showToast(inlineNextTouch.trim() ? "Note & next touch saved!" : "Note added!");
     } catch { showToast("Error saving note"); }
   };
 
@@ -690,15 +693,41 @@ export default function DeanCRM() {
             <div style={styles.touchSection}>
               <div style={styles.touchHeader}>
                 <span style={styles.touchHeaderTitle}>🤝 Touch Log</span>
-                <button style={styles.addNoteBtn} onClick={() => { setAddingNote(true); setNewNote(""); }}>+ Add Note</button>
+                <button style={styles.addNoteBtn} onClick={() => { setAddingNote(true); setNewNote(""); setInlineNextTouch(contact.next_touch || ""); }}>+ Add Note</button>
               </div>
               {addingNote && (
                 <div style={styles.addNotePanel}>
                   <div style={styles.addNoteDate}>📅 {formatDateTime(new Date().toISOString())}</div>
                   <textarea style={styles.addNoteTextarea} placeholder="What happened during this touch?" value={newNote} onChange={(e) => setNewNote(e.target.value)} rows={3} autoFocus/>
+
+                  {/* ── Inline Next Touch ── */}
+                  <div style={styles.addNoteDivider}><span>also update next touch</span></div>
+                  <div style={styles.nextTouchInline}>
+                    <span style={{fontSize:15, flexShrink:0}}>🗓</span>
+                    <span style={styles.nextTouchInlineLabel}>Next Touch</span>
+                    <input
+                      style={styles.nextTouchInlineInput}
+                      type="text"
+                      placeholder="MM/DD/YYYY"
+                      value={inlineNextTouch}
+                      maxLength={10}
+                      inputMode="numeric"
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
+                        let fmt = raw;
+                        if (raw.length > 4) fmt = raw.slice(0,2) + "/" + raw.slice(2,4) + "/" + raw.slice(4);
+                        else if (raw.length > 2) fmt = raw.slice(0,2) + "/" + raw.slice(2);
+                        setInlineNextTouch(fmt);
+                      }}
+                    />
+                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "overdue" && <span style={{fontSize:10, fontWeight:700, color:"#c0392b", whiteSpace:"nowrap"}}>⚠ Past</span>}
+                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "today" && <span style={{fontSize:10, fontWeight:700, color:"#b7580a", whiteSpace:"nowrap"}}>📌 Today</span>}
+                    {inlineNextTouch && nextTouchStatus(inlineNextTouch) === "upcoming" && <span style={{fontSize:10, fontWeight:600, color:"#1a6fc4", whiteSpace:"nowrap"}}>✓ Upcoming</span>}
+                  </div>
+
                   <div style={{display:"flex",gap:8,marginTop:10}}>
                     <button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button>
-                    <button style={styles.cancelNoteBtn} onClick={() => { setAddingNote(false); setNewNote(""); }}>Cancel</button>
+                    <button style={styles.cancelNoteBtn} onClick={() => { setAddingNote(false); setNewNote(""); setInlineNextTouch(""); }}>Cancel</button>
                   </div>
                 </div>
               )}
@@ -848,6 +877,10 @@ const styles = {
   addNoteBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:8, padding:"6px 12px", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
   addNotePanel: { padding:"14px 16px", borderBottom:"1px solid #d6e2f0", background:"#f0f6ff" },
   addNoteDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, marginBottom:8, letterSpacing:"0.04em" },
+  addNoteDivider: { display:"flex", alignItems:"center", gap:8, margin:"10px 0 0", fontSize:10, color:"#999", fontWeight:600, letterSpacing:"0.04em", textTransform:"uppercase" },
+  nextTouchInline: { display:"flex", alignItems:"center", gap:8, padding:"9px 12px", background:"#fff", border:"1.5px solid #cdd8ea", borderRadius:10, marginTop:6 },
+  nextTouchInlineLabel: { fontSize:11, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em", whiteSpace:"nowrap", flexShrink:0 },
+  nextTouchInlineInput: { flex:1, border:"none", outline:"none", fontSize:14, color:"#0d1b2e", fontFamily:"inherit", background:"transparent", minWidth:0 },
   addNoteTextarea: { width:"100%", padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"vertical", lineHeight:1.6, background:"#fff" },
   saveNoteBtn: { flex:1, padding:"10px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:9, fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
   cancelNoteBtn: { flex:1, padding:"10px", background:"transparent", border:"1.5px solid #b0c4de", color:"#666", borderRadius:9, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
@@ -910,4 +943,6 @@ body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button:hover { opacity: 0.85; }
+.add-note-divider span { white-space: nowrap; }
+.add-note-divider::before, .add-note-divider::after { content: ''; flex: 1; height: 1px; background: #d6e2f0; display: block; }
 `;
