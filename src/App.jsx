@@ -54,7 +54,6 @@ const avatarColor = (name) => {
   return colors[h];
 };
 
-// Parse MM/DD/YYYY → "YYYY-MM-DD" for comparison, or "" if invalid
 const parseNextTouch = (val) => {
   if (!val) return "";
   const m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -70,6 +69,20 @@ const nextTouchStatus = (val) => {
   if (iso < today) return "overdue";
   if (iso === today) return "today";
   return "upcoming";
+};
+
+const taskDueStatus = (due_date) => {
+  if (!due_date) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  if (due_date < today) return "overdue";
+  if (due_date === today) return "today";
+  return "upcoming";
+};
+
+const formatTaskDue = (due_date) => {
+  if (!due_date) return "";
+  const dt = new Date(due_date + "T00:00:00");
+  return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
 const blankContact = () => ({
@@ -92,7 +105,6 @@ const NextTouchChip = ({ val }) => {
   return <div style={chipStyle}>{label}</div>;
 };
 
-// ── Mini Calendar ──
 const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -106,24 +118,19 @@ function MiniCalendar({ value, onChange, onClose }) {
   const [view, setView] = useState(getInitial);
   const selectedIso = parseNextTouch(value);
   const todayIso = today.toISOString().slice(0,10);
-
   const firstDay = new Date(view.y, view.m, 1).getDay();
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
-
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
   const pick = (d) => {
     const mm = String(view.m + 1).padStart(2,"0");
     const dd = String(d).padStart(2,"0");
     onChange(`${mm}/${dd}/${view.y}`);
     onClose();
   };
-
   const prevMonth = () => setView(v => v.m === 0 ? { y: v.y-1, m: 11 } : { y: v.y, m: v.m-1 });
   const nextMonth = () => setView(v => v.m === 11 ? { y: v.y+1, m: 0 } : { y: v.y, m: v.m+1 });
-
   return (
     <div style={calStyles.wrap}>
       <div style={calStyles.header}>
@@ -132,9 +139,7 @@ function MiniCalendar({ value, onChange, onClose }) {
         <button style={calStyles.nav} onClick={nextMonth}>›</button>
       </div>
       <div style={calStyles.grid}>
-        <div style={calStyles.dayNames}>
-          {DAYS.map(d => <div key={d} style={calStyles.dayName}>{d}</div>)}
-        </div>
+        <div style={calStyles.dayNames}>{DAYS.map(d => <div key={d} style={calStyles.dayName}>{d}</div>)}</div>
         <div style={calStyles.days}>
           {cells.map((d, i) => {
             if (!d) return <div key={`e${i}`}/>;
@@ -142,15 +147,7 @@ function MiniCalendar({ value, onChange, onClose }) {
             const isSelected = iso === selectedIso;
             const isToday = iso === todayIso;
             return (
-              <div
-                key={d}
-                onClick={() => pick(d)}
-                style={{
-                  ...calStyles.day,
-                  ...(isSelected ? calStyles.daySelected : {}),
-                  ...(isToday && !isSelected ? calStyles.dayToday : {}),
-                }}
-              >{d}</div>
+              <div key={d} onClick={() => pick(d)} style={{ ...calStyles.day, ...(isSelected ? calStyles.daySelected : {}), ...(isToday && !isSelected ? calStyles.dayToday : {}) }}>{d}</div>
             );
           })}
         </div>
@@ -173,8 +170,7 @@ const calStyles = {
   dayToday: { border:"1.5px solid #1a6fc4", color:"#1a6fc4", fontWeight:700 },
 };
 
-// ── NextTouchInput — text field + calendar button + dropdown ──
-function NextTouchInput({ value, onChange, inputStyle, compact }) {
+function NextTouchInput({ value, onChange, inputStyle }) {
   const [calOpen, setCalOpen] = useState(false);
   const handleTextChange = (e) => {
     const raw = e.target.value.replace(/\D/g,"").slice(0,8);
@@ -187,21 +183,10 @@ function NextTouchInput({ value, onChange, inputStyle, compact }) {
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-        <button
-          style={{ width:38, height:38, background:"#1a6fc4", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}
-          onClick={() => setCalOpen(o => !o)}
-          title="Pick from calendar"
-          type="button"
-        >
+        <button style={{ width:38, height:38, background:"#1a6fc4", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }} onClick={() => setCalOpen(o => !o)} title="Pick from calendar" type="button">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
-        <input
-          style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
-          type="text" placeholder="MM/DD/YYYY"
-          value={value} maxLength={10} inputMode="numeric"
-          onChange={handleTextChange}
-          onFocus={() => setCalOpen(false)}
-        />
+        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }} type="text" placeholder="MM/DD/YYYY" value={value} maxLength={10} inputMode="numeric" onChange={handleTextChange} onFocus={() => setCalOpen(false)} />
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
@@ -210,13 +195,7 @@ function NextTouchInput({ value, onChange, inputStyle, compact }) {
           {status === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
         </div>
       )}
-      {calOpen && (
-        <MiniCalendar
-          value={value}
-          onChange={(v) => { onChange(v); setCalOpen(false); }}
-          onClose={() => setCalOpen(false)}
-        />
-      )}
+      {calOpen && <MiniCalendar value={value} onChange={(v) => { onChange(v); setCalOpen(false); }} onClose={() => setCalOpen(false)} />}
     </div>
   );
 }
@@ -232,7 +211,6 @@ export default function DeanCRM() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [resendCountdown, setResendCountdown] = useState(0);
   const codeRefs = [useRef(),useRef(),useRef(),useRef(),useRef(),useRef()];
-
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("list");
@@ -248,6 +226,13 @@ export default function DeanCRM() {
   const [editingNextTouch, setEditingNextTouch] = useState(false);
   const [nextTouchDraft, setNextTouchDraft] = useState("");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [homeTab, setHomeTab] = useState("contacts");
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [newTaskNote, setNewTaskNote] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState("");
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState(null);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
     const metas = [
@@ -270,29 +255,16 @@ export default function DeanCRM() {
         const stored = JSON.parse(localStorage.getItem("dean_crm_session"));
         if (stored?.access_token) {
           const userData = await getUser(stored.access_token);
-          if (userData.id) {
-            setSession({ ...stored, user: userData });
-            setUserId(userData.id);
-            setCheckingSession(false);
-            return;
-          }
+          if (userData.id) { setSession({ ...stored, user: userData }); setUserId(userData.id); setCheckingSession(false); return; }
           if (stored.refresh_token) {
-            const refreshed = await authFetch("token?grant_type=refresh_token", {
-              refresh_token: stored.refresh_token,
-            });
+            const refreshed = await authFetch("token?grant_type=refresh_token", { refresh_token: stored.refresh_token });
             if (refreshed.access_token) {
               const userData2 = await getUser(refreshed.access_token);
               if (userData2.id) {
-                const newSess = {
-                  access_token: refreshed.access_token,
-                  refresh_token: refreshed.refresh_token || stored.refresh_token,
-                  user: userData2,
-                };
-                setSession(newSess);
-                setUserId(userData2.id);
+                const newSess = { access_token: refreshed.access_token, refresh_token: refreshed.refresh_token || stored.refresh_token, user: userData2 };
+                setSession(newSess); setUserId(userData2.id);
                 localStorage.setItem("dean_crm_session", JSON.stringify(newSess));
-                setCheckingSession(false);
-                return;
+                setCheckingSession(false); return;
               }
             }
           }
@@ -304,24 +276,9 @@ export default function DeanCRM() {
     init();
   }, []);
 
-  useEffect(() => {
-    if (session && userId) fetchContacts();
-  }, [session, userId]);
-
-  useEffect(() => {
-    if (resendCountdown > 0) {
-      const t = setTimeout(() => setResendCountdown(r => r - 1), 1000);
-      return () => clearTimeout(t);
-    }
-  }, [resendCountdown]);
-
-  useEffect(() => {
-    if (authStep === "code") {
-      setTimeout(() => codeRefs[0].current?.focus(), 100);
-    }
-  }, [authStep]);
-
-  // Close export menu on outside click
+  useEffect(() => { if (session && userId) { fetchContacts(); fetchTasks(); } }, [session, userId]);
+  useEffect(() => { if (resendCountdown > 0) { const t = setTimeout(() => setResendCountdown(r => r - 1), 1000); return () => clearTimeout(t); } }, [resendCountdown]);
+  useEffect(() => { if (authStep === "code") { setTimeout(() => codeRefs[0].current?.focus(), 100); } }, [authStep]);
   useEffect(() => {
     if (!exportMenuOpen) return;
     const handler = () => setExportMenuOpen(false);
@@ -333,12 +290,48 @@ export default function DeanCRM() {
     setLoading(true);
     try {
       const res = await api("contacts?order=name.asc", { token: session.access_token, prefer: "" });
-      if (res.ok) {
-        const data = await res.json();
-        setContacts(data.map((c) => ({ ...c, touch_log: c.touch_log || [] })));
-      }
+      if (res.ok) { const data = await res.json(); setContacts(data.map((c) => ({ ...c, touch_log: c.touch_log || [] }))); }
     } catch {}
     setLoading(false);
+  };
+
+  const fetchTasks = async () => {
+    setTasksLoading(true);
+    try {
+      const res = await api("tasks?order=due_date.asc", { token: session.access_token, prefer: "" });
+      if (res.ok) { const data = await res.json(); setTasks(data); }
+    } catch {}
+    setTasksLoading(false);
+  };
+
+  const addTask = async () => {
+    if (!newTaskNote.trim()) return showToast("Task note is required");
+    const isoDate = newTaskDate.trim() ? parseNextTouch(newTaskDate.trim()) || null : null;
+    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, user_id: userId };
+    try {
+      const res = await api("tasks", { method: "POST", token: session.access_token, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        const t = Array.isArray(created) ? created[0] : created;
+        setTasks(prev => [...prev, t].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
+        setNewTaskNote(""); setNewTaskDate("");
+        showToast("Task added!");
+      } else { showToast("Error saving task"); }
+    } catch { showToast("Error saving task"); }
+  };
+
+  const completeTask = async (id, undo = false) => {
+    const patch = { completed: !undo, completed_at: !undo ? new Date().toISOString() : null };
+    try {
+      await api(`tasks?id=eq.${id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify(patch) });
+      setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
+      showToast(undo ? "Task reopened" : "Task completed! ✓");
+    } catch { showToast("Error updating task"); }
+  };
+
+  const deleteTask = async (id) => {
+    try { await api(`tasks?id=eq.${id}`, { method: "DELETE", token: session.access_token, prefer: "" }); setTasks(prev => prev.filter(t => t.id !== id)); } catch {}
+    setConfirmDeleteTask(null); showToast("Task deleted");
   };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2400); };
@@ -346,17 +339,10 @@ export default function DeanCRM() {
   const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    const res = await authFetch("otp", {
-      email: email.trim(),
-      create_user: true,
-      email_redirect_to: null,
-      go_true_enabled: false,
-    });
+    const res = await authFetch("otp", { email: email.trim(), create_user: true, email_redirect_to: null, go_true_enabled: false });
     setAuthLoading(false);
     if (res.error) return setAuthError(res.error.message || "Something went wrong");
-    setAuthStep("code");
-    setCode(["","","","","",""]);
-    setResendCountdown(30);
+    setAuthStep("code"); setCode(["","","","","",""]); setResendCountdown(30);
   };
 
   const verifyOTPWithCode = async (codeArr) => {
@@ -365,17 +351,11 @@ export default function DeanCRM() {
     setAuthLoading(true); setAuthError("");
     const res = await authFetch("verify", { email: email.trim(), token, type: "email" });
     setAuthLoading(false);
-    if (res.error) {
-      setAuthError("Invalid or expired code. Please try again.");
-      setCode(["","","","","",""]);
-      setTimeout(() => codeRefs[0].current?.focus(), 50);
-      return;
-    }
+    if (res.error) { setAuthError("Invalid or expired code. Please try again."); setCode(["","","","","",""]); setTimeout(() => codeRefs[0].current?.focus(), 50); return; }
     if (res.access_token) {
       const userData = await getUser(res.access_token);
       const sess = { access_token: res.access_token, refresh_token: res.refresh_token, user: userData };
-      setSession(sess);
-      setUserId(userData.id);
+      setSession(sess); setUserId(userData.id);
       localStorage.setItem("dean_crm_session", JSON.stringify(sess));
     }
   };
@@ -384,24 +364,15 @@ export default function DeanCRM() {
 
   const handleCodeInput = (i, val) => {
     const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...code];
-    next[i] = digit;
-    setCode(next);
-    setAuthError("");
+    const next = [...code]; next[i] = digit; setCode(next); setAuthError("");
     if (digit && i < 5) codeRefs[i + 1].current?.focus();
-    if (next.every(d => d !== "")) {
-      setTimeout(() => verifyOTPWithCode(next), 80);
-    }
+    if (next.every(d => d !== "")) { setTimeout(() => verifyOTPWithCode(next), 80); }
   };
 
   const handleCodeKeyDown = (i, e) => {
     if (e.key === "Backspace") {
-      if (code[i]) {
-        const next = [...code]; next[i] = ""; setCode(next);
-      } else if (i > 0) {
-        codeRefs[i - 1].current?.focus();
-        const next = [...code]; next[i - 1] = ""; setCode(next);
-      }
+      if (code[i]) { const next = [...code]; next[i] = ""; setCode(next); }
+      else if (i > 0) { codeRefs[i - 1].current?.focus(); const next = [...code]; next[i - 1] = ""; setCode(next); }
     }
     if (e.key === "ArrowLeft" && i > 0) codeRefs[i - 1].current?.focus();
     if (e.key === "ArrowRight" && i < 5) codeRefs[i + 1].current?.focus();
@@ -409,19 +380,12 @@ export default function DeanCRM() {
 
   const handleCodePaste = (e) => {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length === 6) {
-      const arr = pasted.split("");
-      setCode(arr);
-      codeRefs[5].current?.focus();
-      setTimeout(() => verifyOTPWithCode(arr), 80);
-    }
+    if (pasted.length === 6) { const arr = pasted.split(""); setCode(arr); codeRefs[5].current?.focus(); setTimeout(() => verifyOTPWithCode(arr), 80); }
   };
 
   const signOut = () => {
-    setSession(null); setUserId(null);
-    localStorage.removeItem("dean_crm_session");
-    setContacts([]); setView("list"); setSelected(null);
-    setAuthStep("email"); setCode(["","","","","",""]);
+    setSession(null); setUserId(null); localStorage.removeItem("dean_crm_session");
+    setContacts([]); setView("list"); setSelected(null); setAuthStep("email"); setCode(["","","","","",""]);
   };
 
   const saveEntry = async () => {
@@ -438,17 +402,10 @@ export default function DeanCRM() {
           const newContact = Array.isArray(created) ? created[0] : created;
           setContacts((prev) => [...prev, { ...newContact, touch_log: newContact.touch_log || [] }].sort((a,b) => a.name.localeCompare(b.name)));
           showToast("Contact added!");
-        } else {
-          const err = await res.json();
-          showToast("Error: " + (err.message || err.hint || "Could not save"));
-          return;
-        }
+        } else { const err = await res.json(); showToast("Error: " + (err.message || err.hint || "Could not save")); return; }
       } else {
         const res = await api(`contacts?id=eq.${id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify(fields) });
-        if (res.ok) {
-          setContacts((prev) => prev.map((c) => c.id === id ? { ...c, ...fields } : c));
-          showToast("Contact updated!");
-        }
+        if (res.ok) { setContacts((prev) => prev.map((c) => c.id === id ? { ...c, ...fields } : c)); showToast("Contact updated!"); }
       }
       setView("profile");
     } catch { showToast("Error saving contact"); }
@@ -459,18 +416,13 @@ export default function DeanCRM() {
     try {
       await api(`contacts?id=eq.${contact.id}`, { method: "PATCH", token: session.access_token, prefer: "", body: JSON.stringify({ next_touch: nextTouchDraft.trim() }) });
       setContacts((prev) => prev.map((c) => c.id === contact.id ? { ...c, next_touch: nextTouchDraft.trim() } : c));
-      setEditingNextTouch(false);
-      showToast("Next touch updated!");
+      setEditingNextTouch(false); showToast("Next touch updated!");
     } catch { showToast("Error saving"); }
   };
 
   const deleteContact = async (id) => {
-    try {
-      await api(`contacts?id=eq.${id}`, { method: "DELETE", token: session.access_token, prefer: "" });
-      setContacts((prev) => prev.filter((c) => c.id !== id));
-    } catch {}
-    setView("list"); setSelected(null); setConfirmDelete(null);
-    showToast("Contact deleted");
+    try { await api(`contacts?id=eq.${id}`, { method: "DELETE", token: session.access_token, prefer: "" }); setContacts((prev) => prev.filter((c) => c.id !== id)); } catch {}
+    setView("list"); setSelected(null); setConfirmDelete(null); showToast("Contact deleted");
   };
 
   const addTouchNote = async () => {
@@ -498,83 +450,34 @@ export default function DeanCRM() {
     setConfirmDeleteTouch(null); showToast("Note removed");
   };
 
-  // ── XLSX EXPORT ──
   const exportXLSX = () => {
     const wb = XLSX.utils.book_new();
-
-    // ── Sheet 1: Contacts ──
-    const contactRows = contacts.map((c) => ({
-      "Name": c.name || "",
-      "Company": c.company || "",
-      "Phone": c.phone || "",
-      "Email": c.email || "",
-      "Date Added": c.date ? formatDate(c.date) : "",
-      "Next Touch": c.next_touch || "",
-      "Touch Count": (c.touch_log || []).length,
-      "Notes": (c.notes || "").replace(/\n/g, " "),
-    }));
-
+    const contactRows = contacts.map((c) => ({ "Name": c.name || "", "Company": c.company || "", "Phone": c.phone || "", "Email": c.email || "", "Date Added": c.date ? formatDate(c.date) : "", "Next Touch": c.next_touch || "", "Touch Count": (c.touch_log || []).length, "Notes": (c.notes || "").replace(/\n/g, " ") }));
     const ws1 = XLSX.utils.json_to_sheet(contactRows);
-    ws1["!cols"] = [
-      { wch: 24 }, // Name
-      { wch: 22 }, // Company
-      { wch: 16 }, // Phone
-      { wch: 28 }, // Email
-      { wch: 16 }, // Date Added
-      { wch: 14 }, // Next Touch
-      { wch: 13 }, // Touch Count
-      { wch: 40 }, // Notes
-    ];
+    ws1["!cols"] = [{ wch: 24 },{ wch: 22 },{ wch: 16 },{ wch: 28 },{ wch: 16 },{ wch: 14 },{ wch: 13 },{ wch: 40 }];
     XLSX.utils.book_append_sheet(wb, ws1, "Contacts");
-
-    // ── Sheet 2: Touch Log ──
     const touchRows = [];
-    contacts.forEach((c) => {
-      (c.touch_log || []).forEach((t) => {
-        touchRows.push({
-          "Contact Name": c.name || "",
-          "Company": c.company || "",
-          "Date & Time": formatDateTime(t.createdAt),
-          "Note": t.text || "",
-        });
-      });
-    });
-
+    contacts.forEach((c) => { (c.touch_log || []).forEach((t) => { touchRows.push({ "Contact Name": c.name || "", "Company": c.company || "", "Date & Time": formatDateTime(t.createdAt), "Note": t.text || "" }); }); });
     if (touchRows.length > 0) {
       const ws2 = XLSX.utils.json_to_sheet(touchRows);
-      ws2["!cols"] = [
-        { wch: 24 }, // Contact Name
-        { wch: 22 }, // Company
-        { wch: 22 }, // Date & Time
-        { wch: 50 }, // Note
-      ];
+      ws2["!cols"] = [{ wch: 24 },{ wch: 22 },{ wch: 22 },{ wch: 50 }];
       XLSX.utils.book_append_sheet(wb, ws2, "Touch Log");
     }
-
-    const filename = `DeanCRM_${new Date().toISOString().slice(0,10)}.xlsx`;
-    XLSX.writeFile(wb, filename);
-    showToast("Exported to spreadsheet!");
-    setExportMenuOpen(false);
+    XLSX.writeFile(wb, `DeanCRM_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToast("Exported to spreadsheet!"); setExportMenuOpen(false);
   };
 
-  // ── CSV EXPORT (kept as fallback) ──
   const exportCSV = () => {
     const headers = ["Name","Company","Phone","Email","Notes","Date","Touch Log"];
-    const rows = contacts.map((c) => {
-      const log = (c.touch_log || []).map((t) => `[${formatDateTime(t.createdAt)}] ${t.text}`).join(" | ");
-      return [c.name,c.company,c.phone,c.email,(c.notes||"").replace(/\n/g," "),c.date,log];
-    });
+    const rows = contacts.map((c) => { const log = (c.touch_log || []).map((t) => `[${formatDateTime(t.createdAt)}] ${t.text}`).join(" | "); return [c.name,c.company,c.phone,c.email,(c.notes||"").replace(/\n/g," "),c.date,log]; });
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `DeanCRM_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    showToast("Exported to CSV!");
-    setExportMenuOpen(false);
+    showToast("Exported to CSV!"); setExportMenuOpen(false);
   };
 
-  const filtered = contacts.filter((c) =>
-    !search || [c.name,c.company,c.email,c.phone].some((f) => (f||"").toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = contacts.filter((c) => !search || [c.name,c.company,c.email,c.phone].some((f) => (f||"").toLowerCase().includes(search.toLowerCase())));
   const grouped = filtered.reduce((acc, c) => {
     const letter = (c.name[0] || "#").toUpperCase();
     if (!acc[letter]) acc[letter] = [];
@@ -583,7 +486,6 @@ export default function DeanCRM() {
   }, {});
   const contact = selected !== null ? contacts[selected] : null;
 
-  // ── SPLASH ──
   if (checkingSession) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -594,7 +496,6 @@ export default function DeanCRM() {
     </div>
   );
 
-  // ── AUTH ──
   if (!session) return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -602,21 +503,13 @@ export default function DeanCRM() {
         <div style={styles.authLogo}>D</div>
         <h1 style={styles.authTitle}>Dean CRM</h1>
         <p style={styles.authSub}>Your contacts, always in sync</p>
-
         {authStep === "email" ? (
           <div style={styles.authCard}>
             <p style={styles.authCardTitle}>Sign In</p>
             <p style={styles.authCardSub}>Enter your email and we'll send you a 6-digit code.</p>
-            <input
-              style={styles.authInput} type="email" placeholder="your@email.com"
-              value={email} onChange={(e) => { setEmail(e.target.value); setAuthError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && sendOTP()}
-              autoCapitalize="none" autoCorrect="off"
-            />
+            <input style={styles.authInput} type="email" placeholder="your@email.com" value={email} onChange={(e) => { setEmail(e.target.value); setAuthError(""); }} onKeyDown={(e) => e.key === "Enter" && sendOTP()} autoCapitalize="none" autoCorrect="off" />
             {authError && <div style={styles.authError}>{authError}</div>}
-            <button style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1 }} onClick={sendOTP} disabled={authLoading}>
-              {authLoading ? "Sending…" : "Send Code →"}
-            </button>
+            <button style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1 }} onClick={sendOTP} disabled={authLoading}>{authLoading ? "Sending…" : "Send Code →"}</button>
           </div>
         ) : (
           <div style={styles.authCard}>
@@ -624,35 +517,14 @@ export default function DeanCRM() {
             <p style={styles.authCardSub}>We sent a 6-digit code to <strong>{email}</strong></p>
             <div style={styles.codeRow} onPaste={handleCodePaste}>
               {code.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={codeRefs[i]}
-                  style={{ ...styles.codeBox, borderColor: digit ? "#1a6fc4" : authError ? "#c0392b" : "#cdd8ea" }}
-                  type="text" inputMode="numeric" maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleCodeInput(i, e.target.value)}
-                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                  onFocus={(e) => e.target.select()}
-                />
+                <input key={i} ref={codeRefs[i]} style={{ ...styles.codeBox, borderColor: digit ? "#1a6fc4" : authError ? "#c0392b" : "#cdd8ea" }} type="text" inputMode="numeric" maxLength={1} value={digit} onChange={(e) => handleCodeInput(i, e.target.value)} onKeyDown={(e) => handleCodeKeyDown(i, e)} onFocus={(e) => e.target.select()} />
               ))}
             </div>
             {authError && <div style={{ ...styles.authError, marginTop: 8 }}>{authError}</div>}
-            <button
-              style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1, marginTop: 16 }}
-              onClick={verifyOTP} disabled={authLoading}>
-              {authLoading ? "Verifying…" : "Verify Code ✓"}
-            </button>
+            <button style={{ ...styles.authBtn, opacity: authLoading ? 0.7 : 1, marginTop: 16 }} onClick={verifyOTP} disabled={authLoading}>{authLoading ? "Verifying…" : "Verify Code ✓"}</button>
             <div style={styles.resendRow}>
-              {resendCountdown > 0 ? (
-                <span style={styles.resendTimer}>Resend in {resendCountdown}s</span>
-              ) : (
-                <button style={styles.resendBtn} onClick={() => { setCode(["","","","","",""]); sendOTP(); }}>
-                  Resend code
-                </button>
-              )}
-              <button style={styles.changeEmailBtn} onClick={() => { setAuthStep("email"); setAuthError(""); setCode(["","","","","",""]); }}>
-                Change email
-              </button>
+              {resendCountdown > 0 ? <span style={styles.resendTimer}>Resend in {resendCountdown}s</span> : <button style={styles.resendBtn} onClick={() => { setCode(["","","","","",""]); sendOTP(); }}>Resend code</button>}
+              <button style={styles.changeEmailBtn} onClick={() => { setAuthStep("email"); setAuthError(""); setCode(["","","","","",""]); }}>Change email</button>
             </div>
           </div>
         )}
@@ -660,42 +532,42 @@ export default function DeanCRM() {
     </div>
   );
 
-  // ── MAIN APP ──
   return (
     <div style={styles.shell}>
       <style>{css}</style>
-
       {toast && <div style={styles.toast}>{toast}</div>}
 
       {confirmDelete && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <p style={styles.modalTitle}>Delete Contact?</p>
-            <p style={styles.modalSub}>This cannot be undone.</p>
-            <div style={{display:"flex",gap:10,marginTop:18}}>
-              <button style={styles.btnDanger} onClick={() => deleteContact(confirmDelete)}>Delete</button>
-              <button style={styles.btnSecondary} onClick={() => setConfirmDelete(null)}>Cancel</button>
-            </div>
+        <div style={styles.overlay}><div style={styles.modal}>
+          <p style={styles.modalTitle}>Delete Contact?</p><p style={styles.modalSub}>This cannot be undone.</p>
+          <div style={{display:"flex",gap:10,marginTop:18}}>
+            <button style={styles.btnDanger} onClick={() => deleteContact(confirmDelete)}>Delete</button>
+            <button style={styles.btnSecondary} onClick={() => setConfirmDelete(null)}>Cancel</button>
           </div>
-        </div>
+        </div></div>
       )}
-
       {confirmDeleteTouch && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <p style={styles.modalTitle}>Delete Note?</p>
-            <p style={styles.modalSub}>This cannot be undone.</p>
-            <div style={{display:"flex",gap:10,marginTop:18}}>
-              <button style={styles.btnDanger} onClick={() => deleteTouchNote(confirmDeleteTouch)}>Delete</button>
-              <button style={styles.btnSecondary} onClick={() => setConfirmDeleteTouch(null)}>Cancel</button>
-            </div>
+        <div style={styles.overlay}><div style={styles.modal}>
+          <p style={styles.modalTitle}>Delete Note?</p><p style={styles.modalSub}>This cannot be undone.</p>
+          <div style={{display:"flex",gap:10,marginTop:18}}>
+            <button style={styles.btnDanger} onClick={() => deleteTouchNote(confirmDeleteTouch)}>Delete</button>
+            <button style={styles.btnSecondary} onClick={() => setConfirmDeleteTouch(null)}>Cancel</button>
           </div>
-        </div>
+        </div></div>
+      )}
+      {confirmDeleteTask && (
+        <div style={styles.overlay}><div style={styles.modal}>
+          <p style={styles.modalTitle}>Delete Task?</p><p style={styles.modalSub}>This cannot be undone.</p>
+          <div style={{display:"flex",gap:10,marginTop:18}}>
+            <button style={styles.btnDanger} onClick={() => deleteTask(confirmDeleteTask)}>Delete</button>
+            <button style={styles.btnSecondary} onClick={() => setConfirmDeleteTask(null)}>Cancel</button>
+          </div>
+        </div></div>
       )}
 
       <div style={styles.header}>
         {view !== "list" ? (
-          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="Back to contacts">
+          <button style={styles.backBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="Back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
         ) : (
@@ -706,56 +578,43 @@ export default function DeanCRM() {
         <span style={styles.headerTitle}>
           {view === "list" ? "Dean CRM" : view === "profile" ? contact?.name || "Contact" : view === "add" ? "New Contact" : "Edit Contact"}
         </span>
-
-        {/* Export button — list view only */}
         {view === "list" && (
           <div style={{ position: "relative" }}>
-            <button
-              style={styles.exportBtn}
-              onClick={(e) => { e.stopPropagation(); setExportMenuOpen(o => !o); }}
-              title="Export"
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
+            <button style={styles.exportBtn} onClick={(e) => { e.stopPropagation(); setExportMenuOpen(o => !o); }} title="Export">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
             {exportMenuOpen && (
               <div style={styles.exportMenu} onClick={e => e.stopPropagation()}>
-                <button style={styles.exportMenuItem} onClick={exportXLSX}>
-                  <span style={styles.exportMenuIcon}>📊</span>
-                  <div>
-                    <div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div>
-                    <div style={styles.exportMenuSub}>Best for Google Sheets</div>
-                  </div>
-                </button>
+                <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
                 <div style={styles.exportMenuDivider}/>
-                <button style={styles.exportMenuItem} onClick={exportCSV}>
-                  <span style={styles.exportMenuIcon}>📄</span>
-                  <div>
-                    <div style={styles.exportMenuLabel}>CSV (.csv)</div>
-                    <div style={styles.exportMenuSub}>Plain text, universal</div>
-                  </div>
-                </button>
+                <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
               </div>
             )}
           </div>
         )}
-
         {view === "profile" && (
           <button style={styles.exportBtn} onClick={() => { setEditEntry({ ...contact }); setView("edit"); }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
         )}
         {(view === "profile" || view === "add" || view === "edit") && (
-          <button style={styles.homeBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="All contacts">
+          <button style={styles.homeBtn} onClick={() => { setAddingNote(false); setNewNote(""); setEditingNextTouch(false); setView("list"); }} title="Home">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
         )}
       </div>
 
       {view === "list" && (
+        <div style={styles.tabBar}>
+          <button style={{...styles.tab, ...(homeTab==="contacts" ? styles.tabActive : {})}} onClick={() => setHomeTab("contacts")}>Contacts</button>
+          <button style={{...styles.tab, ...(homeTab==="tasks" ? styles.tabActive : {})}} onClick={() => setHomeTab("tasks")}>
+            Tasks
+            {tasks.filter(t => !t.completed).length > 0 && <span style={styles.tabBadge}>{tasks.filter(t => !t.completed).length}</span>}
+          </button>
+        </div>
+      )}
+
+      {view === "list" && homeTab === "contacts" && (
         <div style={styles.body}>
           <div style={styles.searchWrap}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -765,11 +624,7 @@ export default function DeanCRM() {
           {loading ? (
             <div style={styles.empty}><div style={styles.splashSpinner}/></div>
           ) : contacts.length === 0 ? (
-            <div style={styles.empty}>
-              <div style={styles.emptyIcon}>📋</div>
-              <p style={styles.emptyTitle}>No contacts yet</p>
-              <p style={styles.emptySub}>Tap + to add your first contact</p>
-            </div>
+            <div style={styles.empty}><div style={styles.emptyIcon}>📋</div><p style={styles.emptyTitle}>No contacts yet</p><p style={styles.emptySub}>Tap + to add your first contact</p></div>
           ) : filtered.length === 0 ? (
             <div style={styles.empty}><p style={styles.emptyTitle}>No results for "{search}"</p></div>
           ) : (
@@ -778,8 +633,7 @@ export default function DeanCRM() {
                 <div key={letter}>
                   <div style={styles.sectionHeader}>{letter}</div>
                   {grouped[letter].map((c) => (
-                    <div key={c.id} style={styles.contactRow} className="contact-row"
-                      onClick={() => { setSelected(c._origIdx); setView("profile"); }}>
+                    <div key={c.id} style={styles.contactRow} className="contact-row" onClick={() => { setSelected(c._origIdx); setView("profile"); }}>
                       <div style={{ ...styles.avatar, background: avatarColor(c.name) }}>{initials(c.name)}</div>
                       <div style={styles.rowInfo}>
                         <div style={styles.rowName}>{c.name}</div>
@@ -798,6 +652,82 @@ export default function DeanCRM() {
           <button style={styles.fab} className="fab" onClick={() => { setEditEntry({ ...blankContact(), _isNew: true }); setView("add"); }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
+        </div>
+      )}
+
+      {view === "list" && homeTab === "tasks" && (
+        <div style={styles.body}>
+          <div style={styles.listScroll}>
+            <div style={styles.taskAddPanel}>
+              <div style={styles.taskAddTitle}>➕ New Task</div>
+              <div style={{marginBottom:8}}>
+                <NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1, padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff"}} />
+              </div>
+              <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e => setNewTaskNote(e.target.value)} rows={2} />
+              <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
+            </div>
+            {(() => {
+              const open = tasks.filter(t => !t.completed);
+              const done = tasks.filter(t => t.completed);
+              return (
+                <>
+                  <div style={styles.taskListHeader}><span style={styles.taskListTitle}>📋 Open Tasks ({open.length})</span></div>
+                  {tasksLoading ? (
+                    <div style={styles.empty}><div style={styles.splashSpinner}/></div>
+                  ) : open.length === 0 ? (
+                    <div style={{padding:"14px 14px 4px", fontSize:13, color:"#aaa", textAlign:"center"}}>No open tasks 🎉</div>
+                  ) : open.map(t => {
+                    const status = taskDueStatus(t.due_date);
+                    return (
+                      <div key={t.id} style={styles.taskCard}>
+                        <div style={styles.taskCardBody}>
+                          <div style={styles.taskCardTop}>
+                            <div style={styles.taskCardText}>{t.note}</div>
+                            <button style={styles.taskDeleteBtn} onClick={() => setConfirmDeleteTask(t.id)}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            </button>
+                          </div>
+                          <div style={styles.taskCardFooter}>
+                            {t.due_date ? (
+                              <span style={{...styles.taskDueChip, ...(status==="overdue" ? styles.taskDueOverdue : status==="today" ? styles.taskDueToday : styles.taskDueUpcoming)}}>
+                                {status==="overdue" ? `⚠ Due ${formatTaskDue(t.due_date)}` : status==="today" ? "📌 Due Today" : `🗓 Due ${formatTaskDue(t.due_date)}`}
+                              </span>
+                            ) : <span style={styles.taskDueNone}>No due date</span>}
+                            <button style={styles.taskCompleteBtn} onClick={() => completeTask(t.id)}>✓ Mark Complete</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {done.length > 0 && (
+                    <>
+                      <div style={styles.taskListHeader}>
+                        <span style={{...styles.taskListTitle, color:"#aaa"}}>✓ Completed ({done.length})</span>
+                        <button style={styles.taskFilterBtn} onClick={() => setShowCompleted(s => !s)}>{showCompleted ? "Hide ↑" : "Show ↓"}</button>
+                      </div>
+                      {showCompleted && done.map(t => (
+                        <div key={t.id} style={{...styles.taskCard, opacity:0.55}}>
+                          <div style={styles.taskCardBody}>
+                            <div style={styles.taskCardTop}>
+                              <div style={{...styles.taskCardText, textDecoration:"line-through", color:"#aaa"}}>{t.note}</div>
+                              <button style={styles.taskDeleteBtn} onClick={() => setConfirmDeleteTask(t.id)}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                              </button>
+                            </div>
+                            <div style={styles.taskCardFooter}>
+                              <span style={styles.taskDueNone}>Completed {t.completed_at ? formatTaskDue(t.completed_at.slice(0,10)) : ""}</span>
+                              <button style={styles.taskUndoBtn} onClick={() => completeTask(t.id, true)}>↩ Undo</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  <div style={{height:40}}/>
+                </>
+              );
+            })()}
+          </div>
         </div>
       )}
 
@@ -823,18 +753,13 @@ export default function DeanCRM() {
                   </div>
                 </div>
               ))}
-              {/* ── Next Touch row with inline edit ── */}
               <div style={styles.fieldRow}>
                 <span style={styles.fieldIcon}>🗓</span>
                 <div style={styles.fieldBody}>
                   <div style={styles.fieldLabel}>Next Touch</div>
                   {editingNextTouch ? (
                     <div style={{marginTop:2}}>
-                      <NextTouchInput
-                        value={nextTouchDraft}
-                        onChange={setNextTouchDraft}
-                        inputStyle={{flex:1, border:"1.5px solid #1a6fc4", borderRadius:8, padding:"5px 9px", fontSize:14, background:"#f4f8ff", fontFamily:"inherit", outline:"none", boxSizing:"border-box", width:"100%"}}
-                      />
+                      <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1, border:"1.5px solid #1a6fc4", borderRadius:8, padding:"5px 9px", fontSize:14, background:"#f4f8ff", fontFamily:"inherit", outline:"none", boxSizing:"border-box", width:"100%"}} />
                       <div style={{display:"flex", gap:6, marginTop:8}}>
                         <button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button>
                         <button style={styles.ntCancelBtn} onClick={() => setEditingNextTouch(false)}>Cancel</button>
@@ -843,9 +768,7 @@ export default function DeanCRM() {
                   ) : (
                     <div style={{display:"flex", alignItems:"center", gap:8, marginTop:2}}>
                       <div style={styles.fieldValue}>{contact.next_touch || <span style={{color:"#aaa"}}>Not set</span>}</div>
-                      <button style={styles.ntEditBtn} onClick={() => { setNextTouchDraft(contact.next_touch || ""); setEditingNextTouch(true); }}>
-                        Update Next Touch
-                      </button>
+                      <button style={styles.ntEditBtn} onClick={() => { setNextTouchDraft(contact.next_touch || ""); setEditingNextTouch(true); }}>Update Next Touch</button>
                     </div>
                   )}
                 </div>
@@ -866,15 +789,8 @@ export default function DeanCRM() {
                 <div style={styles.addNotePanel}>
                   <div style={styles.addNoteDate}>📅 {formatDateTime(new Date().toISOString())}</div>
                   <textarea style={styles.addNoteTextarea} placeholder="What happened during this touch?" value={newNote} onChange={(e) => setNewNote(e.target.value)} rows={3} autoFocus/>
-
-                  {/* ── Inline Next Touch ── */}
                   <div style={styles.addNoteDivider}><span>also update next touch</span></div>
-                  <NextTouchInput
-                    value={inlineNextTouch}
-                    onChange={setInlineNextTouch}
-                    inputStyle={{ flex:1, padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
-                  />
-
+                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{ flex:1, padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }} />
                   <div style={{display:"flex",gap:8,marginTop:10}}>
                     <button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button>
                     <button style={styles.cancelNoteBtn} onClick={() => { setAddingNote(false); setNewNote(""); setInlineNextTouch(""); }}>Cancel</button>
@@ -915,11 +831,8 @@ export default function DeanCRM() {
             ].map((f) => (
               <div key={f.key} style={styles.formGroup}>
                 <label style={styles.formLabel}>{f.label}{f.required && <span style={styles.required}> *</span>}</label>
-                <input
-                  style={styles.formInput} type={f.type} placeholder={f.placeholder}
-                  value={editEntry[f.key] || ""}
-                  maxLength={f.key === "phone" ? 12 : undefined}
-                  inputMode={f.key === "phone" ? "numeric" : undefined}
+                <input style={styles.formInput} type={f.type} placeholder={f.placeholder} value={editEntry[f.key] || ""}
+                  maxLength={f.key === "phone" ? 12 : undefined} inputMode={f.key === "phone" ? "numeric" : undefined}
                   onChange={(e) => {
                     if (f.key === "phone") {
                       const digits = e.target.value.replace(/\D/g,"").slice(0,10);
@@ -933,13 +846,9 @@ export default function DeanCRM() {
                 {f.key === "phone" && <div style={styles.phoneHint}>{(editEntry.phone||"").replace(/\D/g,"").length}/10 digits</div>}
               </div>
             ))}
-            {/* Next Touch Date */}
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Next Touch Date</label>
-              <NextTouchInput
-                value={editEntry.next_touch || ""}
-                onChange={(v) => setEditEntry({ ...editEntry, next_touch: v })}
-              />
+              <NextTouchInput value={editEntry.next_touch || ""} onChange={(v) => setEditEntry({ ...editEntry, next_touch: v })} />
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Notes</label>
@@ -1010,6 +919,30 @@ const styles = {
   addNotePanel: { padding:"14px 16px", borderBottom:"1px solid #d6e2f0", background:"#f0f6ff" },
   addNoteDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, marginBottom:8, letterSpacing:"0.04em" },
   addNoteDivider: { display:"flex", alignItems:"center", gap:8, margin:"10px 0 0", fontSize:10, color:"#999", fontWeight:600, letterSpacing:"0.04em", textTransform:"uppercase" },
+  tabBar: { display:"flex", background:"#0d1b2e", borderBottom:"2px solid #1a6fc4", flexShrink:0 },
+  tab: { flex:1, padding:"10px 0", textAlign:"center", fontSize:12, fontWeight:700, letterSpacing:"0.06em", textTransform:"uppercase", color:"#8aafd4", cursor:"pointer", background:"none", border:"none", borderBottom:"3px solid transparent", fontFamily:"'Georgia',serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 },
+  tabActive: { color:"#eef2f8", borderBottom:"3px solid #1a6fc4" },
+  tabBadge: { background:"#c0392b", color:"#fff", fontSize:10, fontWeight:700, borderRadius:9, padding:"1px 6px", fontFamily:"sans-serif" },
+  taskAddPanel: { margin:"12px 14px 0", background:"#fff", borderRadius:14, border:"1.5px solid #1a6fc4", padding:"13px 14px" },
+  taskAddTitle: { fontSize:12, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 },
+  taskAddTextarea: { width:"100%", padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"none", lineHeight:1.5, background:"#f8faff", marginTop:2 },
+  taskAddBtn: { display:"block", width:"100%", marginTop:10, padding:"10px", background:"#1a6fc4", border:"none", color:"#fff", borderRadius:10, fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" },
+  taskListHeader: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 4px" },
+  taskListTitle: { fontSize:12, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em" },
+  taskFilterBtn: { fontSize:12, color:"#888", fontWeight:600, background:"none", border:"none", cursor:"pointer", fontFamily:"inherit" },
+  taskCard: { margin:"6px 14px 0", background:"#fff", borderRadius:12, border:"1px solid #d6e2f0", overflow:"hidden" },
+  taskCardBody: { padding:"11px 13px" },
+  taskCardTop: { display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 },
+  taskCardText: { fontSize:14, color:"#0d1b2e", lineHeight:1.5, flex:1 },
+  taskDeleteBtn: { background:"none", border:"none", cursor:"pointer", color:"#ccc", padding:"2px 4px", display:"flex", alignItems:"center", flexShrink:0, borderRadius:4 },
+  taskCardFooter: { display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:9 },
+  taskDueChip: { fontSize:11, fontWeight:700, borderRadius:6, padding:"2px 8px" },
+  taskDueOverdue: { color:"#c0392b", background:"#fdecea" },
+  taskDueToday: { color:"#b7580a", background:"#fff3e0" },
+  taskDueUpcoming: { color:"#1a6fc4", background:"#e8f0fc" },
+  taskDueNone: { fontSize:11, color:"#aaa", fontWeight:600 },
+  taskCompleteBtn: { fontSize:12, fontWeight:700, padding:"5px 12px", borderRadius:8, cursor:"pointer", fontFamily:"inherit", border:"none", background:"#1a6fc4", color:"#fff" },
+  taskUndoBtn: { fontSize:12, fontWeight:700, padding:"5px 12px", borderRadius:8, cursor:"pointer", fontFamily:"inherit", background:"#e8f0fc", color:"#1a6fc4", border:"1px solid #b0c8e8" },
   ntEditBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:7, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", flexShrink:0 },
   ntSaveBtn: { background:"#1a6fc4", color:"#fff", border:"none", borderRadius:7, padding:"5px 12px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", flexShrink:0 },
   ntCancelBtn: { background:"none", border:"1.5px solid #cdd8ea", color:"#888", borderRadius:7, padding:"5px 8px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit", flexShrink:0 },
@@ -1081,3 +1014,4 @@ button:hover { opacity: 0.85; }
 .add-note-divider span { white-space: nowrap; }
 .add-note-divider::before, .add-note-divider::after { content: ''; flex: 1; height: 1px; background: #d6e2f0; display: block; }
 `;
+
