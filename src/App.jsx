@@ -1018,17 +1018,17 @@ export default function DeanCRM() {
                         </button>
                       </div>
                       {showCompleted && done.map(t => (
-                        <div key={t.id} style={{...styles.taskCard, opacity:0.55}}>
+                        <div key={t.id} style={{...styles.taskCard, opacity:0.9, borderColor:"#b0c8e8", background:"#f0f6ff"}}>
                           <div style={styles.taskCardBody}>
                             <div style={styles.taskCardTop}>
-                              <div style={{...styles.taskCardText, textDecoration:"line-through", color:"#aaa"}}>{t.note}</div>
+                              <div style={{...styles.taskCardText, textDecoration:"line-through", color:"#1a6fc4"}}>{t.note}</div>
                               <button style={styles.taskDeleteBtn} onClick={() => setConfirmDeleteTask(t.id)}>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                               </button>
                             </div>
                             <div style={styles.taskCardFooter}>
-                              <span style={styles.taskDueNone}>
-                                Completed {t.completed_at ? formatTaskDue(t.completed_at.slice(0,10)) : ""}
+                              <span style={{fontSize:11, color:"#1a6fc4", fontWeight:700}}>
+                                ✓ Completed {t.completed_at ? formatTaskDue(t.completed_at.slice(0,10)) : ""}
                               </span>
                               <button style={styles.taskUndoBtn} onClick={() => completeTask(t.id, true)}>↩ Undo</button>
                             </div>
