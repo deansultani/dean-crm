@@ -263,7 +263,7 @@ export default function DeanCRM() {
   const [editingNextTouch, setEditingNextTouch] = useState(false);
   const [nextTouchDraft, setNextTouchDraft] = useState("");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [homeTab, setHomeTab] = useState("contacts"); // "contacts" | "tasks"
+  const [homeTab, setHomeTab] = useState("home"); // "home" | "contacts" | "tasks"
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [newTaskNote, setNewTaskNote] = useState("");
@@ -662,6 +662,46 @@ export default function DeanCRM() {
     setExportMenuOpen(false);
   };
 
+  // ── Home tab helpers ──
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const in7DaysIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const upcomingTasks = tasks.filter(t =>
+    !t.completed && t.due_date && t.due_date <= in7DaysIso
+  ).sort((a, b) => a.due_date > b.due_date ? 1 : -1);
+
+  // Group tasks by due_date
+  const tasksByDay = upcomingTasks.reduce((acc, t) => {
+    if (!acc[t.due_date]) acc[t.due_date] = [];
+    acc[t.due_date].push(t);
+    return acc;
+  }, {});
+
+  const upcomingContacts = contacts.filter(c => {
+    if (!c.next_touch) return false;
+    const iso = parseNextTouch(c.next_touch);
+    return iso && iso <= in7DaysIso;
+  }).sort((a, b) => {
+    const ia = parseNextTouch(a.next_touch);
+    const ib = parseNextTouch(b.next_touch);
+    return ia > ib ? 1 : -1;
+  });
+
+  const getDayLabel = (iso) => {
+    if (iso === todayIso) return "Today";
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    if (iso === tomorrow) return "Tomorrow";
+    const dt = new Date(iso + "T00:00:00");
+    return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  };
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   const filtered = contacts.filter((c) =>
     !search || [c.name,c.company,c.email,c.phone].some((f) => (f||"").toLowerCase().includes(search.toLowerCase()))
   );
@@ -862,6 +902,9 @@ export default function DeanCRM() {
       {/* ── Tab Bar (list view only) ── */}
       {view === "list" && (
         <div style={styles.tabBar}>
+          <button style={{...styles.tab, ...(homeTab==="home" ? styles.tabActive : {})}} onClick={() => setHomeTab("home")}>
+            🏠 Home
+          </button>
           <button style={{...styles.tab, ...(homeTab==="contacts" ? styles.tabActive : {})}} onClick={() => setHomeTab("contacts")}>
             Contacts
           </button>
@@ -875,6 +918,98 @@ export default function DeanCRM() {
       )}
 
       {/* ── CONTACTS TAB ── */}
+      {/* ── HOME TAB ── */}
+      {view === "list" && homeTab === "home" && (
+        <div style={styles.body}>
+          <div style={styles.listScroll}>
+
+            {/* Greeting strip */}
+            <div style={styles.homeGreeting}>
+              <div style={styles.homeGreetingTitle}>{getGreeting()}, Dean</div>
+              <div style={styles.homeGreetingDate}>
+                {new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })}
+              </div>
+            </div>
+
+            {/* Upcoming Tasks */}
+            <div style={styles.homeSectionHeader}>
+              <span style={styles.homeSectionTitle}>📋 Upcoming Tasks</span>
+              <span style={styles.homeSectionCount}>Next 7 days · {upcomingTasks.length} task{upcomingTasks.length !== 1 ? "s" : ""}</span>
+            </div>
+
+            {upcomingTasks.length === 0 ? (
+              <div style={styles.homeEmpty}>
+                <div style={styles.homeEmptyIcon}>🎉</div>
+                <div>No tasks due in the next 7 days!</div>
+              </div>
+            ) : (
+              Object.keys(tasksByDay).sort().map(dateKey => (
+                <div key={dateKey} style={styles.homeDayGroup}>
+                  <div style={styles.homeDayLabel}>
+                    {getDayLabel(dateKey)}
+                    <div style={styles.homeDayLine}/>
+                  </div>
+                  {tasksByDay[dateKey].map(t => {
+                    const status = taskDueStatus(t.due_date);
+                    return (
+                      <div key={t.id} style={{
+                        ...styles.homeTaskCard,
+                        borderLeft: status === "overdue" ? "3px solid #c0392b"
+                          : status === "today" ? "3px solid #e67e22"
+                          : "3px solid #1a6fc4"
+                      }}>
+                        <div style={styles.homeTaskTop}>
+                          <div style={styles.homeTaskText}>{t.note}</div>
+                          <span style={{
+                            ...styles.taskDueChip,
+                            ...(status==="overdue" ? styles.taskDueOverdue : status==="today" ? styles.taskDueToday : styles.taskDueUpcoming)
+                          }}>
+                            {status==="overdue" ? `⚠ ${formatTaskDue(t.due_date)}` : status==="today" ? "📌 Today" : `🗓 ${formatTaskDue(t.due_date)}`}
+                          </span>
+                        </div>
+                        <button style={styles.homeTaskCompleteBtn} onClick={() => completeTask(t.id)}>✓ Mark Complete</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            )}
+
+            {/* Next Touch Due */}
+            {upcomingContacts.length > 0 && (
+              <>
+                <div style={{...styles.homeSectionHeader, marginTop:8}}>
+                  <span style={styles.homeSectionTitle}>🗓 Next Touch Due</span>
+                  <span style={styles.homeSectionCount}>Overdue or this week</span>
+                </div>
+                {upcomingContacts.map(c => {
+                  const iso = parseNextTouch(c.next_touch);
+                  const status = nextTouchStatus(c.next_touch);
+                  const origIdx = contacts.findIndex(x => x.id === c.id);
+                  return (
+                    <div key={c.id} style={styles.homeTouchCard} onClick={() => { setSelected(origIdx); setView("profile"); }}>
+                      <div style={{ ...styles.avatar, background: avatarColor(c.name), width:36, height:36, fontSize:13 }}>{initials(c.name)}</div>
+                      <div style={{flex:1, minWidth:0}}>
+                        <div style={{fontSize:13, fontWeight:600, color:"#0d1b2e"}}>{c.name}</div>
+                        <div style={{fontSize:11, color:"#888", marginTop:1}}>{c.company || c.email || ""}</div>
+                      </div>
+                      <span style={{
+                        fontSize:10, fontWeight:700, borderRadius:5, padding:"2px 7px", flexShrink:0,
+                        ...(status==="overdue" ? {color:"#c0392b", background:"#fdecea"} : status==="today" ? {color:"#b7580a", background:"#fff3e0"} : {color:"#1a6fc4", background:"#e8f0fc"})
+                      }}>
+                        {status==="overdue" ? "⚠ Overdue" : status==="today" ? "📌 Today" : `🗓 ${formatTaskDue(iso)}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            <div style={{height:40}}/>
+          </div>
+        </div>
+      )}
+
       {view === "list" && homeTab === "contacts" && (
         <div style={styles.body}>
           <div style={styles.searchWrap}>
@@ -1256,9 +1391,25 @@ const styles = {
   addNoteDate: { fontSize:11, color:"#1a6fc4", fontWeight:600, marginBottom:8, letterSpacing:"0.04em" },
   addNoteDivider: { display:"flex", alignItems:"center", gap:8, margin:"10px 0 0", fontSize:10, color:"#999", fontWeight:600, letterSpacing:"0.04em", textTransform:"uppercase" },
   tabBar: { display:"flex", background:"#0d1b2e", borderBottom:"2px solid #1a6fc4", flexShrink:0 },
-  tab: { flex:1, padding:"10px 0", textAlign:"center", fontSize:12, fontWeight:700, letterSpacing:"0.06em", textTransform:"uppercase", color:"#8aafd4", cursor:"pointer", background:"none", border:"none", borderBottom:"3px solid transparent", fontFamily:"'Georgia',serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 },
+  tab: { flex:1, padding:"10px 0", textAlign:"center", fontSize:11, fontWeight:700, letterSpacing:"0.05em", textTransform:"uppercase", color:"#8aafd4", cursor:"pointer", background:"none", border:"none", borderBottom:"3px solid transparent", fontFamily:"'Georgia',serif", display:"flex", alignItems:"center", justifyContent:"center", gap:4 },
   tabActive: { color:"#eef2f8", borderBottom:"3px solid #1a6fc4" },
   tabBadge: { background:"#c0392b", color:"#fff", fontSize:10, fontWeight:700, borderRadius:9, padding:"1px 6px", fontFamily:"sans-serif" },
+  homeGreeting: { background:"#0d1b2e", padding:"16px 16px 18px", borderBottom:"1px solid #1a6fc4" },
+  homeGreetingTitle: { fontSize:11, fontWeight:700, color:"#8aafd4", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 },
+  homeGreetingDate: { fontSize:17, fontWeight:700, color:"#eef2f8", letterSpacing:"0.02em" },
+  homeSectionHeader: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 14px 6px" },
+  homeSectionTitle: { fontSize:12, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em" },
+  homeSectionCount: { fontSize:11, color:"#888", fontWeight:600 },
+  homeDayGroup: { margin:"0 12px 8px" },
+  homeDayLabel: { fontSize:10, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.1em", padding:"6px 4px 4px", display:"flex", alignItems:"center", gap:6 },
+  homeDayLine: { flex:1, height:1, background:"#d6e2f0" },
+  homeTaskCard: { background:"#fff", borderRadius:10, border:"1px solid #d6e2f0", marginBottom:6, padding:"10px 12px" },
+  homeTaskTop: { display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 },
+  homeTaskText: { fontSize:13, color:"#0d1b2e", lineHeight:1.5, flex:1 },
+  homeTaskCompleteBtn: { marginTop:8, fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:7, border:"none", background:"#1a6fc4", color:"#fff", cursor:"pointer", fontFamily:"inherit" },
+  homeTouchCard: { background:"#fff", borderRadius:10, border:"1px solid #d6e2f0", borderLeft:"3px solid #1a6fc4", margin:"0 12px 6px", padding:"10px 12px", display:"flex", alignItems:"center", gap:10, cursor:"pointer" },
+  homeEmpty: { padding:"28px 20px", textAlign:"center", fontSize:13, color:"#aaa", lineHeight:1.7 },
+  homeEmptyIcon: { fontSize:36, marginBottom:10 },
   taskAddPanel: { margin:"12px 14px 0", background:"#fff", borderRadius:14, border:"1.5px solid #1a6fc4", padding:"13px 14px" },
   taskAddTitle: { fontSize:12, fontWeight:700, color:"#1a6fc4", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 },
   taskAddTextarea: { width:"100%", padding:"9px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:14, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", resize:"none", lineHeight:1.5, background:"#f8faff", marginTop:2 },
