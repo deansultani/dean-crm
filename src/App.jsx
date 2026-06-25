@@ -374,7 +374,7 @@ function ProspectAgent() {
     addLog("Calling Claude with web search...");
     try {
       const userMessage = `Research this California workers' compensation defense law firm for Legalet AI sales prospecting:\n\nFirm: ${firmName}${location ? `\nLocation: ${location}` : ""}`;
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/claude-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1281,4 +1281,3 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button:hover { opacity: 0.85; }
 `;
-
