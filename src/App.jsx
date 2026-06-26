@@ -518,9 +518,7 @@ export default function DeanCRM() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target.result;
-      const lines = text.split(/
-?
-/).filter(l => l.trim());
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return showToast("CSV appears empty");
       const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g,""));
       const map = {
@@ -707,7 +705,8 @@ export default function DeanCRM() {
         <span style={styles.headerTitle}>
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
-        {view==="list"&&true&&(
+        {view==="list"&&homeTab!=="contacts"&&<div style={{width:36}}/>}
+        {view==="list"&&homeTab==="contacts"&&(
           <div style={{position:"relative"}}>
             <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -800,7 +799,8 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {view==="list"&&homeTab==="contacts"&&(
+      {view==="list"&&homeTab!=="contacts"&&<div style={{width:36}}/>}
+        {view==="list"&&homeTab==="contacts"&&(
         <div style={styles.body}>
           <div style={styles.searchWrap}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
