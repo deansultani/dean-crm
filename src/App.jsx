@@ -696,12 +696,16 @@ export default function DeanCRM() {
       {confirmDeleteTouch&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTask&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Task?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
 
-      {importDone && (
-        <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0d1b2e",color:"#eef2f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-          ✓ Imported {importDone.added} contacts{importDone.skipped > 0 ? ` · ${importDone.skipped} skipped (duplicates)` : ""}
-        </div>
-      )}
-
+      <div style={styles.header}>
+        {view!=="list"?(
+          <button style={styles.backBtn} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+          </button>
+        ):(
+          <button style={styles.signOutBtn} onClick={signOut}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        )}
         <span style={styles.headerTitle}>
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
@@ -717,7 +721,7 @@ export default function DeanCRM() {
                 <div style={styles.exportMenuDivider}/>
                 <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
                 <div style={styles.exportMenuDivider}/>
-                <label style={{...styles.exportMenuItem, cursor:"pointer"}}>
+                <label style={{...styles.exportMenuItem,cursor:"pointer"}}>
                   <span style={styles.exportMenuIcon}>📥</span>
                   <div><div style={styles.exportMenuLabel}>Import CSV</div><div style={styles.exportMenuSub}>Add contacts from file</div></div>
                   <input type="file" accept=".csv" style={{display:"none"}} onChange={e=>{setExportMenuOpen(false);handleImportFile(e);}}/>
@@ -726,7 +730,6 @@ export default function DeanCRM() {
             )}
           </div>
         )}
-        
         {view==="profile"&&<button style={styles.exportBtn} onClick={()=>{setEditEntry({...contact});setView("edit");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>}
         {(view==="profile"||view==="add"||view==="edit")&&<button style={styles.homeBtn} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>}
       </div>
@@ -799,8 +802,7 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {view==="list"&&homeTab!=="contacts"&&<div style={{width:36}}/>}
-        {view==="list"&&homeTab==="contacts"&&(
+      {view==="list"&&homeTab==="contacts"&&(
         <div style={styles.body}>
           <div style={styles.searchWrap}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
