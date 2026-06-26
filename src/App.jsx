@@ -747,57 +747,105 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={{background:"#0f1f3d",padding:"20px 20px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>{getGreeting()}, Dean</div>
-              <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em",marginBottom:2}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
-            </div>
-            <div style={styles.homeSectionHeader}><span style={styles.homeSectionTitle}>📋 Upcoming Tasks</span><span style={styles.homeSectionCount}>Next 7 days · {upcomingTasks.length} task{upcomingTasks.length!==1?"s":""}</span></div>
-            {upcomingTasks.length===0?(<div style={styles.homeEmpty}><div style={styles.homeEmptyIcon}>🎉</div><div>No tasks due in the next 7 days!</div></div>):(
-              Object.keys(tasksByDay).sort().map(dateKey=>(
-                <div key={dateKey} style={styles.homeDayGroup}>
-                  <div style={styles.homeDayLabel}>{getDayLabel(dateKey)}<div style={styles.homeDayLine}/></div>
-                  {tasksByDay[dateKey].map(t=>{
-                    const status=taskDueStatus(t.due_date);
-                    const isEditing=editingTaskId===t.id;
-                    return(
-                      <div key={t.id} style={{...styles.homeTaskCard,borderLeft:status==="overdue"?"3px solid #dc2626":status==="today"?"3px solid #e67e22":"3px solid #2563eb",...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
-                        {isEditing?(<>
-                          <div style={styles.taskEditLabel}>Due date</div>
-                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
-                          <div style={{display:"flex",gap:6,marginTop:8}}>
-                            <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
-                            <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
-                          </div>
-                        </>):(<>
-                          <div style={styles.homeTaskTop}>
-                            <div style={styles.homeTaskText}>{t.note}</div>
-                            <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                              <button style={{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>startEditTask(t)} title="Edit due date">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                              </button>
-                              <span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span>
-                            </div>
-                          </div>
-                          <button style={styles.homeTaskCompleteBtn} onClick={()=>completeTask(t.id)}>✓ Mark Complete</button>
-                        </>)}
-                      </div>
-                    );
-                  })}
+
+            {/* ── Dashboard Header ── */}
+            <div style={{background:"#0f1f3d",padding:"22px 20px 24px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
+              <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+              {/* ── KPI strip ── */}
+              <div style={{display:"flex",gap:10,marginTop:16}}>
+                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{tasks.filter(t=>!t.completed).length}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Open Tasks</div>
                 </div>
-              ))
+                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Overdue</div>
+                </div>
+                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingContacts.length}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Follow-ups</div>
+                </div>
+                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{contacts.length}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Contacts</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Upcoming Tasks Grid ── */}
+            <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <span style={{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
+              <span style={{fontSize:11,color:"#94a3b8"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
+            </div>
+
+            {upcomingTasks.length===0?(
+              <div style={{margin:"0 16px 16px",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"28px 20px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
+                <div style={{fontSize:28,marginBottom:8}}>🎉</div>
+                <div style={{fontSize:13,color:"#64748b",fontWeight:500}}>No tasks due in the next 7 days</div>
+              </div>
+            ):(
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+                {upcomingTasks.map(t=>{
+                  const status=taskDueStatus(t.due_date);
+                  const isEditing=editingTaskId===t.id;
+                  const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
+                  const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
+                  return(
+                    <div key={t.id} style={{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"14px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`,...(isEditing?{border:`1.5px solid ${accentColor}`,boxShadow:`0 0 0 3px ${accentColor}18`}:{})}}>
+                      {isEditing?(<>
+                        <div style={styles.taskEditLabel}>Due date</div>
+                        <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"5px 8px",border:"none",outline:"none",fontSize:12,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
+                        <div style={{display:"flex",gap:5,marginTop:8}}>
+                          <button style={{...styles.taskEditSaveBtn,fontSize:11,padding:"6px"}} onClick={()=>saveTaskEdit(t.id)}>Save</button>
+                          <button style={{...styles.taskEditCancelBtn,fontSize:11,padding:"6px"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
+                        </div>
+                      </>):(<>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4,marginBottom:8}}>
+                          <span style={{...styles.taskDueChip,...chipStyle,fontSize:10}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span>
+                          <button style={{background:"none",border:"none",cursor:"pointer",padding:"1px",display:"flex",alignItems:"center",flexShrink:0}} onClick={()=>startEditTask(t)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                        </div>
+                        <div style={{fontSize:12,color:"#1a2332",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
+                        <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>✓ Complete</button>
+                      </>)}
+                    </div>
+                  );
+                })}
+              </div>
             )}
+
+            {/* ── Next Touch Due Grid ── */}
             {upcomingContacts.length>0&&(<>
-              <div style={{...styles.homeSectionHeader,marginTop:8}}><span style={styles.homeSectionTitle}>🗓 Next Touch Due</span><span style={styles.homeSectionCount}>Overdue or this week</span></div>
-              {upcomingContacts.map(c=>{
-                const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);const origIdx=contacts.findIndex(x=>x.id===c.id);
-                return(<div key={c.id} style={styles.homeTouchCard} onClick={()=>{setSelected(origIdx);setView("profile");}}>
-                  <div style={{...styles.avatar,background:avatarColor(c.name),width:36,height:36,fontSize:13}}>{initials(c.name)}</div>
-                  <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:600,color:"#0f1f3d"}}>{c.name}</div><div style={{fontSize:11,color:"#888",marginTop:1}}>{c.company||c.email||""}</div></div>
-                  <span style={{fontSize:10,fontWeight:700,borderRadius:5,padding:"2px 7px",flexShrink:0,...(status==="overdue"?{color:"#dc2626",background:"#fef2f2"}:status==="today"?{color:"#d97706",background:"#fffbeb"}:{color:"#2563eb",background:"#eff6ff"})}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
-                </div>);
-              })}
+              <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <span style={{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
+                <span style={{fontSize:11,color:"#94a3b8"}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+                {upcomingContacts.map(c=>{
+                  const iso=parseNextTouch(c.next_touch);
+                  const status=nextTouchStatus(c.next_touch);
+                  const origIdx=contacts.findIndex(x=>x.id===c.id);
+                  const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
+                  const badgeStyle=status==="overdue"?{color:"#dc2626",background:"#fef2f2",border:"1px solid #fecaca"}:status==="today"?{color:"#d97706",background:"#fffbeb",border:"1px solid #fde68a"}:{color:"#2563eb",background:"#eff6ff",border:"1px solid #dbeafe"};
+                  return(
+                    <div key={c.id} style={{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"14px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                        <div style={{width:32,height:32,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
+                        <div style={{minWidth:0}}>
+                          <div style={{fontSize:12,fontWeight:600,color:"#1a2332",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
+                          <div style={{fontSize:11,color:"#94a3b8",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
+                        </div>
+                      </div>
+                      <span style={{...badgeStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </>)}
-            <div style={{height:40}}/>
+
+            <div style={{height:32}}/>
           </div>
         </div>
       )}
@@ -1134,8 +1182,9 @@ const css = `
 .fab:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(37,99,235,0.5) !important; }
 input[type="date"] { color-scheme: light; }
 input:focus, textarea:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.08) !important; }
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar { width: 9px; }
+::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
 ::-webkit-scrollbar-track { background: transparent; }
 html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0f1f3d; }
 body { -webkit-user-select: none; user-select: none; }
