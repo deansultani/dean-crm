@@ -625,10 +625,30 @@ export default function DeanCRM() {
                   <div style={styles.homeDayLabel}>{getDayLabel(dateKey)}<div style={styles.homeDayLine}/></div>
                   {tasksByDay[dateKey].map(t=>{
                     const status=taskDueStatus(t.due_date);
-                    return(<div key={t.id} style={{...styles.homeTaskCard,borderLeft:status==="overdue"?"3px solid #c0392b":status==="today"?"3px solid #e67e22":"3px solid #1a6fc4"}}>
-                      <div style={styles.homeTaskTop}><div style={styles.homeTaskText}>{t.note}</div><span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span></div>
-                      <button style={styles.homeTaskCompleteBtn} onClick={()=>completeTask(t.id)}>✓ Mark Complete</button>
-                    </div>);
+                    const isEditing=editingTaskId===t.id;
+                    return(
+                      <div key={t.id} style={{...styles.homeTaskCard,borderLeft:status==="overdue"?"3px solid #c0392b":status==="today"?"3px solid #e67e22":"3px solid #1a6fc4",...(isEditing?{border:"1.5px solid #1a6fc4",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
+                        {isEditing?(<>
+                          <div style={styles.taskEditLabel}>Due date</div>
+                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0d1b2e",fontFamily:"inherit",background:"transparent"}}/>
+                          <div style={{display:"flex",gap:6,marginTop:8}}>
+                            <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
+                            <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
+                          </div>
+                        </>):(<>
+                          <div style={styles.homeTaskTop}>
+                            <div style={styles.homeTaskText}>{t.note}</div>
+                            <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                              <button style={{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>startEditTask(t)} title="Edit due date">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              <span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span>
+                            </div>
+                          </div>
+                          <button style={styles.homeTaskCompleteBtn} onClick={()=>completeTask(t.id)}>✓ Mark Complete</button>
+                        </>)}
+                      </div>
+                    );
                   })}
                 </div>
               ))
