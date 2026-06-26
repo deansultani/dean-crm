@@ -48,7 +48,7 @@ const formatDateTime = (iso) => {
 const initials = (name) => name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
 const avatarColor = (name) => {
-  const colors = ["#1560e8","#003fa5","#1a6fc4","#0a2e6e","#2480d6","#0052cc","#1873b8"];
+  const colors = ["#2563eb","#1e40af","#2563eb","#1e3a8a","#3b82f6","#1d4ed8","#2563eb"];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % colors.length;
   return colors[h];
@@ -97,10 +97,10 @@ const NextTouchChip = ({ val }) => {
   const status = nextTouchStatus(val);
   if (!status) return null;
   const chipStyle = status === "overdue"
-    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#c0392b", background:"#fdecea", borderRadius:6, padding:"2px 7px" }
+    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#dc2626", background:"#fef2f2", borderRadius:6, padding:"2px 8px", border:"1px solid #fecaca" }
     : status === "today"
-    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:700, color:"#b7580a", background:"#fff3e0", borderRadius:6, padding:"2px 7px" }
-    : { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#1a6fc4", background:"#e8f0fc", borderRadius:6, padding:"2px 7px" };
+    ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#d97706", background:"#fffbeb", borderRadius:6, padding:"2px 8px", border:"1px solid #fde68a" }
+    : { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#2563eb", background:"#eff6ff", borderRadius:6, padding:"2px 8px", border:"1px solid #dbeafe" };
   const label = status === "overdue" ? `⚠ Overdue · ${val}` : status === "today" ? `📌 Today · ${val}` : `🗓 ${val}`;
   return <div style={chipStyle}>{label}</div>;
 };
@@ -157,17 +157,17 @@ function MiniCalendar({ value, onChange, onClose }) {
 }
 
 const calStyles = {
-  wrap: { background:"#fff", border:"1.5px solid #1a6fc4", borderRadius:10, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)", maxWidth:280 },
-  header: { background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 10px" },
-  nav: { background:"none", border:"none", color:"#eef2f8", cursor:"pointer", fontSize:15, padding:"0 4px", lineHeight:1, fontFamily:"inherit" },
-  month: { fontSize:12, fontWeight:700, color:"#eef2f8", letterSpacing:"0.04em", fontFamily:"'Georgia',serif" },
+  wrap: { background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)", maxWidth:280 },
+  header: { background:"#0f1f3d", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 10px" },
+  nav: { background:"none", border:"none", color:"#f0f4f8", cursor:"pointer", fontSize:15, padding:"0 4px", lineHeight:1, fontFamily:"inherit" },
+  month: { fontSize:12, fontWeight:700, color:"#f0f4f8", letterSpacing:"0.04em", fontFamily:"inherit" },
   grid: { padding:"4px 6px 6px" },
   dayNames: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:2 },
-  dayName: { fontSize:8, fontWeight:700, color:"#1a6fc4", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
+  dayName: { fontSize:8, fontWeight:700, color:"#3b82f6", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
   days: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:1 },
-  day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#0d1b2e", borderRadius:"50%", cursor:"pointer", fontFamily:"'Georgia',serif" },
-  daySelected: { background:"#1a6fc4", color:"#fff", fontWeight:700 },
-  dayToday: { border:"1.5px solid #1a6fc4", color:"#1a6fc4", fontWeight:700 },
+  day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#0f1f3d", borderRadius:"50%", cursor:"pointer", fontFamily:"inherit" },
+  daySelected: { background:"#2563eb", color:"#fff", fontWeight:700 },
+  dayToday: { border:"1.5px solid #3b82f6", color:"#2563eb", fontWeight:700 },
 };
 
 function NextTouchInput({ value, onChange, inputStyle }) {
@@ -183,19 +183,19 @@ function NextTouchInput({ value, onChange, inputStyle }) {
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-        <button style={{ width:38, height:38, background:"#1a6fc4", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }} onClick={() => setCalOpen(o => !o)} title="Pick from calendar" type="button">
+        <button style={{ width:36, height:36, background:"#2563eb", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }} onClick={() => setCalOpen(o => !o)} title="Pick from calendar" type="button">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
-        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #cdd8ea", borderRadius:10, fontSize:15, color:"#0d1b2e", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
+        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:15, color:"#0f1f3d", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
           type="text" placeholder="MM/DD/YYYY" value={value} maxLength={10} inputMode="numeric"
           onChange={handleTextChange} onFocus={() => setCalOpen(false)}
         />
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
-          {status === "overdue" && <span style={{color:"#c0392b"}}>⚠ This date is in the past</span>}
-          {status === "today" && <span style={{color:"#b7580a"}}>📌 Today</span>}
-          {status === "upcoming" && <span style={{color:"#1a6fc4"}}>✓ Upcoming</span>}
+          {status === "overdue" && <span style={{color:"#dc2626"}}>⚠ This date is in the past</span>}
+          {status === "today" && <span style={{color:"#d97706"}}>📌 Today</span>}
+          {status === "upcoming" && <span style={{color:"#2563eb"}}>✓ Upcoming</span>}
         </div>
       )}
       {calOpen && <MiniCalendar value={value} onChange={(v) => { onChange(v); setCalOpen(false); }} onClose={() => setCalOpen(false)}/>}
@@ -253,7 +253,7 @@ export default function DeanCRM() {
       { name:"apple-mobile-web-app-capable", content:"yes" },
       { name:"apple-mobile-web-app-status-bar-style", content:"black-translucent" },
       { name:"apple-mobile-web-app-title", content:"DeanBoard" },
-      { name:"theme-color", content:"#0d1b2e" },
+      { name:"theme-color", content:"#0f1f3d" },
       { name:"viewport", content:"width=device-width, initial-scale=1, viewport-fit=cover" },
     ];
     metas.forEach(({ name, content }) => {
@@ -639,7 +639,7 @@ export default function DeanCRM() {
             <p style={styles.authCardSub}>We sent a 6-digit code to <strong>{email}</strong></p>
             <div style={styles.codeRow} onPaste={handleCodePaste}>
               {code.map((digit,i)=>(
-                <input key={i} ref={codeRefs[i]} style={{...styles.codeBox,borderColor:digit?"#1a6fc4":authError?"#c0392b":"#cdd8ea"}} type="text" inputMode="numeric" maxLength={1} value={digit} onChange={e=>handleCodeInput(i,e.target.value)} onKeyDown={e=>handleCodeKeyDown(i,e)} onFocus={e=>e.target.select()}/>
+                <input key={i} ref={codeRefs[i]} style={{...styles.codeBox,borderColor:digit?"#2563eb":authError?"#dc2626":"#e2e8f0"}} type="text" inputMode="numeric" maxLength={1} value={digit} onChange={e=>handleCodeInput(i,e.target.value)} onKeyDown={e=>handleCodeKeyDown(i,e)} onFocus={e=>e.target.select()}/>
               ))}
             </div>
             {authError&&<div style={{...styles.authError,marginTop:8}}>{authError}</div>}
@@ -659,7 +659,7 @@ export default function DeanCRM() {
       <style>{css}</style>
       {toast&&<div style={styles.toast}>{toast}</div>}
       {importDone&&(
-        <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0d1b2e",color:"#eef2f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+        <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
           ✓ Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
         </div>
       )}
@@ -667,21 +667,21 @@ export default function DeanCRM() {
       {importModal&&importPreview?.allRows&&(
         <div style={styles.overlay}>
           <div style={{background:"#fff",borderRadius:16,padding:"22px 20px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto"}}>
-            <p style={{fontSize:17,fontWeight:700,color:"#0d1b2e",margin:"0 0 4px"}}>Import Contacts</p>
+            <p style={{fontSize:17,fontWeight:700,color:"#0f1f3d",margin:"0 0 4px"}}>Import Contacts</p>
             <p style={{fontSize:13,color:"#666",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
-            <div style={{background:"#f4f8ff",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid #d6e2f0"}}>
+            <div style={{background:"#f8fafc",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid #e8edf2"}}>
               {importPreview.preview.map((r,i)=>(
                 <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid #e0eaf5":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
-                  <div style={{fontSize:13,fontWeight:600,color:"#0d1b2e"}}>{r.name}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:"#0f1f3d"}}>{r.name}</div>
                   <div style={{fontSize:11,color:"#888",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
                 </div>
               ))}
             </div>
-            <div style={{background:"#fff8e1",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#b7580a",border:"1px solid #ffe082"}}>
+            <div style={{background:"#fff8e1",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#d97706",border:"1px solid #ffe082"}}>
               Duplicates (same name) will be skipped automatically.
             </div>
             <div style={{display:"flex",gap:10}}>
-              <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#1a6fc4",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
+              <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
                 {importLoading?"Importing...":"Import All"}
               </button>
               <button style={{flex:1,padding:"12px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
@@ -747,9 +747,9 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={styles.homeGreeting}>
-              <div style={styles.homeGreetingTitle}>{getGreeting()}, Dean</div>
-              <div style={styles.homeGreetingDate}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+            <div style={{background:"#0f1f3d",padding:"20px 20px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>{getGreeting()}, Dean</div>
+              <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em",marginBottom:2}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
             </div>
             <div style={styles.homeSectionHeader}><span style={styles.homeSectionTitle}>📋 Upcoming Tasks</span><span style={styles.homeSectionCount}>Next 7 days · {upcomingTasks.length} task{upcomingTasks.length!==1?"s":""}</span></div>
             {upcomingTasks.length===0?(<div style={styles.homeEmpty}><div style={styles.homeEmptyIcon}>🎉</div><div>No tasks due in the next 7 days!</div></div>):(
@@ -760,10 +760,10 @@ export default function DeanCRM() {
                     const status=taskDueStatus(t.due_date);
                     const isEditing=editingTaskId===t.id;
                     return(
-                      <div key={t.id} style={{...styles.homeTaskCard,borderLeft:status==="overdue"?"3px solid #c0392b":status==="today"?"3px solid #e67e22":"3px solid #1a6fc4",...(isEditing?{border:"1.5px solid #1a6fc4",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
+                      <div key={t.id} style={{...styles.homeTaskCard,borderLeft:status==="overdue"?"3px solid #dc2626":status==="today"?"3px solid #e67e22":"3px solid #2563eb",...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
                         {isEditing?(<>
                           <div style={styles.taskEditLabel}>Due date</div>
-                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0d1b2e",fontFamily:"inherit",background:"transparent"}}/>
+                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:8}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
                             <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -792,8 +792,8 @@ export default function DeanCRM() {
                 const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);const origIdx=contacts.findIndex(x=>x.id===c.id);
                 return(<div key={c.id} style={styles.homeTouchCard} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                   <div style={{...styles.avatar,background:avatarColor(c.name),width:36,height:36,fontSize:13}}>{initials(c.name)}</div>
-                  <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:600,color:"#0d1b2e"}}>{c.name}</div><div style={{fontSize:11,color:"#888",marginTop:1}}>{c.company||c.email||""}</div></div>
-                  <span style={{fontSize:10,fontWeight:700,borderRadius:5,padding:"2px 7px",flexShrink:0,...(status==="overdue"?{color:"#c0392b",background:"#fdecea"}:status==="today"?{color:"#b7580a",background:"#fff3e0"}:{color:"#1a6fc4",background:"#e8f0fc"})}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
+                  <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:600,color:"#0f1f3d"}}>{c.name}</div><div style={{fontSize:11,color:"#888",marginTop:1}}>{c.company||c.email||""}</div></div>
+                  <span style={{fontSize:10,fontWeight:700,borderRadius:5,padding:"2px 7px",flexShrink:0,...(status==="overdue"?{color:"#dc2626",background:"#fef2f2"}:status==="today"?{color:"#d97706",background:"#fffbeb"}:{color:"#2563eb",background:"#eff6ff"})}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
                 </div>);
               })}
             </>)}
@@ -841,7 +841,7 @@ export default function DeanCRM() {
           <div style={styles.listScroll}>
             <div style={styles.taskAddPanel}>
               <div style={styles.taskAddTitle}>➕ New Task</div>
-              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:14,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/></div>
+              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#0f1f3d",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/></div>
               <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
@@ -854,13 +854,13 @@ export default function DeanCRM() {
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
-                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #1a6fc4",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
+                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
                           <div style={styles.taskEditLabel}>Task note</div>
                           <textarea style={styles.taskEditTextarea} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
                           <div style={{...styles.taskEditLabel,marginTop:8}}>Due date</div>
-                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0d1b2e",fontFamily:"inherit",background:"transparent"}}/>
+                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save Changes</button>
                             <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -885,10 +885,10 @@ export default function DeanCRM() {
                 {done.length>0&&(<>
                   <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"#aaa"}}>✓ Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide ↑":"Show ↓"}</button></div>
                   {showCompleted&&done.map(t=>(
-                    <div key={t.id} style={{...styles.taskCard,opacity:0.9,borderColor:"#b0c8e8",background:"#f0f6ff"}}>
+                    <div key={t.id} style={{...styles.taskCard,opacity:0.9,borderColor:"#dbeafe",background:"#eff6ff"}}>
                       <div style={styles.taskCardBody}>
-                        <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"#1a6fc4"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#1a6fc4",fontWeight:700}}>✓ Completed {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>↩ Undo</button></div>
+                        <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"#2563eb"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
+                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#2563eb",fontWeight:700}}>✓ Completed {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>↩ Undo</button></div>
                       </div>
                     </div>
                   ))}
@@ -917,7 +917,7 @@ export default function DeanCRM() {
                 <div style={styles.fieldLabel}>Next Touch</div>
                 {editingNextTouch?(
                   <div style={{marginTop:2}}>
-                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1.5px solid #1a6fc4",borderRadius:8,padding:"5px 9px",fontSize:14,background:"#f4f8ff",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%"}}/>
+                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1.5px solid #2563eb",borderRadius:8,padding:"5px 9px",fontSize:14,background:"#f8fafc",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%"}}/>
                     <div style={{display:"flex",gap:6,marginTop:8}}><button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button><button style={styles.ntCancelBtn} onClick={()=>setEditingNextTouch(false)}>Cancel</button></div>
                   </div>
                 ):(
@@ -936,13 +936,13 @@ export default function DeanCRM() {
                   <div style={styles.addNoteDate}>📅 {formatDateTime(new Date().toISOString())}</div>
                   <textarea style={styles.addNoteTextarea} placeholder="What happened during this touch?" value={newNote} onChange={e=>setNewNote(e.target.value)} rows={3} autoFocus/>
                   <div style={styles.addNoteDivider}><span>also update next touch</span></div>
-                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:14,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/>
+                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#0f1f3d",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/>
                   <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button><button style={styles.cancelNoteBtn} onClick={()=>{setAddingNote(false);setNewNote("");setInlineNextTouch("");}}>Cancel</button></div>
                 </div>
               )}
               {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet. Tap "+ Add Note" to record an interaction.</div>
               :(contact.touch_log||[]).map((touch,i)=>(
-                <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid #d6e2f0"}}>
+                <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid #e8edf2"}}>
                   <div style={styles.touchEntryHeader}><span style={styles.touchEntryDate}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
                   <div style={styles.touchEntryText}>{touch.text}</div>
                 </div>
@@ -978,156 +978,168 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Georgia','Times New Roman',serif",background:"#eef2f8",color:"#0d1b2e",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
-  header:{background:"#0d1b2e",color:"#eef2f8",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(16px, env(safe-area-inset-left))",paddingRight:"max(16px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:10,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"2px solid #1a6fc4"},
-  headerTitle:{flex:1,fontSize:20,fontWeight:700,letterSpacing:"0.04em",fontFamily:"'Georgia',serif"},
-  backBtn:{background:"none",border:"none",color:"#eef2f8",cursor:"pointer",padding:"4px 6px",borderRadius:6,display:"flex",alignItems:"center"},
-  signOutBtn:{background:"none",border:"none",color:"#eef2f8",cursor:"pointer",padding:"6px 8px",borderRadius:6,display:"flex",alignItems:"center",opacity:0.75},
-  exportBtn:{background:"none",border:"none",color:"#eef2f8",cursor:"pointer",padding:"6px 8px",borderRadius:6,display:"flex",alignItems:"center",opacity:0.85},
-  exportMenu:{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#fff",borderRadius:14,boxShadow:"0 8px 32px rgba(0,0,0,0.18)",border:"1px solid #d6e2f0",zIndex:300,minWidth:210,overflow:"hidden"},
-  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Georgia',serif",textAlign:"left"},
-  exportMenuIcon:{fontSize:22,flexShrink:0},exportMenuLabel:{fontSize:14,fontWeight:700,color:"#0d1b2e"},exportMenuSub:{fontSize:11,color:"#999",marginTop:1},
-  exportMenuDivider:{height:1,background:"#e8f0fa",margin:"0 14px"},
+  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"#f0f4f8",color:"#1a2332",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
+  header:{background:"#0f1f3d",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.08)"},
+  headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff"},
+  backBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
+  signOutBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.45)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
+  exportBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
+  homeBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center",marginLeft:2},
+  exportMenu:{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#fff",borderRadius:12,boxShadow:"0 8px 40px rgba(0,0,0,0.14)",border:"1px solid #e2e8f0",zIndex:300,minWidth:220,overflow:"hidden"},
+  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left"},
+  exportMenuIcon:{fontSize:20,flexShrink:0},
+  exportMenuLabel:{fontSize:13,fontWeight:600,color:"#1a2332"},
+  exportMenuSub:{fontSize:11,color:"#94a3b8",marginTop:1},
+  exportMenuDivider:{height:1,background:"#f1f5f9",margin:"0"},
+  tabBar:{display:"flex",background:"#0f1f3d",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0},
+  tab:{flex:1,padding:"11px 0",textAlign:"center",fontSize:11,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",color:"rgba(255,255,255,0.4)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4},
+  tabActive:{color:"#fff",borderBottom:"2px solid #3b82f6"},
+  tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
-  searchWrap:{margin:"12px 14px 4px",background:"#fff",borderRadius:12,display:"flex",alignItems:"center",padding:"8px 12px",gap:8,border:"1.5px solid #cdd8ea",flexShrink:0},
-  searchIcon:{flexShrink:0,color:"#888"},searchInput:{flex:1,border:"none",outline:"none",fontSize:15,background:"transparent",fontFamily:"inherit",color:"#0d1b2e"},
-  clearSearch:{background:"none",border:"none",cursor:"pointer",color:"#999",fontSize:14,padding:2},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-  sectionHeader:{padding:"10px 16px 4px",fontSize:12,fontWeight:700,color:"#1a6fc4",letterSpacing:"0.12em",textTransform:"uppercase",background:"#eef2f8"},
-  contactRow:{display:"flex",alignItems:"center",padding:"10px 16px",gap:12,cursor:"pointer",borderBottom:"1px solid #d6e2f0",background:"#fff",transition:"background 0.12s"},
-  avatar:{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,color:"#fff",flexShrink:0,letterSpacing:"0.04em"},
-  rowInfo:{flex:1,minWidth:0},rowName:{fontSize:16,fontWeight:600,color:"#0d1b2e",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  rowSub:{fontSize:13,color:"#888",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  touchBadge:{background:"#1a6fc4",color:"#fff",fontSize:11,fontWeight:700,borderRadius:10,padding:"2px 7px",marginRight:4,fontFamily:"sans-serif"},
-  chevron:{color:"#ccc",flexShrink:0},
-  fab:{position:"absolute",bottom:"calc(24px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:58,height:58,borderRadius:"50%",background:"#1a6fc4",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(26,111,196,0.45)",transition:"transform 0.15s, box-shadow 0.15s",zIndex:10},
+  homeGreeting:{background:"#0f1f3d",padding:"20px 20px 22px"},
+  homeGreetingTitle:{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
+  homeGreetingDate:{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
+  homeSectionHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 10px"},
+  homeSectionTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"},
+  homeSectionCount:{fontSize:11,color:"#94a3b8",fontWeight:500},
+  homeDayGroup:{margin:"0 16px 6px"},
+  homeDayLabel:{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"0.08em",padding:"8px 0 6px",display:"flex",alignItems:"center",gap:8},
+  homeDayLine:{flex:1,height:1,background:"#e2e8f0"},
+  homeTaskCard:{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",marginBottom:8,padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  homeTaskTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
+  homeTaskText:{fontSize:13,color:"#1a2332",lineHeight:1.5,flex:1,fontWeight:500},
+  homeTaskCompleteBtn:{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569",cursor:"pointer",fontFamily:"inherit"},
+  homeTouchCard:{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",margin:"0 16px 8px",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  homeEmpty:{padding:"32px 20px",textAlign:"center",fontSize:13,color:"#94a3b8",lineHeight:1.7},
+  homeEmptyIcon:{fontSize:32,marginBottom:8},
+  searchWrap:{margin:"14px 16px 8px",background:"#fff",borderRadius:10,display:"flex",alignItems:"center",padding:"9px 14px",gap:8,border:"1px solid #e2e8f0",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"},
+  searchIcon:{flexShrink:0,color:"#94a3b8"},
+  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#1a2332"},
+  clearSearch:{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:14,padding:2},
+  sectionHeader:{padding:"10px 20px 4px",fontSize:11,fontWeight:700,color:"#3b82f6",letterSpacing:"0.1em",textTransform:"uppercase",background:"#f0f4f8"},
+  contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid #f1f5f9",background:"#fff",transition:"background 0.1s"},
+  avatar:{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#fff",flexShrink:0},
+  rowInfo:{flex:1,minWidth:0},
+  rowName:{fontSize:14,fontWeight:600,color:"#1a2332",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  rowSub:{fontSize:12,color:"#94a3b8",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  touchBadge:{background:"#eff6ff",color:"#3b82f6",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid #dbeafe"},
+  chevron:{color:"#cbd5e1",flexShrink:0},
+  fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"#2563eb",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.4)",transition:"transform 0.15s,box-shadow 0.15s",zIndex:10},
   empty:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,textAlign:"center"},
-  emptyIcon:{fontSize:52,marginBottom:16},emptyTitle:{fontSize:18,fontWeight:600,color:"#444",marginBottom:6},emptySub:{fontSize:14,color:"#999"},
+  emptyIcon:{fontSize:48,marginBottom:14},
+  emptyTitle:{fontSize:17,fontWeight:600,color:"#475569",marginBottom:6},
+  emptySub:{fontSize:13,color:"#94a3b8"},
   profileScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 0 20px"},
-  profileHero:{background:"#0d1b2e",padding:"32px 20px 28px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,borderBottom:"2px solid #1a6fc4"},
-  avatarLg:{width:78,height:78,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,fontWeight:700,color:"#fff",letterSpacing:"0.04em"},
-  profileName:{fontSize:22,fontWeight:700,color:"#eef2f8",margin:0,textAlign:"center"},profileCompany:{fontSize:14,color:"#8aafd4",margin:0,textAlign:"center"},
-  card:{background:"#fff",margin:"14px 14px 0",borderRadius:14,padding:"4px 0",border:"1px solid #d6e2f0",overflow:"hidden"},
-  fieldRow:{display:"flex",alignItems:"flex-start",padding:"12px 16px",gap:12,borderBottom:"1px solid #e8f0fa"},
-  fieldIcon:{fontSize:18,flexShrink:0,marginTop:1},fieldBody:{flex:1,minWidth:0},
-  fieldLabel:{fontSize:11,color:"#1a6fc4",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:2},
-  fieldValue:{fontSize:15,color:"#0d1b2e",textDecoration:"none",wordBreak:"break-all"},
-  notesLabel:{fontSize:12,color:"#1a6fc4",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",padding:"12px 16px 4px"},
-  notesText:{fontSize:14,color:"#444",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
-  touchSection:{margin:"14px 14px 0",background:"#fff",borderRadius:14,border:"1px solid #d6e2f0",overflow:"hidden"},
-  touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",borderBottom:"1px solid #d6e2f0",background:"#f4f8ff"},
-  touchHeaderTitle:{fontSize:13,fontWeight:700,color:"#1a6fc4",letterSpacing:"0.08em",textTransform:"uppercase"},
-  addNoteBtn:{background:"#1a6fc4",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
-  addNotePanel:{padding:"14px 16px",borderBottom:"1px solid #d6e2f0",background:"#f0f6ff"},
-  addNoteDate:{fontSize:11,color:"#1a6fc4",fontWeight:600,marginBottom:8,letterSpacing:"0.04em"},
-  addNoteDivider:{display:"flex",alignItems:"center",gap:8,margin:"10px 0 0",fontSize:10,color:"#999",fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase"},
-  tabBar:{display:"flex",background:"#0d1b2e",borderBottom:"2px solid #1a6fc4",flexShrink:0},
-  tab:{flex:1,padding:"10px 0",textAlign:"center",fontSize:10,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",color:"#8aafd4",cursor:"pointer",background:"none",border:"none",borderBottom:"3px solid transparent",fontFamily:"'Georgia',serif",display:"flex",alignItems:"center",justifyContent:"center",gap:3},
-  tabActive:{color:"#eef2f8",borderBottom:"3px solid #1a6fc4"},
-  tabBadge:{background:"#c0392b",color:"#fff",fontSize:10,fontWeight:700,borderRadius:9,padding:"1px 6px",fontFamily:"sans-serif"},
-  homeGreeting:{background:"#0d1b2e",padding:"16px 16px 18px",borderBottom:"1px solid #1a6fc4"},
-  homeGreetingTitle:{fontSize:11,fontWeight:700,color:"#8aafd4",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4},
-  homeGreetingDate:{fontSize:17,fontWeight:700,color:"#eef2f8",letterSpacing:"0.02em"},
-  homeSectionHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 14px 6px"},
-  homeSectionTitle:{fontSize:12,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.08em"},
-  homeSectionCount:{fontSize:11,color:"#888",fontWeight:600},
-  homeDayGroup:{margin:"0 12px 8px"},
-  homeDayLabel:{fontSize:10,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.1em",padding:"6px 4px 4px",display:"flex",alignItems:"center",gap:6},
-  homeDayLine:{flex:1,height:1,background:"#d6e2f0"},
-  homeTaskCard:{background:"#fff",borderRadius:10,border:"1px solid #d6e2f0",marginBottom:6,padding:"10px 12px"},
-  homeTaskTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8},
-  homeTaskText:{fontSize:13,color:"#0d1b2e",lineHeight:1.5,flex:1},
-  homeTaskCompleteBtn:{marginTop:8,fontSize:11,fontWeight:700,padding:"4px 10px",borderRadius:7,border:"none",background:"#1a6fc4",color:"#fff",cursor:"pointer",fontFamily:"inherit"},
-  homeTouchCard:{background:"#fff",borderRadius:10,border:"1px solid #d6e2f0",borderLeft:"3px solid #1a6fc4",margin:"0 12px 6px",padding:"10px 12px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"},
-  homeEmpty:{padding:"28px 20px",textAlign:"center",fontSize:13,color:"#aaa",lineHeight:1.7},
-  homeEmptyIcon:{fontSize:36,marginBottom:10},
-  taskAddPanel:{margin:"12px 14px 0",background:"#fff",borderRadius:14,border:"1.5px solid #1a6fc4",padding:"13px 14px"},
-  taskAddTitle:{fontSize:12,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10},
-  taskAddTextarea:{width:"100%",padding:"9px 12px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:14,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"#f8faff",marginTop:2},
-  taskAddBtn:{display:"block",width:"100%",marginTop:10,padding:"10px",background:"#1a6fc4",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
-  taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px 4px"},
-  taskListTitle:{fontSize:12,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.08em"},
-  taskFilterBtn:{fontSize:12,color:"#888",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
-  taskCard:{margin:"6px 14px 0",background:"#fff",borderRadius:12,border:"1px solid #d6e2f0",overflow:"hidden"},
-  taskCardBody:{padding:"11px 13px"},
-  taskCardTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8},
-  taskCardText:{fontSize:14,color:"#0d1b2e",lineHeight:1.5,flex:1},
-  taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#ccc",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
-  taskCardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:9},
-  taskDueChip:{fontSize:11,fontWeight:700,borderRadius:6,padding:"2px 8px"},
-  taskDueOverdue:{color:"#c0392b",background:"#fdecea"},taskDueToday:{color:"#b7580a",background:"#fff3e0"},taskDueUpcoming:{color:"#1a6fc4",background:"#e8f0fc"},
-  taskDueNone:{fontSize:11,color:"#aaa",fontWeight:600},
-  taskCompleteBtn:{fontSize:12,fontWeight:700,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"none",background:"#1a6fc4",color:"#fff"},
-  taskUndoBtn:{fontSize:12,fontWeight:700,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"#e8f0fc",color:"#1a6fc4",border:"1px solid #b0c8e8"},
-  taskEditBtn:{background:"none",border:"1.5px solid #1a6fc4",borderRadius:6,cursor:"pointer",color:"#1a6fc4",padding:"3px 7px",fontSize:10,fontWeight:700,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit",whiteSpace:"nowrap"},
-  taskEditLabel:{fontSize:9,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
-  taskEditTextarea:{width:"100%",padding:"7px 9px",border:"1.5px solid #cdd8ea",borderRadius:8,fontSize:13,color:"#0d1b2e",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"#f8faff",boxSizing:"border-box"},
-  taskEditSaveBtn:{flex:1,padding:"8px",background:"#1a6fc4",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
-  taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  ntEditBtn:{background:"#1a6fc4",color:"#fff",border:"none",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
-  ntSaveBtn:{background:"#1a6fc4",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
-  ntCancelBtn:{background:"none",border:"1.5px solid #cdd8ea",color:"#888",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-  addNoteTextarea:{width:"100%",padding:"10px 12px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:14,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6,background:"#fff"},
-  saveNoteBtn:{flex:1,padding:"10px",background:"#1a6fc4",border:"none",color:"#fff",borderRadius:9,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
-  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:9,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  touchEmpty:{padding:"16px",fontSize:13,color:"#999",textAlign:"center",lineHeight:1.6},
-  touchEntry:{padding:"12px 16px"},
+  profileHero:{background:"#0f1f3d",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10},
+  avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff"},
+  profileName:{fontSize:20,fontWeight:700,color:"#fff",margin:0,textAlign:"center"},
+  profileCompany:{fontSize:13,color:"rgba(255,255,255,0.45)",margin:0,textAlign:"center"},
+  card:{background:"#fff",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14,borderBottom:"1px solid #f8fafc"},
+  fieldIcon:{fontSize:16,flexShrink:0,marginTop:1},
+  fieldBody:{flex:1,minWidth:0},
+  fieldLabel:{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},
+  fieldValue:{fontSize:14,color:"#1a2332",textDecoration:"none",wordBreak:"break-all"},
+  notesLabel:{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
+  notesText:{fontSize:13,color:"#475569",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
+  touchSection:{margin:"14px 16px 0",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid #f1f5f9",background:"#fafbfc"},
+  touchHeaderTitle:{fontSize:11,fontWeight:700,color:"#64748b",letterSpacing:"0.08em",textTransform:"uppercase"},
+  addNoteBtn:{background:"#2563eb",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  addNotePanel:{padding:"14px 16px",borderBottom:"1px solid #f1f5f9",background:"#f8fafc"},
+  addNoteDate:{fontSize:11,color:"#94a3b8",fontWeight:600,marginBottom:8},
+  addNoteDivider:{display:"flex",alignItems:"center",gap:8,margin:"10px 0 0",fontSize:10,color:"#94a3b8",fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase"},
+  addNoteTextarea:{width:"100%",padding:"10px 12px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:13,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6,background:"#fff"},
+  saveNoteBtn:{flex:1,padding:"10px",background:"#2563eb",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:9,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  touchEmpty:{padding:"20px",fontSize:13,color:"#94a3b8",textAlign:"center",lineHeight:1.6},
+  touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
-  touchEntryDate:{fontSize:11,color:"#1a6fc4",fontWeight:600,letterSpacing:"0.03em"},
-  touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#bbb",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
-  touchEntryText:{fontSize:14,color:"#1c2a3a",lineHeight:1.65,whiteSpace:"pre-wrap"},
-  btnDangerFull:{display:"block",width:"calc(100% - 28px)",margin:"14px 14px 0",padding:"13px",background:"transparent",border:"1.5px solid #c0392b",color:"#c0392b",borderRadius:12,fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  formScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px 14px"},
-  formGroup:{marginBottom:14},
-  formLabel:{display:"block",fontSize:12,color:"#1a6fc4",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:5},
-  required:{color:"#c0392b"},
-  formInput:{width:"100%",padding:"12px 14px",background:"#fff",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:15,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s"},
-  formTextarea:{width:"100%",padding:"12px 14px",background:"#fff",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:15,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
-  btnPrimary:{display:"block",width:"100%",padding:"14px",background:"#1a6fc4",border:"none",color:"#fff",borderRadius:12,fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"inherit",marginBottom:10},
-  btnSecondaryFull:{display:"block",width:"100%",padding:"13px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:12,fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1.5px solid #b0c4de",color:"#555",borderRadius:10,fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  btnDanger:{flex:1,padding:"12px",background:"#c0392b",border:"none",color:"#fff",borderRadius:10,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
-  toast:{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0d1b2e",color:"#eef2f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"},
-  overlay:{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:30},
-  modal:{background:"#fff",borderRadius:16,padding:"24px 22px",width:"100%",maxWidth:320,textAlign:"center"},
-  modalTitle:{fontSize:18,fontWeight:700,color:"#0d1b2e",margin:"0 0 6px"},modalSub:{fontSize:14,color:"#888",margin:0},
-  phoneHint:{fontSize:11,color:"#1560e8",marginTop:4,textAlign:"right"},
-  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0d1b2e",gap:16},
-  splashLogo:{width:72,height:72,borderRadius:20,background:"#1a6fc4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,fontWeight:700,color:"#fff",fontFamily:"'Georgia',serif"},
-  splashTitle:{fontSize:24,fontWeight:700,color:"#eef2f8",fontFamily:"'Georgia',serif",letterSpacing:"0.04em"},
-  splashTagline:{fontSize:12,color:"#8aafd4",textAlign:"center",maxWidth:260,lineHeight:1.6,fontStyle:"italic"},
-  splashSpinner:{width:28,height:28,border:"3px solid rgba(255,255,255,0.2)",borderTop:"3px solid #1a6fc4",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
-  authScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0d1b2e",padding:"30px 24px",paddingTop:"calc(30px + env(safe-area-inset-top))"},
-  authLogo:{width:68,height:68,borderRadius:18,background:"#1a6fc4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:34,fontWeight:700,color:"#fff",fontFamily:"'Georgia',serif",marginBottom:12},
-  authTitle:{fontSize:26,fontWeight:700,color:"#eef2f8",margin:"0 0 6px",fontFamily:"'Georgia',serif"},
-  authSub:{fontSize:13,color:"#8aafd4",margin:"0 0 32px",textAlign:"center",lineHeight:1.6,fontStyle:"italic",maxWidth:260},
-  authCard:{background:"#fff",borderRadius:18,padding:"24px 20px",width:"100%",maxWidth:360},
-  authCardTitle:{fontSize:17,fontWeight:700,color:"#0d1b2e",margin:"0 0 8px",textAlign:"center"},
-  authCardSub:{fontSize:13,color:"#666",margin:"0 0 18px",textAlign:"center",lineHeight:1.6},
-  authInput:{width:"100%",padding:"13px 14px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:15,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10},
-  authError:{fontSize:13,color:"#c0392b",textAlign:"center"},
-  authBtn:{display:"block",width:"100%",padding:"14px",background:"#1a6fc4",border:"none",color:"#fff",borderRadius:12,fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"inherit"},
+  touchEntryDate:{fontSize:11,color:"#3b82f6",fontWeight:600},
+  touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#cbd5e1",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
+  touchEntryText:{fontSize:13,color:"#334155",lineHeight:1.65,whiteSpace:"pre-wrap"},
+  ntEditBtn:{background:"#eff6ff",color:"#2563eb",border:"1px solid #dbeafe",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
+  ntSaveBtn:{background:"#2563eb",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
+  ntCancelBtn:{background:"none",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
+  taskAddPanel:{margin:"16px 16px 0",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  taskAddTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
+  taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:13,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"#f8fafc",marginTop:8},
+  taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"},
+  taskListTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"},
+  taskFilterBtn:{fontSize:12,color:"#94a3b8",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
+  taskCard:{margin:"0 16px 8px",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  taskCardBody:{padding:"14px"},
+  taskCardTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
+  taskCardText:{fontSize:13,color:"#1a2332",lineHeight:1.5,flex:1,fontWeight:500},
+  taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#cbd5e1",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
+  taskCardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10},
+  taskDueChip:{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px"},
+  taskDueOverdue:{color:"#dc2626",background:"#fef2f2",border:"1px solid #fecaca"},
+  taskDueToday:{color:"#d97706",background:"#fffbeb",border:"1px solid #fde68a"},
+  taskDueUpcoming:{color:"#2563eb",background:"#eff6ff",border:"1px solid #dbeafe"},
+  taskDueNone:{fontSize:11,color:"#94a3b8",fontWeight:500},
+  taskCompleteBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569"},
+  taskUndoBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"#eff6ff",color:"#2563eb",border:"1px solid #dbeafe"},
+  taskEditBtn:{background:"none",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",color:"#64748b",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit",whiteSpace:"nowrap"},
+  taskEditLabel:{fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
+  taskEditTextarea:{width:"100%",padding:"8px 10px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,color:"#1a2332",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"#f8fafc",boxSizing:"border-box"},
+  taskEditSaveBtn:{flex:1,padding:"8px",background:"#2563eb",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  formScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px"},
+  formGroup:{marginBottom:16},
+  formLabel:{display:"block",fontSize:11,color:"#64748b",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
+  required:{color:"#ef4444"},
+  formInput:{width:"100%",padding:"11px 14px",background:"#fff",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"},
+  formTextarea:{width:"100%",padding:"11px 14px",background:"#fff",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
+  btnPrimary:{display:"block",width:"100%",padding:"13px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10},
+  btnSecondaryFull:{display:"block",width:"100%",padding:"12px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnDanger:{flex:1,padding:"12px",background:"#dc2626",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid #fca5a5",color:"#dc2626",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  phoneHint:{fontSize:11,color:"#94a3b8",marginTop:4,textAlign:"right"},
+  overlay:{position:"absolute",inset:0,background:"rgba(15,31,61,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24,backdropFilter:"blur(2px)"},
+  modal:{background:"#fff",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.15)"},
+  modalTitle:{fontSize:17,fontWeight:700,color:"#1a2332",margin:"0 0 6px"},
+  modalSub:{fontSize:13,color:"#64748b",margin:0},
+  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#fff",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.1)"},
+  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0f1f3d",gap:16},
+  splashLogo:{width:68,height:68,borderRadius:18,background:"#2563eb",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff"},
+  splashTitle:{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
+  splashTagline:{fontSize:12,color:"rgba(255,255,255,0.35)",textAlign:"center",maxWidth:260,lineHeight:1.6},
+  splashSpinner:{width:26,height:26,border:"2.5px solid rgba(255,255,255,0.15)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
+  authScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0f1f3d",padding:"30px 24px",paddingTop:"calc(30px + env(safe-area-inset-top))"},
+  authLogo:{width:64,height:64,borderRadius:16,background:"#2563eb",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:"#fff",marginBottom:16},
+  authTitle:{fontSize:24,fontWeight:700,color:"#fff",margin:"0 0 6px",letterSpacing:"-0.02em"},
+  authSub:{fontSize:13,color:"rgba(255,255,255,0.38)",margin:"0 0 32px",textAlign:"center",lineHeight:1.6,maxWidth:260},
+  authCard:{background:"#fff",borderRadius:16,padding:"24px",width:"100%",maxWidth:360,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
+  authCardTitle:{fontSize:16,fontWeight:700,color:"#1a2332",margin:"0 0 6px",textAlign:"center"},
+  authCardSub:{fontSize:13,color:"#64748b",margin:"0 0 18px",textAlign:"center",lineHeight:1.6},
+  authInput:{width:"100%",padding:"12px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10,background:"#f8fafc"},
+  authError:{fontSize:12,color:"#dc2626",textAlign:"center"},
+  authBtn:{display:"block",width:"100%",padding:"13px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   codeRow:{display:"flex",gap:8,justifyContent:"center",margin:"4px 0 0"},
-  codeBox:{width:42,height:52,textAlign:"center",fontSize:22,fontWeight:700,color:"#0d1b2e",border:"2px solid #cdd8ea",borderRadius:10,outline:"none",fontFamily:"'Georgia',serif",background:"#f8faff",transition:"border-color 0.15s"},
-  homeBtn:{background:"none",border:"none",color:"#eef2f8",cursor:"pointer",padding:"6px 8px",borderRadius:6,display:"flex",alignItems:"center",opacity:0.85,marginLeft:2},
+  codeBox:{width:42,height:50,textAlign:"center",fontSize:22,fontWeight:700,color:"#1a2332",border:"1.5px solid #e2e8f0",borderRadius:10,outline:"none",fontFamily:"inherit",background:"#f8fafc",transition:"border-color 0.15s"},
   resendRow:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14},
-  resendTimer:{fontSize:12,color:"#999"},
-  resendBtn:{fontSize:13,color:"#1a6fc4",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,padding:0},
-  changeEmailBtn:{fontSize:13,color:"#888",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0},
+  resendTimer:{fontSize:12,color:"#94a3b8"},
+  resendBtn:{fontSize:13,color:"#2563eb",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,padding:0},
+  changeEmailBtn:{fontSize:13,color:"#94a3b8",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0},
 };
 
 const css = `
 @keyframes spin { to { transform: rotate(360deg); } }
-.contact-row:hover { background: #f0f5fc !important; }
-.fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(26,111,196,0.55) !important; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+.contact-row:hover { background: #f8fafc !important; }
+.fab:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(37,99,235,0.5) !important; }
 input[type="date"] { color-scheme: light; }
-input:focus, textarea:focus { border-color: #1a6fc4 !important; }
-::-webkit-scrollbar { width: 7px; }
-::-webkit-scrollbar-thumb { background: #5a7fa8; border-radius: 4px; }
+input:focus, textarea:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.08) !important; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0d1b2e; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0f1f3d; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-button:hover { opacity: 0.85; }
+button:hover { opacity: 0.88; }
 `;
