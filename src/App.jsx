@@ -203,292 +203,6 @@ function NextTouchInput({ value, onChange, inputStyle }) {
   );
 }
 
-// ── Gita Data ──────────────────────────────────────────────────────────
-const GITA_VERSES = [
-  { chapter:2, verse:47, sanskrit:"कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥", transliteration:"karmaṇy-evādhikāras te · mā phaleṣu kadācana\nmā karma-phala-hetur bhūr · mā te saṅgo 'stv akarmaṇi", translation:"You have a right to perform your prescribed duties, but never to the fruits of your actions. Never consider yourself the cause of the results, and never be attached to not doing your duty.", commentary:"This is the pivot of the entire Gita. Krishna is not asking Arjuna to work without caring — he is pointing to the deeper structure of action itself: the act belongs to you; the outcome does not. The fruit is given by the field, not the farmer. When we act from duty rather than craving, action becomes clean — it neither accumulates nor depletes. This is nishkama karma: desire-free action.", title:"Nishkama Karma" },
-  { chapter:2, verse:20, sanskrit:"न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः ।\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे ॥", transliteration:"na jāyate mriyate vā kadācin\nnāyaṁ bhūtvā bhavitā vā na bhūyaḥ\najo nityaḥ śāśvato 'yaṁ purāṇo\nna hanyate hanyamāne śarīre", translation:"The soul is never born nor dies at any time. It has not come into being, does not come into being, and will not come into being. It is unborn, eternal, ever-existing, and primeval. It is not slain when the body is slain.", commentary:"Arjuna weeps for those who cannot be lost. Krishna's answer is not consolation — it is ontology. The Atman is not a tenant of the body; it is prior to the body's arising. Grief assumes something has ended. But what if ending is only the body's experience, not the soul's? This verse asks us to locate ourselves correctly: not in what changes, but in what witnesses change.", title:"The Eternal Atman" },
-  { chapter:6, verse:5, sanskrit:"उद्धरेदात्मनात्मानं\nनात्मानमवसादयेत् ।\nआत्मैव ह्यात्मनो बन्धुः\nआत्मैव रिपुरात्मनः ॥", transliteration:"uddhared ātmanātmānaṁ · nātmānam avasādayet\nātmaiva hy ātmano bandhuḥ · ātmaiva ripur ātmanaḥ", translation:"One must deliver oneself with the help of the mind, and not degrade oneself. The mind is the friend of the conditioned soul, and its enemy as well.", commentary:"No teacher can cross this threshold for you. The mind that torments you is the same mind that can liberate you. This is not a comfortable teaching; it removes the alibi of circumstance. Your suffering and your freedom both live in the same instrument. The path begins the moment you stop asking the jailer to open the door and realize you are holding the key.", title:"Mind: Friend or Enemy" },
-  { chapter:9, verse:22, sanskrit:"अनन्याश्चिन्तयन्तो मां\nये जनाः पर्युपासते ।\nतेषां नित्याभियुक्तानां\nयोगक्षेमं वहाम्यहम् ॥", transliteration:"ananyāś cintayanto māṁ · ye janāḥ paryupāsate\nteṣāṁ nityābhiyuktānāṁ · yoga-kṣemaṁ vahāmy aham", translation:"But those who worship me with devotion, meditating on my transcendental form — to them I carry what they lack and preserve what they have.", commentary:"The word yoga-kshema is layered: yoga means acquiring what you need; kshema means protecting what you have. For those who think of Krishna without division, he takes care of both sides. This is not a transactional promise — it is a description of how undivided attention works. Bhakti is not weakness; it is the most efficient posture the mind can assume.", title:"Yoga-Kshema" },
-  { chapter:18, verse:66, sanskrit:"सर्वधर्मान्परित्यज्य\nमामेकं शरणं व्रज ।\nअहं त्वां सर्वपापेभ्यो\nमोक्षयिष्यामि मा शुचः ॥", transliteration:"sarva-dharmān parityajya · mām ekaṁ śaraṇaṁ vraja\nahaṁ tvāṁ sarva-pāpebhyo · mokṣayiṣyāmi mā śucaḥ", translation:"Abandon all varieties of dharma and simply surrender unto me alone. I shall liberate you from all sinful reactions; do not fear.", commentary:"The final verse of Krishna's teaching — and the most radical. After eighteen chapters of instruction, the conclusion is surrender. Not the surrender of the defeated, but of the one who has understood that the small self's management of outcomes is itself the burden. Mā śucaḥ: do not grieve. The one who holds everything is also holding you.", title:"Surrender" },
-];
-
-function GitaTab({ showToast }) {
-  const [verseIdx, setVerseIdx] = useState(0);
-  const [section, setSection] = useState("sanskrit");
-  const verse = GITA_VERSES[verseIdx];
-  const goNext = () => { setVerseIdx(i => (i + 1) % GITA_VERSES.length); setSection("sanskrit"); };
-  const goPrev = () => { setVerseIdx(i => (i - 1 + GITA_VERSES.length) % GITA_VERSES.length); setSection("sanskrit"); };
-  return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
-      <div style={gitaStyles.verseStrip}>
-        <button style={gitaStyles.navArrow} onClick={goPrev}>‹</button>
-        <div style={gitaStyles.verseStripCenter}>
-          <div style={gitaStyles.verseRef}>BG {verse.chapter}:{verse.verse}</div>
-          <div style={gitaStyles.verseTitle}>{verse.title}</div>
-        </div>
-        <button style={{ ...gitaStyles.navArrow, color:"#1a6fc4", background:"#e8f0fc" }} onClick={goNext}>›</button>
-      </div>
-      <div style={gitaStyles.dots}>
-        {GITA_VERSES.map((_, i) => (
-          <div key={i} onClick={() => { setVerseIdx(i); setSection("sanskrit"); }}
-            style={{ width:i===verseIdx?22:6, height:6, borderRadius:3, background:i===verseIdx?"#1a6fc4":"#cdd8ea", cursor:"pointer", transition:"all 0.25s" }}/>
-        ))}
-      </div>
-      <div style={gitaStyles.sectionTabs}>
-        {[{id:"sanskrit",label:"Sanskrit"},{id:"translation",label:"Translation"},{id:"commentary",label:"Commentary"}].map(s => (
-          <button key={s.id} onClick={() => setSection(s.id)} style={{ ...gitaStyles.sectionTab, ...(section===s.id?gitaStyles.sectionTabActive:{}) }}>{s.label}</button>
-        ))}
-      </div>
-      <div style={gitaStyles.contentScroll}>
-        {section === "sanskrit" && (<>
-          <div style={gitaStyles.card}><div style={gitaStyles.cardLabel}>Sanskrit</div><p style={gitaStyles.sanskritText}>{verse.sanskrit}</p></div>
-          <div style={{ ...gitaStyles.card, marginTop:10 }}><div style={gitaStyles.cardLabel}>IAST Transliteration</div><p style={gitaStyles.translit}>{verse.transliteration}</p></div>
-        </>)}
-        {section === "translation" && <div style={gitaStyles.card}><div style={gitaStyles.cardLabel}>Translation</div><p style={gitaStyles.translationText}>{verse.translation}</p></div>}
-        {section === "commentary" && (
-          <div style={gitaStyles.card}>
-            <div style={gitaStyles.cardLabel}>Commentary</div>
-            <div style={gitaStyles.commentaryPull}><div style={gitaStyles.commentaryPullBar}/><p style={gitaStyles.commentaryPullText}>{verse.commentary.split(". ")[0]}.</p></div>
-            <p style={gitaStyles.commentaryBody}>{verse.commentary.split(". ").slice(1).join(". ")}</p>
-          </div>
-        )}
-        <div style={gitaStyles.browseHeader}><span style={gitaStyles.browseLabel}>All Verses</span></div>
-        {GITA_VERSES.map((v, i) => (
-          <div key={i} onClick={() => { setVerseIdx(i); setSection("sanskrit"); }} style={{ ...gitaStyles.browseRow, ...(i===verseIdx?gitaStyles.browseRowActive:{}) }}>
-            <div style={{ ...gitaStyles.browseRef, ...(i===verseIdx?{color:"#1a6fc4"}:{}) }}>BG {v.chapter}:{v.verse}</div>
-            <div style={gitaStyles.browseTitle}>{v.title}</div>
-            {i===verseIdx && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a6fc4" strokeWidth="2.5"><polyline points="9,18 15,12 9,6"/></svg>}
-          </div>
-        ))}
-        <div style={{ height:40 }}/>
-      </div>
-    </div>
-  );
-}
-
-const gitaStyles = {
-  verseStrip: { display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#0d1b2e", borderBottom:"1px solid #1a4a8a", flexShrink:0 },
-  navArrow: { width:34, height:34, borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", color:"#8aafd4", fontSize:20, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Georgia,serif", flexShrink:0, lineHeight:1 },
-  verseStripCenter: { flex:1, textAlign:"center" },
-  verseRef: { fontSize:11, fontWeight:700, color:"#1a6fc4", letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:2 },
-  verseTitle: { fontSize:15, fontWeight:700, color:"#eef2f8", fontFamily:"'Georgia',serif" },
-  dots: { display:"flex", alignItems:"center", justifyContent:"center", gap:5, padding:"8px 0", background:"#0d1b2e", borderBottom:"2px solid #1a6fc4", flexShrink:0 },
-  sectionTabs: { display:"flex", background:"#0d1b2e", borderBottom:"2px solid #1a6fc4", flexShrink:0 },
-  sectionTab: { flex:1, padding:"9px 0", background:"none", border:"none", color:"#8aafd4", fontSize:11, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", cursor:"pointer", fontFamily:"'Georgia',serif", borderBottom:"3px solid transparent" },
-  sectionTabActive: { color:"#eef2f8", borderBottom:"3px solid #1a6fc4" },
-  contentScroll: { flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"12px 14px 0" },
-  card: { background:"#fff", border:"1px solid #d6e2f0", borderRadius:14, padding:"14px 16px" },
-  cardLabel: { fontSize:10, fontWeight:700, color:"#1a6fc4", letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:10 },
-  sanskritText: { margin:0, fontSize:19, lineHeight:1.8, color:"#0d1b2e", fontFamily:"'Noto Serif Devanagari','Noto Serif','Georgia',serif", whiteSpace:"pre-line" },
-  translit: { margin:0, fontSize:13, lineHeight:2, color:"#1a6fc4", fontFamily:"'Georgia',serif", fontStyle:"italic", whiteSpace:"pre-line", letterSpacing:"0.02em" },
-  translationText: { margin:0, fontSize:15, lineHeight:1.8, color:"#0d1b2e", fontFamily:"'Georgia',serif" },
-  commentaryPull: { display:"flex", gap:12, marginBottom:14, padding:"2px 0" },
-  commentaryPullBar: { width:3, borderRadius:2, background:"#1a6fc4", flexShrink:0 },
-  commentaryPullText: { margin:0, fontSize:14, lineHeight:1.7, color:"#1a6fc4", fontFamily:"'Georgia',serif", fontStyle:"italic" },
-  commentaryBody: { margin:0, fontSize:14, lineHeight:1.75, color:"#3a4a5a", fontFamily:"'Georgia',serif" },
-  browseHeader: { display:"flex", alignItems:"center", padding:"16px 2px 6px" },
-  browseLabel: { fontSize:10, fontWeight:700, color:"#888", letterSpacing:"0.15em", textTransform:"uppercase" },
-  browseRow: { display:"flex", alignItems:"center", gap:10, background:"#fff", border:"1px solid #d6e2f0", borderRadius:10, padding:"10px 14px", marginBottom:6, cursor:"pointer" },
-  browseRowActive: { background:"#e8f0fc", border:"1px solid #b0c8e8" },
-  browseRef: { fontSize:11, fontWeight:700, color:"#888", letterSpacing:"0.08em", textTransform:"uppercase", width:52, flexShrink:0 },
-  browseTitle: { flex:1, fontSize:14, color:"#0d1b2e", fontFamily:"'Georgia',serif" },
-};
-
-// ── Prospect Research Agent ────────────────────────────────────────────
-const PROSPECT_SYSTEM_PROMPT = `You are a sales intelligence agent for Legalet AI, a document and case management platform built specifically for California workers' compensation defense law firms.
-
-Your job is to research a law firm and produce a concise, actionable prospect profile for a business development rep.
-
-When given a firm name (and optionally a location), use web search to find:
-1. Firm overview — size, practice focus, office locations, years in business
-2. Key decision-makers — managing partners, administrators, operations leads (the people who buy software)
-3. Current tech signals — any mentions of case management software, tech stack, or digital initiatives
-4. Recent news — growth, hires, awards, verdicts, or anything notable in the last 12 months
-5. Workers' comp defense focus — confirm they handle CA workers' comp defense and estimate how central it is to their practice
-
-Then produce a structured JSON response ONLY (no markdown, no preamble, no backticks) with this exact shape:
-
-{
-  "firmName": "...",
-  "location": "...",
-  "founded": "...",
-  "size": "...",
-  "wcDefenseFocus": "high | medium | low | unknown",
-  "wcFocusNote": "one sentence explanation",
-  "decisionMakers": [
-    { "name": "...", "title": "...", "note": "..." }
-  ],
-  "techSignals": "...",
-  "recentNews": "...",
-  "outreachAngle": "A 2-3 sentence personalized cold outreach angle for a Legalet AI intro — warm, specific, not salesy. Reference something real you found.",
-  "sources": ["url1", "url2"]
-}
-
-If you cannot find information for a field, use null. Always search before responding.`;
-
-const WC_COLORS = {
-  high: { bg:"#0f3d2e", text:"#4ade80", label:"High WC Focus" },
-  medium: { bg:"#3d2e0a", text:"#fbbf24", label:"Medium WC Focus" },
-  low: { bg:"#3d0f0f", text:"#f87171", label:"Low WC Focus" },
-  unknown: { bg:"#1e2030", text:"#94a3b8", label:"Focus Unknown" },
-};
-
-function ProspectBadge({ level }) {
-  const c = WC_COLORS[level] || WC_COLORS.unknown;
-  return <span style={{ background:c.bg, color:c.text, padding:"3px 10px", borderRadius:"4px", fontSize:"11px", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", border:`1px solid ${c.text}33` }}>{c.label}</span>;
-}
-
-function ProspectSection({ title, children }) {
-  return (
-    <div style={{ marginBottom:"20px" }}>
-      <div style={{ fontSize:"10px", fontWeight:700, letterSpacing:"0.12em", color:"#64748b", textTransform:"uppercase", marginBottom:"8px", borderBottom:"1px solid #1e2a3a", paddingBottom:"6px" }}>{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function ProspectPersonCard({ person }) {
-  return (
-    <div style={{ background:"#0d1520", border:"1px solid #1e2a3a", borderRadius:"6px", padding:"10px 14px", marginBottom:"8px" }}>
-      <div style={{ color:"#e2e8f0", fontWeight:600, fontSize:"14px" }}>{person.name}</div>
-      <div style={{ color:"#6c8aac", fontSize:"12px", marginTop:"2px" }}>{person.title}</div>
-      {person.note && <div style={{ color:"#94a3b8", fontSize:"12px", marginTop:"6px", lineHeight:1.5 }}>{person.note}</div>}
-    </div>
-  );
-}
-
-function ProspectAgent() {
-  const [firmName, setFirmName] = useState("");
-  const [location, setLocation] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [log, setLog] = useState([]);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-
-  const addLog = (msg) => setLog(prev => [...prev, `> ${msg}`]);
-
-  const runAgent = async () => {
-    if (!firmName.trim()) return;
-    setLoading(true); setResult(null); setError(null); setLog([]);
-    addLog(`Researching: ${firmName}${location ? `, ${location}` : ""}`);
-    addLog("Calling Claude with web search...");
-    try {
-      const userMessage = `Research this California workers' compensation defense law firm for Legalet AI sales prospecting:\n\nFirm: ${firmName}${location ? `\nLocation: ${location}` : ""}`;
-      const response = await fetch("/api/claude-proxy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          system: PROSPECT_SYSTEM_PROMPT,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: [{ role: "user", content: userMessage }]
-        })
-      });
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      const searches = data.content.filter(b => b.type === "tool_use");
-      if (searches.length > 0) addLog(`Ran ${searches.length} web search${searches.length > 1 ? "es" : ""}`);
-      const textBlocks = data.content.filter(b => b.type === "text").map(b => b.text).join("\n");
-      addLog("Parsing profile...");
-      const clean = textBlocks.replace(/```json|```/g, "").trim();
-      const jsonStart = clean.indexOf("{");
-      const jsonEnd = clean.lastIndexOf("}");
-      if (jsonStart === -1) throw new Error("No JSON found in response.");
-      const parsed = JSON.parse(clean.slice(jsonStart, jsonEnd + 1));
-      addLog("Profile complete ✓");
-      setResult(parsed);
-    } catch (e) {
-      addLog(`Error: ${e.message}`);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ height:"100%", overflowY:"auto", WebkitOverflowScrolling:"touch", background:"#060c14", fontFamily:"'Inter',system-ui,sans-serif", color:"#cbd5e1" }}>
-      <div style={{ padding:"16px 14px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-          <div style={{ width:26, height:26, borderRadius:"5px", background:"linear-gradient(135deg,#1e40af,#3b82f6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, color:"#fff" }}>L</div>
-          <span style={{ fontSize:11, fontWeight:700, color:"#3b82f6", letterSpacing:"0.05em" }}>LEGALET AI · PROSPECT RESEARCH</span>
-        </div>
-        <p style={{ fontSize:12, color:"#475569", margin:"0 0 14px" }}>Enter a firm name to generate a prospect profile.</p>
-        <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:10 }}>
-          <input value={firmName} onChange={e => setFirmName(e.target.value)} onKeyDown={e => e.key==="Enter" && !loading && runAgent()} placeholder="Firm name, e.g. Mullen & Filippi"
-            style={{ background:"#0d1520", border:"1px solid #1e2a3a", borderRadius:"6px", padding:"10px 14px", color:"#e2e8f0", fontSize:"14px", outline:"none", width:"100%", boxSizing:"border-box" }}/>
-          <div style={{ display:"flex", gap:8 }}>
-            <input value={location} onChange={e => setLocation(e.target.value)} onKeyDown={e => e.key==="Enter" && !loading && runAgent()} placeholder="Location (optional)"
-              style={{ flex:1, background:"#0d1520", border:"1px solid #1e2a3a", borderRadius:"6px", padding:"10px 14px", color:"#e2e8f0", fontSize:"14px", outline:"none" }}/>
-            <button onClick={runAgent} disabled={loading || !firmName.trim()}
-              style={{ background:loading?"#1e3a5f":"linear-gradient(135deg,#1e40af,#2563eb)", color:loading?"#64748b":"#fff", border:"none", borderRadius:"6px", padding:"10px 18px", fontSize:"13px", fontWeight:700, cursor:loading?"not-allowed":"pointer", whiteSpace:"nowrap" }}>
-              {loading ? "Searching..." : "Research →"}
-            </button>
-          </div>
-        </div>
-        {(loading || log.length > 0) && (
-          <div style={{ marginBottom:"16px" }}>
-            <div style={{ fontSize:"10px", fontWeight:700, letterSpacing:"0.12em", color:"#334155", textTransform:"uppercase", marginBottom:"6px" }}>Agent Log</div>
-            <div style={{ background:"#070d14", border:"1px solid #1e2a3a", borderRadius:"6px", padding:"12px 14px", fontFamily:"monospace", fontSize:"12px", color:"#4ade80", maxHeight:"140px", overflowY:"auto", lineHeight:1.6 }}>
-              {log.map((l, i) => <div key={i}>{l}</div>)}
-              {log.length === 0 && <span style={{ color:"#334155" }}>Waiting...</span>}
-            </div>
-          </div>
-        )}
-        {error && <div style={{ background:"#3d0f0f", border:"1px solid #7f1d1d", borderRadius:"6px", padding:"12px 16px", color:"#fca5a5", fontSize:"13px", marginBottom:"16px" }}>{error}</div>}
-        {result && (
-          <div style={{ background:"#0b1422", border:"1px solid #1e2a3a", borderRadius:"10px", padding:"20px" }}>
-            <div style={{ marginBottom:"16px" }}>
-              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:"8px" }}>
-                <div>
-                  <h2 style={{ margin:0, fontSize:"18px", fontWeight:700, color:"#f1f5f9" }}>{result.firmName}</h2>
-                  <div style={{ color:"#64748b", fontSize:"12px", marginTop:"3px" }}>{[result.location, result.founded && `Est. ${result.founded}`, result.size].filter(Boolean).join(" · ")}</div>
-                </div>
-                <ProspectBadge level={result.wcDefenseFocus}/>
-              </div>
-              {result.wcFocusNote && <p style={{ margin:"10px 0 0", color:"#94a3b8", fontSize:"13px", lineHeight:1.5 }}>{result.wcFocusNote}</p>}
-            </div>
-            <div style={{ background:"linear-gradient(135deg,#0f2040,#0f1e35)", border:"1px solid #1e3a5f", borderRadius:"8px", padding:"14px 16px", marginBottom:"16px" }}>
-              <div style={{ fontSize:"10px", fontWeight:700, letterSpacing:"0.12em", color:"#3b82f6", textTransform:"uppercase", marginBottom:"8px" }}>Suggested Outreach Angle</div>
-              <p style={{ margin:0, color:"#cbd5e1", fontSize:"13px", lineHeight:1.7 }}>{result.outreachAngle}</p>
-              <button onClick={() => navigator.clipboard?.writeText(result.outreachAngle)}
-                style={{ marginTop:"10px", background:"transparent", border:"1px solid #1e3a5f", borderRadius:"4px", color:"#64748b", fontSize:"11px", padding:"3px 9px", cursor:"pointer" }}>Copy</button>
-            </div>
-            {result.decisionMakers?.length > 0 && (
-              <ProspectSection title="Key Contacts">
-                {result.decisionMakers.map((p, i) => <ProspectPersonCard key={i} person={p}/>)}
-              </ProspectSection>
-            )}
-            {(result.techSignals || result.recentNews) && (
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"16px" }}>
-                {result.techSignals && <ProspectSection title="Tech Signals"><p style={{ margin:0, fontSize:"12px", color:"#94a3b8", lineHeight:1.6 }}>{result.techSignals}</p></ProspectSection>}
-                {result.recentNews && <ProspectSection title="Recent News"><p style={{ margin:0, fontSize:"12px", color:"#94a3b8", lineHeight:1.6 }}>{result.recentNews}</p></ProspectSection>}
-              </div>
-            )}
-            {result.sources?.filter(Boolean).length > 0 && (
-              <ProspectSection title="Sources">
-                <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
-                  {result.sources.filter(Boolean).map((s, i) => (
-                    <a key={i} href={s} target="_blank" rel="noopener noreferrer"
-                      style={{ background:"#0d1520", border:"1px solid #1e2a3a", borderRadius:"4px", padding:"3px 9px", fontSize:"11px", color:"#3b82f6", textDecoration:"none", maxWidth:"200px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {s.replace(/^https?:\/\/(www\.)?/, "")}
-                    </a>
-                  ))}
-                </div>
-              </ProspectSection>
-            )}
-          </div>
-        )}
-        {!loading && !result && !error && (
-          <div style={{ textAlign:"center", padding:"36px 20px", border:"1px dashed #1e2a3a", borderRadius:"10px", color:"#334155", fontSize:"12px" }}>
-            Enter a California workers' comp defense firm to generate a prospect profile.
-          </div>
-        )}
-        <div style={{ height:40 }}/>
-      </div>
-    </div>
-  );
-}
 
 // ── Main App ───────────────────────────────────────────────────────────
 export default function DeanCRM() {
@@ -800,9 +514,6 @@ export default function DeanCRM() {
   const filtered = contacts.filter(c=>!search||[c.name,c.company,c.email,c.phone].some(f=>(f||"").toLowerCase().includes(search.toLowerCase())));
   const grouped = filtered.reduce((acc,c)=>{const letter=(c.name[0]||"#").toUpperCase();if(!acc[letter])acc[letter]=[];acc[letter].push({...c,_origIdx:contacts.findIndex(x=>x.id===c.id)});return acc;},{});
   const contact = selected!==null?contacts[selected]:null;
-  const dailyVerseIdx = Math.floor(Date.now()/86400000)%GITA_VERSES.length;
-  const dailyVerse = GITA_VERSES[dailyVerseIdx];
-
   if (checkingSession) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -869,9 +580,9 @@ export default function DeanCRM() {
           </button>
         )}
         <span style={styles.headerTitle}>
-          {view==="list"?(homeTab==="gita"?"ॐ DeanBoard":homeTab==="prospect"?"🔍 DeanBoard":"DeanBoard"):view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
+          {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
-        {view==="list"&&homeTab!=="gita"&&homeTab!=="prospect"&&(
+        {view==="list"&&true&&(
           <div style={{position:"relative"}}>
             <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -885,7 +596,7 @@ export default function DeanCRM() {
             )}
           </div>
         )}
-        {view==="list"&&(homeTab==="gita"||homeTab==="prospect")&&<div style={{width:36}}/>}
+        
         {view==="profile"&&<button style={styles.exportBtn} onClick={()=>{setEditEntry({...contact});setView("edit");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>}
         {(view==="profile"||view==="add"||view==="edit")&&<button style={styles.homeBtn} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>}
       </div>
@@ -897,8 +608,6 @@ export default function DeanCRM() {
           <button style={{...styles.tab,...(homeTab==="tasks"?styles.tabActive:{})}} onClick={()=>setHomeTab("tasks")}>
             Tasks{tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
           </button>
-          <button style={{...styles.tab,...(homeTab==="gita"?styles.tabActive:{})}} onClick={()=>setHomeTab("gita")}>ॐ Gita</button>
-          <button style={{...styles.tab,...(homeTab==="prospect"?styles.tabActive:{})}} onClick={()=>setHomeTab("prospect")}>🔍 Pros</button>
         </div>
       )}
 
@@ -935,14 +644,6 @@ export default function DeanCRM() {
                 </div>);
               })}
             </>)}
-            <div style={{...styles.homeSectionHeader,marginTop:8}}>
-              <span style={styles.homeSectionTitle}>ॐ Daily Verse</span>
-              <button style={{fontSize:11,color:"#1a6fc4",fontWeight:700,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0}} onClick={()=>setHomeTab("gita")}>Open Gita →</button>
-            </div>
-            <div style={styles.dailyVerseCard} onClick={()=>setHomeTab("gita")}>
-              <div style={styles.dailyVerseRef}>BG {dailyVerse.chapter}:{dailyVerse.verse} · {dailyVerse.title}</div>
-              <p style={styles.dailyVerseText}>"{dailyVerse.translation.slice(0,110)}…"</p>
-            </div>
             <div style={{height:40}}/>
           </div>
         </div>
@@ -1046,8 +747,6 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {view==="list"&&homeTab==="gita"&&<div style={{...styles.body,overflow:"hidden"}}><GitaTab showToast={showToast}/></div>}
-      {view==="list"&&homeTab==="prospect"&&<div style={{...styles.body,overflow:"hidden"}}><ProspectAgent/></div>}
 
       {view==="profile"&&contact&&(
         <div style={styles.body}>
@@ -1189,9 +888,6 @@ const styles = {
   homeTouchCard:{background:"#fff",borderRadius:10,border:"1px solid #d6e2f0",borderLeft:"3px solid #1a6fc4",margin:"0 12px 6px",padding:"10px 12px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"},
   homeEmpty:{padding:"28px 20px",textAlign:"center",fontSize:13,color:"#aaa",lineHeight:1.7},
   homeEmptyIcon:{fontSize:36,marginBottom:10},
-  dailyVerseCard:{margin:"0 12px 8px",background:"#fff",border:"1px solid #d6e2f0",borderLeft:"3px solid #1a6fc4",borderRadius:10,padding:"12px 14px",cursor:"pointer"},
-  dailyVerseRef:{fontSize:10,fontWeight:700,color:"#1a6fc4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6},
-  dailyVerseText:{margin:0,fontSize:13,color:"#3a4a5a",lineHeight:1.7,fontFamily:"'Georgia',serif",fontStyle:"italic"},
   taskAddPanel:{margin:"12px 14px 0",background:"#fff",borderRadius:14,border:"1.5px solid #1a6fc4",padding:"13px 14px"},
   taskAddTitle:{fontSize:12,fontWeight:700,color:"#1a6fc4",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10},
   taskAddTextarea:{width:"100%",padding:"9px 12px",border:"1.5px solid #cdd8ea",borderRadius:10,fontSize:14,color:"#0d1b2e",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"#f8faff",marginTop:2},
