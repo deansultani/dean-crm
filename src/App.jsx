@@ -1122,8 +1122,9 @@ const css = `
 .fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(26,111,196,0.55) !important; }
 input[type="date"] { color-scheme: light; }
 input:focus, textarea:focus { border-color: #1a6fc4 !important; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: #a8bcd4; border-radius: 4px; }
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-thumb { background: #5a7fa8; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
 html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0d1b2e; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
