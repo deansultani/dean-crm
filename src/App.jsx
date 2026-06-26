@@ -232,6 +232,10 @@ export default function DeanCRM() {
   const [nextTouchDraft, setNextTouchDraft] = useState("");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [importModal, setImportModal] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importDone, setImportDone] = useState(null);
+  const [importModal, setImportModal] = useState(false);
   const [importPreview, setImportPreview] = useState([]);
   const [importLoading, setImportLoading] = useState(false);
   const [importDone, setImportDone] = useState(null);
@@ -591,6 +595,81 @@ export default function DeanCRM() {
     setTimeout(() => setImportDone(null), 4000);
   };
 
+  const parseCSVLine = (line) => {
+    const result = []; let cur = ""; let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (inQuote && line[i+1] === '"') { cur += '"'; i++; } else inQuote = !inQuote; }
+      else if (ch === "," && !inQuote) { result.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    result.push(cur);
+    return result.map(s => s.trim());
+  };
+
+  const handleImportFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const lines = text.split(/
+?
+/).filter(l => l.trim());
+      if (lines.length < 2) return showToast("CSV appears empty");
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g,""));
+      const map = {
+        name: headers.findIndex(h => h.includes("name") && !h.includes("company")),
+        company: headers.findIndex(h => h.includes("company") || h.includes("firm")),
+        phone: headers.findIndex(h => h.includes("phone") || h.includes("mobile")),
+        email: headers.findIndex(h => h.includes("email") || h.includes("mail")),
+        notes: headers.findIndex(h => h.includes("note") || h.includes("comment")),
+        next_touch: headers.findIndex(h => h.includes("nexttouch") || h.includes("next")),
+      };
+      if (map.name === -1) map.name = 0;
+      const allRows = lines.slice(1).map(line => {
+        const cols = parseCSVLine(line);
+        return {
+          name: cols[map.name] || "",
+          company: map.company >= 0 ? cols[map.company] || "" : "",
+          phone: map.phone >= 0 ? cols[map.phone] || "" : "",
+          email: map.email >= 0 ? cols[map.email] || "" : "",
+          notes: map.notes >= 0 ? cols[map.notes] || "" : "",
+          next_touch: map.next_touch >= 0 ? cols[map.next_touch] || "" : "",
+          date: new Date().toISOString().slice(0,10),
+          touch_log: [],
+        };
+      }).filter(r => r.name);
+      const preview = allRows.slice(0, 5);
+      setImportPreview({ preview, allRows, total: allRows.length });
+      setImportModal(true);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const runImport = async () => {
+    if (!importPreview?.allRows?.length) return;
+    setImportLoading(true);
+    let added = 0; let skipped = 0;
+    const existingNames = new Set(contacts.map(c => c.name.toLowerCase().trim()));
+    for (const row of importPreview.allRows) {
+      if (!row.name.trim()) { skipped++; continue; }
+      if (existingNames.has(row.name.toLowerCase().trim())) { skipped++; continue; }
+      try {
+        const res = await api("contacts", { method:"POST", token: session.access_token, body: JSON.stringify({ ...row, user_id: userId }) });
+        if (res.ok) { existingNames.add(row.name.toLowerCase().trim()); added++; }
+        else skipped++;
+      } catch { skipped++; }
+    }
+    await fetchContacts();
+    setImportLoading(false);
+    setImportModal(false);
+    setImportPreview(null);
+    setImportDone({ added, skipped });
+    setTimeout(() => setImportDone(null), 4000);
+  };
+
   const todayIso = new Date().toISOString().slice(0,10);
   const in7DaysIso = new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10);
   const upcomingTasks = tasks.filter(t=>!t.completed&&t.due_date&&t.due_date<=in7DaysIso).sort((a,b)=>a.due_date>b.due_date?1:-1);
@@ -660,6 +739,40 @@ export default function DeanCRM() {
     <div style={styles.shell}>
       <style>{css}</style>
       {toast&&<div style={styles.toast}>{toast}</div>}
+      {importDone&&(
+        <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0d1b2e",color:"#eef2f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+          ✓ Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
+        </div>
+      )}
+
+      {importModal&&importPreview?.allRows&&(
+        <div style={styles.overlay}>
+          <div style={{background:"#fff",borderRadius:16,padding:"22px 20px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto"}}>
+            <p style={{fontSize:17,fontWeight:700,color:"#0d1b2e",margin:"0 0 4px"}}>Import Contacts</p>
+            <p style={{fontSize:13,color:"#666",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
+            <div style={{background:"#f4f8ff",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid #d6e2f0"}}>
+              {importPreview.preview.map((r,i)=>(
+                <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid #e0eaf5":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
+                  <div style={{fontSize:13,fontWeight:600,color:"#0d1b2e"}}>{r.name}</div>
+                  <div style={{fontSize:11,color:"#888",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:"#fff8e1",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#b7580a",border:"1px solid #ffe082"}}>
+              Duplicates (same name) will be skipped automatically.
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#1a6fc4",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
+                {importLoading?"Importing...":"Import All"}
+              </button>
+              <button style={{flex:1,padding:"12px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmDelete&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Contact?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteContact(confirmDelete)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDelete(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTouch&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTask&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Task?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
