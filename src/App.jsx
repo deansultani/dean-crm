@@ -157,7 +157,7 @@ function MiniCalendar({ value, onChange, onClose }) {
 }
 
 const calStyles = {
-  wrap: { background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)", maxWidth:280 },
+  wrap: { background:"rgba(13,28,57,0.98)", backdropFilter:"blur(16px)", border:"1px solid rgba(59,130,246,0.25)", borderRadius:10, overflow:"hidden", marginTop:6, boxShadow:"0 4px 16px rgba(26,111,196,0.15)", maxWidth:280 },
   header: { background:"#0f1f3d", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 10px" },
   nav: { background:"none", border:"none", color:"#f0f4f8", cursor:"pointer", fontSize:15, padding:"0 4px", lineHeight:1, fontFamily:"inherit" },
   month: { fontSize:12, fontWeight:700, color:"#f0f4f8", letterSpacing:"0.04em", fontFamily:"inherit" },
@@ -165,7 +165,7 @@ const calStyles = {
   dayNames: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:2 },
   dayName: { fontSize:8, fontWeight:700, color:"#3b82f6", textAlign:"center", textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 0" },
   days: { display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:1 },
-  day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#0f1f3d", borderRadius:"50%", cursor:"pointer", fontFamily:"inherit" },
+  day: { aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:"#e2e8f0", borderRadius:"50%", cursor:"pointer", fontFamily:"inherit" },
   daySelected: { background:"#2563eb", color:"#fff", fontWeight:700 },
   dayToday: { border:"1.5px solid #3b82f6", color:"#2563eb", fontWeight:700 },
 };
@@ -186,16 +186,16 @@ function NextTouchInput({ value, onChange, inputStyle }) {
         <button style={{ width:36, height:36, background:"#2563eb", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }} onClick={() => setCalOpen(o => !o)} title="Pick from calendar" type="button">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
-        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:15, color:"#0f1f3d", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"#fff" }}
+        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, fontSize:15, color:"#e2e8f0", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"rgba(255,255,255,0.05)" }}
           type="text" placeholder="MM/DD/YYYY" value={value} maxLength={10} inputMode="numeric"
           onChange={handleTextChange} onFocus={() => setCalOpen(false)}
         />
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
-          {status === "overdue" && <span style={{color:"#dc2626"}}>⚠ This date is in the past</span>}
-          {status === "today" && <span style={{color:"#d97706"}}>📌 Today</span>}
-          {status === "upcoming" && <span style={{color:"#2563eb"}}>✓ Upcoming</span>}
+          {status === "overdue" && <span style={{color:"#f87171"}}>⚠ This date is in the past</span>}
+          {status === "today" && <span style={{color:"#fcd34d"}}>📌 Today</span>}
+          {status === "upcoming" && <span style={{color:"#60a5fa"}}>✓ Upcoming</span>}
         </div>
       )}
       {calOpen && <MiniCalendar value={value} onChange={(v) => { onChange(v); setCalOpen(false); }} onClose={() => setCalOpen(false)}/>}
@@ -666,25 +666,25 @@ export default function DeanCRM() {
 
       {importModal&&importPreview?.allRows&&(
         <div style={styles.overlay}>
-          <div style={{background:"#fff",borderRadius:16,padding:"22px 20px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto"}}>
-            <p style={{fontSize:17,fontWeight:700,color:"#0f1f3d",margin:"0 0 4px"}}>Import Contacts</p>
-            <p style={{fontSize:13,color:"#666",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
-            <div style={{background:"#f8fafc",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid #e8edf2"}}>
+          <div style={{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"22px 20px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto",border:"1px solid rgba(59,130,246,0.2)",boxShadow:"0 24px 64px rgba(0,0,0,0.5)"}}>
+            <p style={{fontSize:17,fontWeight:700,color:"#e2e8f0",margin:"0 0 4px"}}>Import Contacts</p>
+            <p style={{fontSize:13,color:"rgba(148,163,184,0.7)",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
+            <div style={{background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid rgba(255,255,255,0.08)"}}>
               {importPreview.preview.map((r,i)=>(
                 <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid #e0eaf5":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
-                  <div style={{fontSize:13,fontWeight:600,color:"#0f1f3d"}}>{r.name}</div>
-                  <div style={{fontSize:11,color:"#888",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{r.name}</div>
+                  <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
                 </div>
               ))}
             </div>
-            <div style={{background:"#fff8e1",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#d97706",border:"1px solid #ffe082"}}>
+            <div style={{background:"rgba(217,119,6,0.1)",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#fcd34d",border:"1px solid rgba(217,119,6,0.3)"}}>
               Duplicates (same name) will be skipped automatically.
             </div>
             <div style={{display:"flex",gap:10}}>
               <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
                 {importLoading?"Importing...":"Import All"}
               </button>
-              <button style={{flex:1,padding:"12px",background:"transparent",border:"1.5px solid #b0c4de",color:"#666",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
+              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
                 Cancel
               </button>
             </div>
@@ -749,25 +749,25 @@ export default function DeanCRM() {
           <div style={styles.listScroll}>
 
             {/* ── Dashboard Header ── */}
-            <div style={{background:"#0f1f3d",padding:"22px 20px 24px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"22px 20px 24px",borderBottom:"1px solid rgba(59,130,246,0.15)"}}>
               <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
               <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               {/* ── KPI strip ── */}
               <div style={{display:"flex",gap:10,marginTop:16}}>
-                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{tasks.filter(t=>!t.completed).length}</div>
+                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{tasks.filter(t=>!t.completed).length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Open Tasks</div>
                 </div>
-                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
+                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Overdue</div>
                 </div>
-                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingContacts.length}</div>
+                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{upcomingContacts.length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Follow-ups</div>
                 </div>
-                <div style={{flex:1,background:"rgba(255,255,255,0.07)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{contacts.length}</div>
+                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{contacts.length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Contacts</div>
                 </div>
               </div>
@@ -775,14 +775,14 @@ export default function DeanCRM() {
 
             {/* ── Upcoming Tasks Grid ── */}
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <span style={{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
-              <span style={{fontSize:11,color:"#94a3b8"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
+              <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
+              <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
             </div>
 
             {upcomingTasks.length===0?(
               <div style={{margin:"0 16px 16px",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"28px 20px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
                 <div style={{fontSize:28,marginBottom:8}}>🎉</div>
-                <div style={{fontSize:13,color:"#64748b",fontWeight:500}}>No tasks due in the next 7 days</div>
+                <div style={{fontSize:13,color:"rgba(148,163,184,0.7)",fontWeight:500}}>No tasks due in the next 7 days</div>
               </div>
             ):(
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
@@ -792,7 +792,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"14px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`,...(isEditing?{border:`1.5px solid ${accentColor}`,boxShadow:`0 0 0 3px ${accentColor}18`}:{})}}>
+                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`,...(isEditing?{border:`1.5px solid ${accentColor}`,boxShadow:`0 0 0 3px ${accentColor}18`}:{})}}>
                       {isEditing?(<>
                         <div style={styles.taskEditLabel}>Due date</div>
                         <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"5px 8px",border:"none",outline:"none",fontSize:12,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
@@ -808,7 +808,7 @@ export default function DeanCRM() {
                           </button>
                         </div>
                         <div style={{fontSize:12,color:"#1a2332",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
-                        <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>✓ Complete</button>
+                        <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>✓ Complete</button>
                       </>)}
                     </div>
                   );
@@ -819,8 +819,8 @@ export default function DeanCRM() {
             {/* ── Next Touch Due Grid ── */}
             {upcomingContacts.length>0&&(<>
               <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <span style={{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
-                <span style={{fontSize:11,color:"#94a3b8"}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
+                <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
+                <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingContacts.map(c=>{
@@ -830,11 +830,11 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#dc2626",background:"#fef2f2",border:"1px solid #fecaca"}:status==="today"?{color:"#d97706",background:"#fffbeb",border:"1px solid #fde68a"}:{color:"#2563eb",background:"#eff6ff",border:"1px solid #dbeafe"};
                   return(
-                    <div key={c.id} style={{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"14px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                    <div key={c.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                         <div style={{width:32,height:32,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
-                          <div style={{fontSize:12,fontWeight:600,color:"#1a2332",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
+                          <div style={{fontSize:12,fontWeight:600,color:"#e2e8f0",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
                           <div style={{fontSize:11,color:"#94a3b8",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
                         </div>
                       </div>
@@ -898,7 +898,7 @@ export default function DeanCRM() {
               return(<>
                 <div style={styles.taskListHeader}><span style={styles.taskListTitle}>📋 Open Tasks ({open.length})</span></div>
                 {tasksLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
-                :open.length===0?<div style={{padding:"14px 14px 4px",fontSize:13,color:"#aaa",textAlign:"center"}}>No open tasks 🎉</div>
+                :open.length===0?<div style={{padding:"14px 14px 4px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open tasks 🎉</div>
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
@@ -933,10 +933,10 @@ export default function DeanCRM() {
                 {done.length>0&&(<>
                   <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"#aaa"}}>✓ Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide ↑":"Show ↓"}</button></div>
                   {showCompleted&&done.map(t=>(
-                    <div key={t.id} style={{...styles.taskCard,opacity:0.9,borderColor:"#dbeafe",background:"#eff6ff"}}>
+                    <div key={t.id} style={{...styles.taskCard,opacity:0.75,borderColor:"rgba(59,130,246,0.2)"}}>
                       <div style={styles.taskCardBody}>
-                        <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"#2563eb"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#2563eb",fontWeight:700}}>✓ Completed {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>↩ Undo</button></div>
+                        <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"rgba(147,197,253,0.5)"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
+                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:700}}>✓ Completed {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>↩ Undo</button></div>
                       </div>
                     </div>
                   ))}
@@ -959,7 +959,7 @@ export default function DeanCRM() {
             </div>
             <div style={styles.card}>
               {[{icon:"📞",label:"Phone",val:contact.phone,href:`tel:${contact.phone}`},{icon:"✉️",label:"Email",val:contact.email,href:`mailto:${contact.email}`},{icon:"📅",label:"Date Added",val:formatDate(contact.date)}].filter(f=>f.val).map(f=>(
-                <div key={f.label} style={styles.fieldRow}><span style={styles.fieldIcon}>{f.icon}</span><div style={styles.fieldBody}><div style={styles.fieldLabel}>{f.label}</div>{f.href?<a href={f.href} style={styles.fieldValue}>{f.val}</a>:<div style={styles.fieldValue}>{f.val}</div>}</div></div>
+                <div key={f.label} style={styles.fieldRow}><span style={styles.fieldIcon}>{f.icon}</span><div style={styles.fieldBody}><div style={styles.fieldLabel}>{f.label}</div>{f.href?<a href={f.href} style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>:<div style={styles.fieldValue}>{f.val}</div>}</div></div>
               ))}
               <div style={styles.fieldRow}><span style={styles.fieldIcon}>🗓</span><div style={styles.fieldBody}>
                 <div style={styles.fieldLabel}>Next Touch</div>
@@ -970,7 +970,7 @@ export default function DeanCRM() {
                   </div>
                 ):(
                   <div style={{display:"flex",alignItems:"center",gap:8,marginTop:2}}>
-                    <div style={styles.fieldValue}>{contact.next_touch||<span style={{color:"#aaa"}}>Not set</span>}</div>
+                    <div style={styles.fieldValue}>{contact.next_touch||<span style={{color:"rgba(148,163,184,0.4)"}}>Not set</span>}</div>
                     <button style={styles.ntEditBtn} onClick={()=>{setNextTouchDraft(contact.next_touch||"");setEditingNextTouch(true);}}>Update Next Touch</button>
                   </div>
                 )}
@@ -1026,169 +1026,201 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"#f0f4f8",color:"#1a2332",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
-  header:{background:"#0f1f3d",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.08)"},
-  headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff"},
-  backBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
-  signOutBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.45)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
-  exportBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
-  homeBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center",marginLeft:2},
-  exportMenu:{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#fff",borderRadius:12,boxShadow:"0 8px 40px rgba(0,0,0,0.14)",border:"1px solid #e2e8f0",zIndex:300,minWidth:220,overflow:"hidden"},
-  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left"},
+  // ── Core shell — full dark theme ──
+  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%)",color:"#e2e8f0",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
+
+  // ── Header ──
+  header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
+  headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},
+  backBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
+  signOutBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.35)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
+  exportBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
+  homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
+
+  // ── Export menu ──
+  exportMenu:{position:"absolute",top:"calc(100% + 10px)",right:0,background:"rgba(13,28,57,0.97)",backdropFilter:"blur(16px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)",zIndex:300,minWidth:230,overflow:"hidden"},
+  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#e2e8f0"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
-  exportMenuLabel:{fontSize:13,fontWeight:600,color:"#1a2332"},
-  exportMenuSub:{fontSize:11,color:"#94a3b8",marginTop:1},
-  exportMenuDivider:{height:1,background:"#f1f5f9",margin:"0"},
-  tabBar:{display:"flex",background:"#0f1f3d",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0},
-  tab:{flex:1,padding:"11px 0",textAlign:"center",fontSize:11,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",color:"rgba(255,255,255,0.4)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4},
-  tabActive:{color:"#fff",borderBottom:"2px solid #3b82f6"},
+  exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
+  exportMenuSub:{fontSize:11,color:"#64748b",marginTop:1},
+  exportMenuDivider:{height:1,background:"rgba(255,255,255,0.06)",margin:"0"},
+
+  // ── Tab bar ──
+  tabBar:{display:"flex",background:"rgba(10,22,40,0.9)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(59,130,246,0.15)",flexShrink:0},
+  tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:11,fontWeight:600,letterSpacing:"0.05em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
+  tabActive:{color:"#93c5fd",borderBottom:"2px solid #3b82f6"},
   tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
+
+  // ── Body / scroll ──
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-  homeGreeting:{background:"#0f1f3d",padding:"20px 20px 22px"},
+
+  // ── Home (legacy — not used directly now but keep for fallback) ──
+  homeGreeting:{background:"transparent",padding:"20px 20px 22px"},
   homeGreetingTitle:{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
   homeGreetingDate:{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
   homeSectionHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 10px"},
-  homeSectionTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"},
-  homeSectionCount:{fontSize:11,color:"#94a3b8",fontWeight:500},
+  homeSectionTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.9)",textTransform:"uppercase",letterSpacing:"0.08em"},
+  homeSectionCount:{fontSize:11,color:"rgba(148,163,184,0.6)",fontWeight:500},
   homeDayGroup:{margin:"0 16px 6px"},
-  homeDayLabel:{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"0.08em",padding:"8px 0 6px",display:"flex",alignItems:"center",gap:8},
-  homeDayLine:{flex:1,height:1,background:"#e2e8f0"},
-  homeTaskCard:{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",marginBottom:8,padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  homeDayLabel:{fontSize:10,fontWeight:700,color:"rgba(148,163,184,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",padding:"8px 0 6px",display:"flex",alignItems:"center",gap:8},
+  homeDayLine:{flex:1,height:1,background:"rgba(255,255,255,0.07)"},
+  homeTaskCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",marginBottom:8,padding:"14px 16px",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"},
   homeTaskTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
-  homeTaskText:{fontSize:13,color:"#1a2332",lineHeight:1.5,flex:1,fontWeight:500},
-  homeTaskCompleteBtn:{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569",cursor:"pointer",fontFamily:"inherit"},
-  homeTouchCard:{background:"#fff",borderRadius:12,border:"1px solid #e8edf2",margin:"0 16px 8px",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
-  homeEmpty:{padding:"32px 20px",textAlign:"center",fontSize:13,color:"#94a3b8",lineHeight:1.7},
+  homeTaskText:{fontSize:13,color:"#e2e8f0",lineHeight:1.5,flex:1,fontWeight:500},
+  homeTaskCompleteBtn:{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,border:"1px solid rgba(59,130,246,0.3)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit"},
+  homeTouchCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",margin:"0 16px 8px",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"},
+  homeEmpty:{padding:"32px 20px",textAlign:"center",fontSize:13,color:"rgba(148,163,184,0.7)",lineHeight:1.7},
   homeEmptyIcon:{fontSize:32,marginBottom:8},
-  searchWrap:{margin:"14px 16px 8px",background:"#fff",borderRadius:10,display:"flex",alignItems:"center",padding:"9px 14px",gap:8,border:"1px solid #e2e8f0",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"},
-  searchIcon:{flexShrink:0,color:"#94a3b8"},
-  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#1a2332"},
-  clearSearch:{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:14,padding:2},
-  sectionHeader:{padding:"10px 20px 4px",fontSize:11,fontWeight:700,color:"#3b82f6",letterSpacing:"0.1em",textTransform:"uppercase",background:"#f0f4f8"},
-  contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid #f1f5f9",background:"#fff",transition:"background 0.1s"},
+
+  // ── Contacts search ──
+  searchWrap:{margin:"14px 16px 8px",background:"rgba(255,255,255,0.05)",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8,border:"1px solid rgba(255,255,255,0.1)"},
+  searchIcon:{flexShrink:0,color:"rgba(148,163,184,0.6)"},
+  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#e2e8f0"},
+  clearSearch:{background:"none",border:"none",cursor:"pointer",color:"rgba(148,163,184,0.6)",fontSize:14,padding:2},
+
+  // ── Contact list ──
+  sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,color:"rgba(59,130,246,0.8)",letterSpacing:"0.14em",textTransform:"uppercase",background:"rgba(10,22,40,0.6)"},
+  contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)",transition:"background 0.15s"},
   avatar:{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#fff",flexShrink:0},
   rowInfo:{flex:1,minWidth:0},
-  rowName:{fontSize:14,fontWeight:600,color:"#1a2332",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  rowSub:{fontSize:12,color:"#94a3b8",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  touchBadge:{background:"#eff6ff",color:"#3b82f6",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid #dbeafe"},
-  chevron:{color:"#cbd5e1",flexShrink:0},
-  fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"#2563eb",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.4)",transition:"transform 0.15s,box-shadow 0.15s",zIndex:10},
+  rowName:{fontSize:14,fontWeight:600,color:"#e2e8f0",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  rowSub:{fontSize:12,color:"rgba(148,163,184,0.7)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  touchBadge:{background:"rgba(59,130,246,0.15)",color:"#93c5fd",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid rgba(59,130,246,0.25)"},
+  chevron:{color:"rgba(255,255,255,0.2)",flexShrink:0},
+  fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.5),0 0 0 1px rgba(59,130,246,0.3)",transition:"transform 0.15s,box-shadow 0.15s",zIndex:10},
   empty:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,textAlign:"center"},
   emptyIcon:{fontSize:48,marginBottom:14},
-  emptyTitle:{fontSize:17,fontWeight:600,color:"#475569",marginBottom:6},
-  emptySub:{fontSize:13,color:"#94a3b8"},
+  emptyTitle:{fontSize:17,fontWeight:600,color:"rgba(226,232,240,0.8)",marginBottom:6},
+  emptySub:{fontSize:13,color:"rgba(148,163,184,0.6)"},
+
+  // ── Profile ──
   profileScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 0 20px"},
-  profileHero:{background:"#0f1f3d",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10},
-  avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff"},
+  profileHero:{background:"linear-gradient(160deg,#0a1628 0%,#0f2347 100%)",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,borderBottom:"1px solid rgba(59,130,246,0.15)"},
+  avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff",boxShadow:"0 0 0 3px rgba(59,130,246,0.3),0 8px 24px rgba(0,0,0,0.3)"},
   profileName:{fontSize:20,fontWeight:700,color:"#fff",margin:0,textAlign:"center"},
-  profileCompany:{fontSize:13,color:"rgba(255,255,255,0.45)",margin:0,textAlign:"center"},
-  card:{background:"#fff",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
-  fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14,borderBottom:"1px solid #f8fafc"},
+  profileCompany:{fontSize:13,color:"rgba(147,197,253,0.7)",margin:0,textAlign:"center"},
+
+  // ── Cards (detail/form panels) ──
+  card:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
+  fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14,borderBottom:"1px solid rgba(255,255,255,0.05)"},
   fieldIcon:{fontSize:16,flexShrink:0,marginTop:1},
   fieldBody:{flex:1,minWidth:0},
-  fieldLabel:{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},
-  fieldValue:{fontSize:14,color:"#1a2332",textDecoration:"none",wordBreak:"break-all"},
-  notesLabel:{fontSize:10,color:"#94a3b8",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
-  notesText:{fontSize:13,color:"#475569",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
-  touchSection:{margin:"14px 16px 0",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
-  touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid #f1f5f9",background:"#fafbfc"},
-  touchHeaderTitle:{fontSize:11,fontWeight:700,color:"#64748b",letterSpacing:"0.08em",textTransform:"uppercase"},
-  addNoteBtn:{background:"#2563eb",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  addNotePanel:{padding:"14px 16px",borderBottom:"1px solid #f1f5f9",background:"#f8fafc"},
-  addNoteDate:{fontSize:11,color:"#94a3b8",fontWeight:600,marginBottom:8},
-  addNoteDivider:{display:"flex",alignItems:"center",gap:8,margin:"10px 0 0",fontSize:10,color:"#94a3b8",fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase"},
-  addNoteTextarea:{width:"100%",padding:"10px 12px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:13,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6,background:"#fff"},
-  saveNoteBtn:{flex:1,padding:"10px",background:"#2563eb",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:9,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  touchEmpty:{padding:"20px",fontSize:13,color:"#94a3b8",textAlign:"center",lineHeight:1.6},
+  fieldLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},
+  fieldValue:{fontSize:14,color:"#e2e8f0",textDecoration:"none",wordBreak:"break-all"},
+  notesLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
+  notesText:{fontSize:13,color:"rgba(226,232,240,0.8)",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
+
+  // ── Touch log ──
+  touchSection:{margin:"14px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
+  touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)"},
+  touchHeaderTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",letterSpacing:"0.08em",textTransform:"uppercase"},
+  addNoteBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  addNotePanel:{padding:"14px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)"},
+  addNoteDate:{fontSize:11,color:"rgba(148,163,184,0.6)",fontWeight:600,marginBottom:8},
+  addNoteDivider:{display:"flex",alignItems:"center",gap:8,margin:"10px 0 0",fontSize:10,color:"rgba(148,163,184,0.5)",fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase"},
+  addNoteTextarea:{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6,background:"rgba(255,255,255,0.05)"},
+  saveNoteBtn:{flex:1,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:9,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  touchEmpty:{padding:"20px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center",lineHeight:1.6},
   touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
-  touchEntryDate:{fontSize:11,color:"#3b82f6",fontWeight:600},
-  touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#cbd5e1",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
-  touchEntryText:{fontSize:13,color:"#334155",lineHeight:1.65,whiteSpace:"pre-wrap"},
-  ntEditBtn:{background:"#eff6ff",color:"#2563eb",border:"1px solid #dbeafe",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
-  ntSaveBtn:{background:"#2563eb",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
-  ntCancelBtn:{background:"none",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-  taskAddPanel:{margin:"16px 16px 0",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
-  taskAddTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
-  taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:13,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"#f8fafc",marginTop:8},
-  taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  touchEntryDate:{fontSize:11,color:"#60a5fa",fontWeight:600},
+  touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
+  touchEntryText:{fontSize:13,color:"rgba(226,232,240,0.85)",lineHeight:1.65,whiteSpace:"pre-wrap"},
+
+  // ── Next touch buttons ──
+  ntEditBtn:{background:"rgba(59,130,246,0.12)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
+  ntSaveBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
+  ntCancelBtn:{background:"none",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
+
+  // ── Tasks ──
+  taskAddPanel:{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"16px"},
+  taskAddTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
+  taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:8},
+  taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"},
-  taskListTitle:{fontSize:11,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"},
-  taskFilterBtn:{fontSize:12,color:"#94a3b8",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
-  taskCard:{margin:"0 16px 8px",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",overflow:"hidden",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  taskListTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",textTransform:"uppercase",letterSpacing:"0.08em"},
+  taskFilterBtn:{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
+  taskCard:{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
   taskCardBody:{padding:"14px"},
   taskCardTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
-  taskCardText:{fontSize:13,color:"#1a2332",lineHeight:1.5,flex:1,fontWeight:500},
-  taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"#cbd5e1",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
+  taskCardText:{fontSize:13,color:"#e2e8f0",lineHeight:1.5,flex:1,fontWeight:500},
+  taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
   taskCardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10},
   taskDueChip:{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px"},
-  taskDueOverdue:{color:"#dc2626",background:"#fef2f2",border:"1px solid #fecaca"},
-  taskDueToday:{color:"#d97706",background:"#fffbeb",border:"1px solid #fde68a"},
-  taskDueUpcoming:{color:"#2563eb",background:"#eff6ff",border:"1px solid #dbeafe"},
-  taskDueNone:{fontSize:11,color:"#94a3b8",fontWeight:500},
-  taskCompleteBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid #e2e8f0",background:"#f8fafc",color:"#475569"},
-  taskUndoBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"#eff6ff",color:"#2563eb",border:"1px solid #dbeafe"},
-  taskEditBtn:{background:"none",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",color:"#64748b",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit",whiteSpace:"nowrap"},
-  taskEditLabel:{fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
-  taskEditTextarea:{width:"100%",padding:"8px 10px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:13,color:"#1a2332",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"#f8fafc",boxSizing:"border-box"},
-  taskEditSaveBtn:{flex:1,padding:"8px",background:"#2563eb",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  taskDueOverdue:{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"},
+  taskDueToday:{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"},
+  taskDueUpcoming:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"},
+  taskDueNone:{fontSize:11,color:"rgba(148,163,184,0.5)",fontWeight:500},
+  taskCompleteBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd"},
+  taskUndoBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"},
+  taskEditBtn:{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit",whiteSpace:"nowrap"},
+  taskEditLabel:{fontSize:9,fontWeight:700,color:"rgba(148,163,184,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
+  taskEditTextarea:{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box"},
+  taskEditSaveBtn:{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+
+  // ── Forms ──
   formScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px"},
   formGroup:{marginBottom:16},
-  formLabel:{display:"block",fontSize:11,color:"#64748b",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
-  required:{color:"#ef4444"},
-  formInput:{width:"100%",padding:"11px 14px",background:"#fff",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"},
-  formTextarea:{width:"100%",padding:"11px 14px",background:"#fff",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
-  btnPrimary:{display:"block",width:"100%",padding:"13px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10},
-  btnSecondaryFull:{display:"block",width:"100%",padding:"12px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnDanger:{flex:1,padding:"12px",background:"#dc2626",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid #fca5a5",color:"#dc2626",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  phoneHint:{fontSize:11,color:"#94a3b8",marginTop:4,textAlign:"right"},
-  overlay:{position:"absolute",inset:0,background:"rgba(15,31,61,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24,backdropFilter:"blur(2px)"},
-  modal:{background:"#fff",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.15)"},
-  modalTitle:{fontSize:17,fontWeight:700,color:"#1a2332",margin:"0 0 6px"},
-  modalSub:{fontSize:13,color:"#64748b",margin:0},
-  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#fff",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.1)"},
-  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0f1f3d",gap:16},
-  splashLogo:{width:68,height:68,borderRadius:18,background:"#2563eb",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff"},
+  formLabel:{display:"block",fontSize:11,color:"rgba(148,163,184,0.8)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
+  required:{color:"#f87171"},
+  formInput:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s"},
+  formTextarea:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
+  btnPrimary:{display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10,boxShadow:"0 4px 14px rgba(37,99,235,0.4)"},
+  btnSecondaryFull:{display:"block",width:"100%",padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnDanger:{flex:1,padding:"12px",background:"rgba(220,38,38,0.8)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid rgba(239,68,68,0.3)",color:"#f87171",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  phoneHint:{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:4,textAlign:"right"},
+
+  // ── Overlay / modal ──
+  overlay:{position:"absolute",inset:0,background:"rgba(5,12,25,0.7)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24},
+  modal:{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},
+  modalTitle:{fontSize:17,fontWeight:700,color:"#e2e8f0",margin:"0 0 6px"},
+  modalSub:{fontSize:13,color:"rgba(148,163,184,0.8)",margin:0},
+  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"rgba(13,28,57,0.95)",backdropFilter:"blur(12px)",color:"#93c5fd",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.4)",border:"1px solid rgba(59,130,246,0.3)"},
+
+  // ── Auth / splash ──
+  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",gap:16},
+  splashLogo:{width:68,height:68,borderRadius:18,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",boxShadow:"0 0 40px rgba(59,130,246,0.4)"},
   splashTitle:{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
-  splashTagline:{fontSize:12,color:"rgba(255,255,255,0.35)",textAlign:"center",maxWidth:260,lineHeight:1.6},
-  splashSpinner:{width:26,height:26,border:"2.5px solid rgba(255,255,255,0.15)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
-  authScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#0f1f3d",padding:"30px 24px",paddingTop:"calc(30px + env(safe-area-inset-top))"},
-  authLogo:{width:64,height:64,borderRadius:16,background:"#2563eb",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:"#fff",marginBottom:16},
+  splashTagline:{fontSize:12,color:"rgba(147,197,253,0.5)",textAlign:"center",maxWidth:260,lineHeight:1.6},
+  splashSpinner:{width:26,height:26,border:"2.5px solid rgba(59,130,246,0.2)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
+  authScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"30px 24px",paddingTop:"calc(30px + env(safe-area-inset-top))"},
+  authLogo:{width:64,height:64,borderRadius:16,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:"#fff",marginBottom:16,boxShadow:"0 0 32px rgba(59,130,246,0.4)"},
   authTitle:{fontSize:24,fontWeight:700,color:"#fff",margin:"0 0 6px",letterSpacing:"-0.02em"},
-  authSub:{fontSize:13,color:"rgba(255,255,255,0.38)",margin:"0 0 32px",textAlign:"center",lineHeight:1.6,maxWidth:260},
-  authCard:{background:"#fff",borderRadius:16,padding:"24px",width:"100%",maxWidth:360,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
-  authCardTitle:{fontSize:16,fontWeight:700,color:"#1a2332",margin:"0 0 6px",textAlign:"center"},
-  authCardSub:{fontSize:13,color:"#64748b",margin:"0 0 18px",textAlign:"center",lineHeight:1.6},
-  authInput:{width:"100%",padding:"12px 14px",border:"1px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#1a2332",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10,background:"#f8fafc"},
-  authError:{fontSize:12,color:"#dc2626",textAlign:"center"},
-  authBtn:{display:"block",width:"100%",padding:"13px",background:"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  authSub:{fontSize:13,color:"rgba(147,197,253,0.5)",margin:"0 0 32px",textAlign:"center",lineHeight:1.6,maxWidth:260},
+  authCard:{background:"rgba(13,28,57,0.9)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:360,boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},
+  authCardTitle:{fontSize:16,fontWeight:700,color:"#e2e8f0",margin:"0 0 6px",textAlign:"center"},
+  authCardSub:{fontSize:13,color:"rgba(148,163,184,0.7)",margin:"0 0 18px",textAlign:"center",lineHeight:1.6},
+  authInput:{width:"100%",padding:"12px 14px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10,background:"rgba(255,255,255,0.05)"},
+  authError:{fontSize:12,color:"#f87171",textAlign:"center"},
+  authBtn:{display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(37,99,235,0.4)"},
   codeRow:{display:"flex",gap:8,justifyContent:"center",margin:"4px 0 0"},
-  codeBox:{width:42,height:50,textAlign:"center",fontSize:22,fontWeight:700,color:"#1a2332",border:"1.5px solid #e2e8f0",borderRadius:10,outline:"none",fontFamily:"inherit",background:"#f8fafc",transition:"border-color 0.15s"},
+  codeBox:{width:42,height:50,textAlign:"center",fontSize:22,fontWeight:700,color:"#e2e8f0",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,outline:"none",fontFamily:"inherit",background:"rgba(255,255,255,0.05)",transition:"border-color 0.15s"},
   resendRow:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14},
-  resendTimer:{fontSize:12,color:"#94a3b8"},
-  resendBtn:{fontSize:13,color:"#2563eb",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,padding:0},
-  changeEmailBtn:{fontSize:13,color:"#94a3b8",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0},
+  resendTimer:{fontSize:12,color:"rgba(148,163,184,0.6)"},
+  resendBtn:{fontSize:13,color:"#60a5fa",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,padding:0},
+  changeEmailBtn:{fontSize:13,color:"rgba(148,163,184,0.6)",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0},
 };
 
 const css = `
 @keyframes spin { to { transform: rotate(360deg); } }
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-.contact-row:hover { background: #f8fafc !important; }
-.fab:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(37,99,235,0.5) !important; }
-input[type="date"] { color-scheme: light; }
-input:focus, textarea:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.08) !important; }
+.contact-row:hover { background: rgba(59,130,246,0.06) !important; }
+.fab:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(37,99,235,0.6), 0 0 0 1px rgba(59,130,246,0.4) !important; }
+input[type="date"] { color-scheme: dark; }
+input:focus, textarea:focus { border-color: rgba(59,130,246,0.6) !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important; }
 ::-webkit-scrollbar { width: 9px; }
-::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.55); }
 ::-webkit-scrollbar-track { background: transparent; }
-html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #0f1f3d; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #050c19; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button:hover { opacity: 0.88; }
+.export-menu-item:hover { background: rgba(59,130,246,0.08); }
 `;
