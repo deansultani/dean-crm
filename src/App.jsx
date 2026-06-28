@@ -1061,7 +1061,7 @@ const styles = {
   homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
 
   // ── Export menu ──
-  exportMenu:{position:"absolute",top:"calc(100% + 10px)",right:0,background:"rgba(13,28,57,0.97)",backdropFilter:"blur(16px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)",zIndex:300,minWidth:230,overflow:"hidden"},
+  exportMenu:{position:"absolute",top:"calc(100% + 10px)",right:0,background:"rgba(13,28,57,0.97)",backdropFilter:"blur(16px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)",zIndex:1000,minWidth:230,overflow:"hidden"},
   exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#e2e8f0"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
   exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
