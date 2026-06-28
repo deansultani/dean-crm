@@ -804,10 +804,10 @@ export default function DeanCRM() {
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4,marginBottom:8}}>
                           <span style={{...styles.taskDueChip,...chipStyle,fontSize:10}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span>
                           <button style={{background:"none",border:"none",cursor:"pointer",padding:"1px",display:"flex",alignItems:"center",flexShrink:0}} onClick={()=>startEditTask(t)}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(147,197,253,0.5)" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                           </button>
                         </div>
-                        <div style={{fontSize:12,color:"#1a2332",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
+                        <div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
                         <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>✓ Complete</button>
                       </>)}
                     </div>
