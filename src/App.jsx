@@ -958,9 +958,24 @@ export default function DeanCRM() {
               {contact.company&&<p style={styles.profileCompany}>{contact.company}</p>}
             </div>
             <div style={styles.card}>
-              {[{icon:"📞",label:"Phone",val:contact.phone,href:`tel:${contact.phone}`},{icon:"✉️",label:"Email",val:contact.email,href:`mailto:${contact.email}`},{icon:"📅",label:"Date Added",val:formatDate(contact.date)}].filter(f=>f.val).map(f=>(
-                <div key={f.label} style={styles.fieldRow}><span style={styles.fieldIcon}>{f.icon}</span><div style={styles.fieldBody}><div style={styles.fieldLabel}>{f.label}</div>{f.href?<a href={f.href} style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>:<div style={styles.fieldValue}>{f.val}</div>}</div></div>
-              ))}
+         {[{icon:"📞",label:"Phone",val:contact.phone,href:`tel:${contact.phone}`},
+  {icon:"✉️",label:"Email",val:contact.email,href:`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}`,target:"_blank"},
+  {icon:"📅",label:"Date Added",val:formatDate(contact.date)}
+].filter(f=>f.val).map(f=>(
+  <div key={f.label} style={styles.fieldRow}>
+    <span style={styles.fieldIcon}>{f.icon}</span>
+    <div style={styles.fieldBody}>
+      <div style={styles.fieldLabel}>{f.label}</div>
+      {f.href ? (
+        <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>
+          {f.val}
+        </a>
+      ) : (
+        <div style={styles.fieldValue}>{f.val}</div>
+      )}
+    </div>
+  </div>
+))}
               <div style={styles.fieldRow}><span style={styles.fieldIcon}>🗓</span><div style={styles.fieldBody}>
                 <div style={styles.fieldLabel}>Next Touch</div>
                 {editingNextTouch?(
