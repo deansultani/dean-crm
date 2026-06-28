@@ -684,7 +684,7 @@ export default function DeanCRM() {
               <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
                 {importLoading?"Importing...":"Import All"}
               </button>
-              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
+              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}  } onClick={()=>{setImportModal(false);setImportPreview(null);}}>
                 Cancel
               </button>
             </div>
@@ -893,7 +893,7 @@ export default function DeanCRM() {
               <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
-            {(()=>{
+            {(() => {
               const open=tasks.filter(t=>!t.completed);const done=tasks.filter(t=>t.completed);
               return(<>
                 <div style={styles.taskListHeader}><span style={styles.taskListTitle}>📋 Open Tasks ({open.length})</span></div>
@@ -958,24 +958,32 @@ export default function DeanCRM() {
               {contact.company&&<p style={styles.profileCompany}>{contact.company}</p>}
             </div>
             <div style={styles.card}>
-         {[{icon:"📞",label:"Phone",val:contact.phone,href:`tel:${contact.phone}`},
-  {icon:"✉️",label:"Email",val:contact.email,href:`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}`,target:"_blank"},
-  {icon:"📅",label:"Date Added",val:formatDate(contact.date)}
-].filter(f=>f.val).map(f=>(
-  <div key={f.label} style={styles.fieldRow}>
-    <span style={styles.fieldIcon}>{f.icon}</span>
-    <div style={styles.fieldBody}>
-      <div style={styles.fieldLabel}>{f.label}</div>
-      {f.href ? (
-        <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>
-          {f.val}
-        </a>
-      ) : (
-        <div style={styles.fieldValue}>{f.val}</div>
-      )}
-    </div>
-  </div>
-))}
+              {(() => {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const emailHref = isMobile
+                  ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}`
+                  : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
+
+                return [
+                  { icon: "📞", label: "Phone", val: contact.phone, href: `tel:${contact.phone}` },
+                  { icon: "✉️", label: "Email", val: contact.email, href: emailHref, target: isMobile ? "_self" : "_blank" },
+                  { icon: "📅", label: "Date Added", val: formatDate(contact.date) }
+                ];
+              })().filter(f=>f.val).map(f=>(
+                <div key={f.label} style={styles.fieldRow}>
+                  <span style={styles.fieldIcon}>{f.icon}</span>
+                  <div style={styles.fieldBody}>
+                    <div style={styles.fieldLabel}>{f.label}</div>
+                    {f.href ? (
+                      <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>
+                        {f.val}
+                      </a>
+                    ) : (
+                      <div style={styles.fieldValue}>{f.val}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
               <div style={styles.fieldRow}><span style={styles.fieldIcon}>🗓</span><div style={styles.fieldBody}>
                 <div style={styles.fieldLabel}>Next Touch</div>
                 {editingNextTouch?(
