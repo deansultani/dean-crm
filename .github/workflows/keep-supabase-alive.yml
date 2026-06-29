@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Ping Supabase DB
         run: |
-          curl -s "https://ecjinukgzizwysiezoyz.supabase.co/rest/v1/contacts?limit=1" \
+          curl -s "https://httokflilaixlvsbptsp.supabase.co/rest/v1/contacts?limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             -o /dev/null -w "HTTP Status: %{http_code}\n"
