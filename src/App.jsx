@@ -65,7 +65,7 @@ const parseNextTouch = (val) => {
 const nextTouchStatus = (val) => {
   const iso = parseNextTouch(val);
   if (!iso) return null;
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date(); const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   if (iso < today) return "overdue";
   if (iso === today) return "today";
   return "upcoming";
@@ -73,7 +73,7 @@ const nextTouchStatus = (val) => {
 
 const taskDueStatus = (due_date) => {
   if (!due_date) return null;
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date(); const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   if (due_date < today) return "overdue";
   if (due_date === today) return "today";
   return "upcoming";
