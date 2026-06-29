@@ -454,7 +454,7 @@ export default function DeanCRM() {
   const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    const res = await authFetch("otp", { email: email.trim() });
+    const res = await authFetch("otp", { email: email.trim(), type: "email", options: { shouldCreateUser: true } });
     setAuthLoading(false);
     if (res.error) return setAuthError(res.error.message || res.error.msg || JSON.stringify(res.error));
     setAuthStep("code"); setCode(["","","","","",""]); setResendCountdown(30);
