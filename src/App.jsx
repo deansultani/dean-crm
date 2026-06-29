@@ -529,7 +529,6 @@ export default function DeanCRM() {
         notes: headers.findIndex(h => h.includes("note") || h.includes("comment") || h.includes("memo")),
         next_touch: headers.findIndex(h => h.includes("nexttouch") || h.includes("followup") || h.includes("next")),
       };
-      // fallback: if name not found, use first column
       if (map.name === -1) map.name = 0;
       const preview = lines.slice(1, 6).map(line => {
         const cols = parseCSVLine(line);
@@ -607,6 +606,7 @@ export default function DeanCRM() {
   const filtered = contacts.filter(c=>!search||[c.name,c.company,c.email,c.phone].some(f=>(f||"").toLowerCase().includes(search.toLowerCase())));
   const grouped = filtered.reduce((acc,c)=>{const letter=(c.name[0]||"#").toUpperCase();if(!acc[letter])acc[letter]=[];acc[letter].push({...c,_origIdx:contacts.findIndex(x=>x.id===c.id)});return acc;},{});
   const contact = selected!==null?contacts[selected]:null;
+
   if (checkingSession) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -658,6 +658,22 @@ export default function DeanCRM() {
     <div style={styles.shell}>
       <style>{css}</style>
       {toast&&<div style={styles.toast}>{toast}</div>}
+
+      {/* ── Export menu — position:fixed so it escapes all parent clipping ── */}
+      {exportMenuOpen&&(
+        <div style={{position:"fixed",top:60,right:16,background:"rgba(13,28,57,0.98)",backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(59,130,246,0.2)",zIndex:9999,minWidth:230,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
+          <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
+          <div style={styles.exportMenuDivider}/>
+          <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
+          <div style={styles.exportMenuDivider}/>
+          <label style={{...styles.exportMenuItem,cursor:"pointer"}}>
+            <span style={styles.exportMenuIcon}>📥</span>
+            <div><div style={styles.exportMenuLabel}>Import CSV</div><div style={styles.exportMenuSub}>Add contacts from file</div></div>
+            <input type="file" accept=".csv" style={{display:"none"}} onChange={e=>{setExportMenuOpen(false);handleImportFile(e);}}/>
+          </label>
+        </div>
+      )}
+
       {importDone&&(
         <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
           ✓ Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
@@ -671,7 +687,7 @@ export default function DeanCRM() {
             <p style={{fontSize:13,color:"rgba(148,163,184,0.7)",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
             <div style={{background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"10px 12px",marginBottom:14,border:"1px solid rgba(255,255,255,0.08)"}}>
               {importPreview.preview.map((r,i)=>(
-                <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid #e0eaf5":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
+                <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid rgba(255,255,255,0.08)":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
                   <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{r.name}</div>
                   <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
                 </div>
@@ -684,7 +700,7 @@ export default function DeanCRM() {
               <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
                 {importLoading?"Importing...":"Import All"}
               </button>
-              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}  } onClick={()=>{setImportModal(false);setImportPreview(null);}}>
+              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
                 Cancel
               </button>
             </div>
@@ -711,24 +727,9 @@ export default function DeanCRM() {
         </span>
         {view==="list"&&homeTab!=="contacts"&&<div style={{width:36}}/>}
         {view==="list"&&homeTab==="contacts"&&(
-          <div style={{position:"relative"}}>
-            <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            </button>
-            {exportMenuOpen&&(
-              <div style={styles.exportMenu} onClick={e=>e.stopPropagation()}>
-                <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
-                <div style={styles.exportMenuDivider}/>
-                <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
-                <div style={styles.exportMenuDivider}/>
-                <label style={{...styles.exportMenuItem,cursor:"pointer"}}>
-                  <span style={styles.exportMenuIcon}>📥</span>
-                  <div><div style={styles.exportMenuLabel}>Import CSV</div><div style={styles.exportMenuSub}>Add contacts from file</div></div>
-                  <input type="file" accept=".csv" style={{display:"none"}} onChange={e=>{setExportMenuOpen(false);handleImportFile(e);}}/>
-                </label>
-              </div>
-            )}
-          </div>
+          <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
         )}
         {view==="profile"&&<button style={styles.exportBtn} onClick={()=>{setEditEntry({...contact});setView("edit");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>}
         {(view==="profile"||view==="add"||view==="edit")&&<button style={styles.homeBtn} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>}
@@ -747,12 +748,10 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-
             {/* ── Dashboard Header ── */}
             <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"22px 20px 24px",borderBottom:"1px solid rgba(59,130,246,0.15)"}}>
               <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
               <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
-              {/* ── KPI strip ── */}
               <div style={{display:"flex",gap:10,marginTop:16}}>
                 <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
                   <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{tasks.filter(t=>!t.completed).length}</div>
@@ -773,14 +772,13 @@ export default function DeanCRM() {
               </div>
             </div>
 
-            {/* ── Upcoming Tasks Grid ── */}
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
               <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
             </div>
 
             {upcomingTasks.length===0?(
-              <div style={{margin:"0 16px 16px",background:"#fff",borderRadius:12,border:"1px solid #e8edf2",padding:"28px 20px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
+              <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"28px 20px",textAlign:"center"}}>
                 <div style={{fontSize:28,marginBottom:8}}>🎉</div>
                 <div style={{fontSize:13,color:"rgba(148,163,184,0.7)",fontWeight:500}}>No tasks due in the next 7 days</div>
               </div>
@@ -795,7 +793,7 @@ export default function DeanCRM() {
                     <div key={t.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`,...(isEditing?{border:`1.5px solid ${accentColor}`,boxShadow:`0 0 0 3px ${accentColor}18`}:{})}}>
                       {isEditing?(<>
                         <div style={styles.taskEditLabel}>Due date</div>
-                        <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"5px 8px",border:"none",outline:"none",fontSize:12,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
+                        <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"5px 8px",border:"none",outline:"none",fontSize:12,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
                         <div style={{display:"flex",gap:5,marginTop:8}}>
                           <button style={{...styles.taskEditSaveBtn,fontSize:11,padding:"6px"}} onClick={()=>saveTaskEdit(t.id)}>Save</button>
                           <button style={{...styles.taskEditCancelBtn,fontSize:11,padding:"6px"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -816,7 +814,6 @@ export default function DeanCRM() {
               </div>
             )}
 
-            {/* ── Next Touch Due Grid ── */}
             {upcomingContacts.length>0&&(<>
               <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
@@ -828,14 +825,14 @@ export default function DeanCRM() {
                   const status=nextTouchStatus(c.next_touch);
                   const origIdx=contacts.findIndex(x=>x.id===c.id);
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
-                  const badgeStyle=status==="overdue"?{color:"#dc2626",background:"#fef2f2",border:"1px solid #fecaca"}:status==="today"?{color:"#d97706",background:"#fffbeb",border:"1px solid #fde68a"}:{color:"#2563eb",background:"#eff6ff",border:"1px solid #dbeafe"};
+                  const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
                   return(
                     <div key={c.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                         <div style={{width:32,height:32,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
                           <div style={{fontSize:12,fontWeight:600,color:"#e2e8f0",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
-                          <div style={{fontSize:11,color:"#94a3b8",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
+                          <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
                         </div>
                       </div>
                       <span style={{...badgeStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
@@ -889,7 +886,7 @@ export default function DeanCRM() {
           <div style={styles.listScroll}>
             <div style={styles.taskAddPanel}>
               <div style={styles.taskAddTitle}>➕ New Task</div>
-              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#0f1f3d",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/></div>
+              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
               <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
@@ -902,13 +899,13 @@ export default function DeanCRM() {
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
-                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(26,111,196,0.08)"}:{})}}>
+                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(37,99,235,0.12)"}:{})}}>
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
                           <div style={styles.taskEditLabel}>Task note</div>
                           <textarea style={styles.taskEditTextarea} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
                           <div style={{...styles.taskEditLabel,marginTop:8}}>Due date</div>
-                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#0f1f3d",fontFamily:"inherit",background:"transparent"}}/>
+                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save Changes</button>
                             <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -931,7 +928,7 @@ export default function DeanCRM() {
                   );
                 })}
                 {done.length>0&&(<>
-                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"#aaa"}}>✓ Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide ↑":"Show ↓"}</button></div>
+                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>✓ Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide ↑":"Show ↓"}</button></div>
                   {showCompleted&&done.map(t=>(
                     <div key={t.id} style={{...styles.taskCard,opacity:0.75,borderColor:"rgba(59,130,246,0.2)"}}>
                       <div style={styles.taskCardBody}>
@@ -948,7 +945,6 @@ export default function DeanCRM() {
         </div>
       )}
 
-
       {view==="profile"&&contact&&(
         <div style={styles.body}>
           <div style={styles.profileScroll}>
@@ -963,7 +959,6 @@ export default function DeanCRM() {
                 const emailHref = isMobile
                   ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}`
                   : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
-
                 return [
                   { icon: "📞", label: "Phone", val: contact.phone, href: `tel:${contact.phone}` },
                   { icon: "✉️", label: "Email", val: contact.email, href: emailHref, target: isMobile ? "_self" : "_blank" },
@@ -988,7 +983,7 @@ export default function DeanCRM() {
                 <div style={styles.fieldLabel}>Next Touch</div>
                 {editingNextTouch?(
                   <div style={{marginTop:2}}>
-                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1.5px solid #2563eb",borderRadius:8,padding:"5px 9px",fontSize:14,background:"#f8fafc",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%"}}/>
+                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1px solid rgba(59,130,246,0.4)",borderRadius:8,padding:"5px 9px",fontSize:14,background:"rgba(255,255,255,0.05)",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%",color:"#e2e8f0"}}/>
                     <div style={{display:"flex",gap:6,marginTop:8}}><button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button><button style={styles.ntCancelBtn} onClick={()=>setEditingNextTouch(false)}>Cancel</button></div>
                   </div>
                 ):(
@@ -1007,13 +1002,13 @@ export default function DeanCRM() {
                   <div style={styles.addNoteDate}>📅 {formatDateTime(new Date().toISOString())}</div>
                   <textarea style={styles.addNoteTextarea} placeholder="What happened during this touch?" value={newNote} onChange={e=>setNewNote(e.target.value)} rows={3} autoFocus/>
                   <div style={styles.addNoteDivider}><span>also update next touch</span></div>
-                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:"1.5px solid #e2e8f0",borderRadius:10,fontSize:14,color:"#0f1f3d",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fff"}}/>
+                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/>
                   <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button><button style={styles.cancelNoteBtn} onClick={()=>{setAddingNote(false);setNewNote("");setInlineNextTouch("");}}>Cancel</button></div>
                 </div>
               )}
               {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet. Tap "+ Add Note" to record an interaction.</div>
               :(contact.touch_log||[]).map((touch,i)=>(
-                <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid #e8edf2"}}>
+                <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid rgba(255,255,255,0.05)"}}>
                   <div style={styles.touchEntryHeader}><span style={styles.touchEntryDate}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
                   <div style={styles.touchEntryText}>{touch.text}</div>
                 </div>
@@ -1049,36 +1044,25 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  // ── Core shell — full dark theme ──
   shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%)",color:"#e2e8f0",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
-
-  // ── Header ──
   header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
   headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},
   backBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   signOutBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.35)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
   exportBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
-
-  // ── Export menu ──
-  exportMenu:{position:"absolute",top:"calc(100% + 10px)",right:0,background:"rgba(13,28,57,0.97)",backdropFilter:"blur(16px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)",zIndex:1000,minWidth:230,overflow:"hidden"},
+  exportMenu:{position:"fixed",top:60,right:16,background:"rgba(13,28,57,0.98)",backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(59,130,246,0.2)",zIndex:9999,minWidth:230,overflow:"hidden"},
   exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#e2e8f0"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
   exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
   exportMenuSub:{fontSize:11,color:"#64748b",marginTop:1},
   exportMenuDivider:{height:1,background:"rgba(255,255,255,0.06)",margin:"0"},
-
-  // ── Tab bar ──
   tabBar:{display:"flex",background:"rgba(10,22,40,0.9)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(59,130,246,0.15)",flexShrink:0},
   tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:11,fontWeight:600,letterSpacing:"0.05em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
   tabActive:{color:"#93c5fd",borderBottom:"2px solid #3b82f6"},
   tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
-
-  // ── Body / scroll ──
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-
-  // ── Home (legacy — not used directly now but keep for fallback) ──
   homeGreeting:{background:"transparent",padding:"20px 20px 22px"},
   homeGreetingTitle:{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
   homeGreetingDate:{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
@@ -1088,21 +1072,17 @@ const styles = {
   homeDayGroup:{margin:"0 16px 6px"},
   homeDayLabel:{fontSize:10,fontWeight:700,color:"rgba(148,163,184,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",padding:"8px 0 6px",display:"flex",alignItems:"center",gap:8},
   homeDayLine:{flex:1,height:1,background:"rgba(255,255,255,0.07)"},
-  homeTaskCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",marginBottom:8,padding:"14px 16px",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"},
+  homeTaskCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",marginBottom:8,padding:"14px 16px"},
   homeTaskTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
   homeTaskText:{fontSize:13,color:"#e2e8f0",lineHeight:1.5,flex:1,fontWeight:500},
   homeTaskCompleteBtn:{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,border:"1px solid rgba(59,130,246,0.3)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit"},
   homeTouchCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",margin:"0 16px 8px",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"},
   homeEmpty:{padding:"32px 20px",textAlign:"center",fontSize:13,color:"rgba(148,163,184,0.7)",lineHeight:1.7},
   homeEmptyIcon:{fontSize:32,marginBottom:8},
-
-  // ── Contacts search ──
   searchWrap:{margin:"14px 16px 8px",background:"rgba(255,255,255,0.05)",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8,border:"1px solid rgba(255,255,255,0.1)"},
   searchIcon:{flexShrink:0,color:"rgba(148,163,184,0.6)"},
   searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#e2e8f0"},
   clearSearch:{background:"none",border:"none",cursor:"pointer",color:"rgba(148,163,184,0.6)",fontSize:14,padding:2},
-
-  // ── Contact list ──
   sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,color:"rgba(59,130,246,0.8)",letterSpacing:"0.14em",textTransform:"uppercase",background:"rgba(10,22,40,0.6)"},
   contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)",transition:"background 0.15s"},
   avatar:{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#fff",flexShrink:0},
@@ -1116,15 +1096,11 @@ const styles = {
   emptyIcon:{fontSize:48,marginBottom:14},
   emptyTitle:{fontSize:17,fontWeight:600,color:"rgba(226,232,240,0.8)",marginBottom:6},
   emptySub:{fontSize:13,color:"rgba(148,163,184,0.6)"},
-
-  // ── Profile ──
   profileScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 0 20px"},
   profileHero:{background:"linear-gradient(160deg,#0a1628 0%,#0f2347 100%)",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,borderBottom:"1px solid rgba(59,130,246,0.15)"},
   avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff",boxShadow:"0 0 0 3px rgba(59,130,246,0.3),0 8px 24px rgba(0,0,0,0.3)"},
   profileName:{fontSize:20,fontWeight:700,color:"#fff",margin:0,textAlign:"center"},
   profileCompany:{fontSize:13,color:"rgba(147,197,253,0.7)",margin:0,textAlign:"center"},
-
-  // ── Cards (detail/form panels) ──
   card:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
   fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14,borderBottom:"1px solid rgba(255,255,255,0.05)"},
   fieldIcon:{fontSize:16,flexShrink:0,marginTop:1},
@@ -1133,8 +1109,6 @@ const styles = {
   fieldValue:{fontSize:14,color:"#e2e8f0",textDecoration:"none",wordBreak:"break-all"},
   notesLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
   notesText:{fontSize:13,color:"rgba(226,232,240,0.8)",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
-
-  // ── Touch log ──
   touchSection:{margin:"14px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
   touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)"},
   touchHeaderTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",letterSpacing:"0.08em",textTransform:"uppercase"},
@@ -1151,13 +1125,9 @@ const styles = {
   touchEntryDate:{fontSize:11,color:"#60a5fa",fontWeight:600},
   touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
   touchEntryText:{fontSize:13,color:"rgba(226,232,240,0.85)",lineHeight:1.65,whiteSpace:"pre-wrap"},
-
-  // ── Next touch buttons ──
   ntEditBtn:{background:"rgba(59,130,246,0.12)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntSaveBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntCancelBtn:{background:"none",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-
-  // ── Tasks ──
   taskAddPanel:{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"16px"},
   taskAddTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
   taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:8},
@@ -1183,8 +1153,6 @@ const styles = {
   taskEditTextarea:{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box"},
   taskEditSaveBtn:{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-
-  // ── Forms ──
   formScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px"},
   formGroup:{marginBottom:16},
   formLabel:{display:"block",fontSize:11,color:"rgba(148,163,184,0.8)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
@@ -1197,15 +1165,11 @@ const styles = {
   btnDanger:{flex:1,padding:"12px",background:"rgba(220,38,38,0.8)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid rgba(239,68,68,0.3)",color:"#f87171",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
   phoneHint:{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:4,textAlign:"right"},
-
-  // ── Overlay / modal ──
   overlay:{position:"absolute",inset:0,background:"rgba(5,12,25,0.7)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24},
   modal:{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},
   modalTitle:{fontSize:17,fontWeight:700,color:"#e2e8f0",margin:"0 0 6px"},
   modalSub:{fontSize:13,color:"rgba(148,163,184,0.8)",margin:0},
   toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"rgba(13,28,57,0.95)",backdropFilter:"blur(12px)",color:"#93c5fd",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.4)",border:"1px solid rgba(59,130,246,0.3)"},
-
-  // ── Auth / splash ──
   splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",gap:16},
   splashLogo:{width:68,height:68,borderRadius:18,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",boxShadow:"0 0 40px rgba(59,130,246,0.4)"},
   splashTitle:{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
