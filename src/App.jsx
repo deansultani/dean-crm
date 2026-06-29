@@ -3,44 +3,19 @@ import * as XLSX from "xlsx";
 
 const SUPABASE_URL = "https://httokflilaixlvsbptsp.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dG9rZmxpbGFpeGx2c2JwdHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NDYxNDksImV4cCI6MjA5NTMyMjE0OX0.V5dRc75rMuD9kkzyl4XYWeoxbiop1cmDuRz_gRr7Axk";
+const FIXED_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 const api = async (path, opts = {}) => {
-  const token = opts.token || SUPABASE_ANON;
   return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
       apikey: SUPABASE_ANON,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${SUPABASE_ANON}`,
       "Content-Type": "application/json",
       Prefer: opts.prefer !== undefined ? opts.prefer : "return=representation",
       ...opts.headers,
     },
     ...opts,
   });
-};
-
-const authFetch = async (path, body) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
-      method: "POST",
-      headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    return res.json();
-  } catch (err) {
-    clearTimeout(timer);
-    return { error: { message: err.name === "AbortError" ? "Request timed out — check your connection" : `Network error: ${err.message}` } };
-  }
-};
-
-const getUser = async (access_token) => {
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${access_token}` },
-  });
-  return res.json();
 };
 
 const formatDate = (d) => {
@@ -204,9 +179,9 @@ function NextTouchInput({ value, onChange, inputStyle }) {
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
-          {status === "overdue" && <span style={{color:"#f87171"}}>&warning; This date is in the past</span>}
+          {status === "overdue" && <span style={{color:"#f87171"}}>This date is in the past</span>}
           {status === "today" && <span style={{color:"#fcd34d"}}>Today</span>}
-          {status === "upcoming" && <span style={{color:"#60a5fa"}}>&#10003; Upcoming</span>}
+          {status === "upcoming" && <span style={{color:"#60a5fa"}}>Upcoming</span>}
         </div>
       )}
       {calOpen && <MiniCalendar value={value} onChange={(v) => { onChange(v); setCalOpen(false); }} onClose={() => setCalOpen(false)}/>}
@@ -225,18 +200,8 @@ const getCat = (id) => HEALTH_CATEGORIES.find(c => c.id === id) || HEALTH_CATEGO
 
 // ── Main App ───────────────────────────────────────────────────────────
 export default function DeanCRM() {
-  const [session, setSession] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [authStep, setAuthStep] = useState("email");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState(["","","","","",""]);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [resendCountdown, setResendCountdown] = useState(0);
-  const codeRefs = [useRef(),useRef(),useRef(),useRef(),useRef(),useRef()];
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
   const [editEntry, setEditEntry] = useState(null);
@@ -264,7 +229,6 @@ export default function DeanCRM() {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState("");
   const [taskDraftDate, setTaskDraftDate] = useState("");
-  // Health state
   const [healthNotes, setHealthNotes] = useState([]);
   const [healthLoading, setHealthLoading] = useState(false);
   const [newHealthNote, setNewHealthNote] = useState("");
@@ -292,38 +256,11 @@ export default function DeanCRM() {
       if (!el) { el = document.createElement("meta"); el.name = name; document.head.appendChild(el); }
       el.content = content;
     });
+    fetchContacts();
+    fetchTasks();
+    fetchHealthNotes();
   }, []);
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const stored = JSON.parse(localStorage.getItem("dean_crm_session"));
-        if (stored?.access_token) {
-          const userData = await getUser(stored.access_token);
-          if (userData.id) { setSession({ ...stored, user: userData }); setUserId(userData.id); setCheckingSession(false); return; }
-          if (stored.refresh_token) {
-            const refreshed = await authFetch("token?grant_type=refresh_token", { refresh_token: stored.refresh_token });
-            if (refreshed.access_token) {
-              const userData2 = await getUser(refreshed.access_token);
-              if (userData2.id) {
-                const newSess = { access_token: refreshed.access_token, refresh_token: refreshed.refresh_token || stored.refresh_token, user: userData2 };
-                setSession(newSess); setUserId(userData2.id);
-                localStorage.setItem("dean_crm_session", JSON.stringify(newSess));
-                setCheckingSession(false); return;
-              }
-            }
-          }
-          localStorage.removeItem("dean_crm_session");
-        }
-      } catch {}
-      setCheckingSession(false);
-    };
-    init();
-  }, []);
-
-  useEffect(() => { if (session && userId) { fetchContacts(); fetchTasks(); fetchHealthNotes(); } }, [session, userId]);
-  useEffect(() => { if (resendCountdown > 0) { const t = setTimeout(() => setResendCountdown(r => r-1), 1000); return () => clearTimeout(t); } }, [resendCountdown]);
-  useEffect(() => { if (authStep === "code") setTimeout(() => codeRefs[0].current?.focus(), 100); }, [authStep]);
   useEffect(() => {
     if (!exportMenuOpen) return;
     const handler = () => setExportMenuOpen(false);
@@ -334,7 +271,7 @@ export default function DeanCRM() {
   const fetchContacts = async () => {
     setLoading(true);
     try {
-      const res = await api("contacts?order=name.asc", { token: session.access_token, prefer:"" });
+      const res = await api("contacts?order=name.asc");
       if (res.ok) { const data = await res.json(); setContacts(data.map(c => ({ ...c, touch_log: c.touch_log || [] }))); }
     } catch {}
     setLoading(false);
@@ -343,7 +280,7 @@ export default function DeanCRM() {
   const fetchTasks = async () => {
     setTasksLoading(true);
     try {
-      const res = await api("tasks?order=due_date.asc", { token: session.access_token, prefer:"" });
+      const res = await api("tasks?order=due_date.asc");
       if (res.ok) { const data = await res.json(); setTasks(data); }
     } catch {}
     setTasksLoading(false);
@@ -352,7 +289,7 @@ export default function DeanCRM() {
   const fetchHealthNotes = async () => {
     setHealthLoading(true);
     try {
-      const res = await api("health_notes?order=due_date.asc,created_at.desc", { token: session.access_token, prefer:"" });
+      const res = await api("health_notes?order=due_date.asc,created_at.desc");
       if (res.ok) { const data = await res.json(); setHealthNotes(data); }
     } catch {}
     setHealthLoading(false);
@@ -361,9 +298,9 @@ export default function DeanCRM() {
   const addTask = async () => {
     if (!newTaskNote.trim()) return showToast("Task note is required");
     const isoDate = newTaskDate.trim() ? parseNextTouch(newTaskDate.trim()) || null : null;
-    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, user_id: userId };
+    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, user_id: FIXED_USER_ID };
     try {
-      const res = await api("tasks", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
+      const res = await api("tasks", { method:"POST", body: JSON.stringify(payload) });
       if (res.ok) {
         const created = await res.json();
         const t = Array.isArray(created) ? created[0] : created;
@@ -376,14 +313,14 @@ export default function DeanCRM() {
   const completeTask = async (id, undo = false) => {
     const patch = { completed: !undo, completed_at: !undo ? new Date().toISOString() : null };
     try {
-      await api(`tasks?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      await api(`tasks?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
-      showToast(undo ? "Task reopened" : "Task completed! &#10003;");
+      showToast(undo ? "Task reopened" : "Task completed!");
     } catch { showToast("Error updating task"); }
   };
 
   const deleteTask = async (id) => {
-    try { await api(`tasks?id=eq.${id}`, { method:"DELETE", token: session.access_token, prefer:"" }); setTasks(prev => prev.filter(t => t.id !== id)); } catch {}
+    try { await api(`tasks?id=eq.${id}`, { method:"DELETE", prefer:"" }); setTasks(prev => prev.filter(t => t.id !== id)); } catch {}
     setConfirmDeleteTask(null); showToast("Task deleted");
   };
 
@@ -392,7 +329,7 @@ export default function DeanCRM() {
     const isoDate = taskDraftDate.trim() ? parseNextTouch(taskDraftDate.trim()) || null : null;
     const patch = { note: taskDraftNote.trim(), due_date: isoDate };
     try {
-      await api(`tasks?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      await api(`tasks?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
       setEditingTaskId(null); showToast("Task updated!");
     } catch { showToast("Error updating task"); }
@@ -404,13 +341,12 @@ export default function DeanCRM() {
     else setTaskDraftDate("");
   };
 
-  // Health CRUD
   const addHealthNote = async () => {
     if (!newHealthNote.trim()) return showToast("Note is required");
     const isoDate = newHealthDate.trim() ? parseNextTouch(newHealthDate.trim()) || null : null;
-    const payload = { note: newHealthNote.trim(), category: newHealthCategory, due_date: isoDate, completed: false, completed_at: null, user_id: userId };
+    const payload = { note: newHealthNote.trim(), category: newHealthCategory, due_date: isoDate, completed: false, completed_at: null, user_id: FIXED_USER_ID };
     try {
-      const res = await api("health_notes", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
+      const res = await api("health_notes", { method:"POST", body: JSON.stringify(payload) });
       if (res.ok) {
         const created = await res.json();
         const h = Array.isArray(created) ? created[0] : created;
@@ -423,14 +359,14 @@ export default function DeanCRM() {
   const completeHealthNote = async (id, undo = false) => {
     const patch = { completed: !undo, completed_at: !undo ? new Date().toISOString() : null };
     try {
-      await api(`health_notes?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      await api(`health_notes?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setHealthNotes(prev => prev.map(h => h.id === id ? { ...h, ...patch } : h));
       showToast(undo ? "Reopened" : "Done!");
     } catch { showToast("Error updating"); }
   };
 
   const deleteHealthNote = async (id) => {
-    try { await api(`health_notes?id=eq.${id}`, { method:"DELETE", token: session.access_token, prefer:"" }); setHealthNotes(prev => prev.filter(h => h.id !== id)); } catch {}
+    try { await api(`health_notes?id=eq.${id}`, { method:"DELETE", prefer:"" }); setHealthNotes(prev => prev.filter(h => h.id !== id)); } catch {}
     setConfirmDeleteHealth(null); showToast("Deleted");
   };
 
@@ -439,7 +375,7 @@ export default function DeanCRM() {
     const isoDate = healthDraftDate.trim() ? parseNextTouch(healthDraftDate.trim()) || null : null;
     const patch = { note: healthDraftNote.trim(), due_date: isoDate, category: healthDraftCategory };
     try {
-      await api(`health_notes?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      await api(`health_notes?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setHealthNotes(prev => prev.map(h => h.id === id ? { ...h, ...patch } : h));
       setEditingHealthId(null); showToast("Updated!");
     } catch { showToast("Error updating"); }
@@ -451,67 +387,14 @@ export default function DeanCRM() {
     else setHealthDraftDate("");
   };
 
-  const sendOTP = async () => {
-    if (!email.trim()) return setAuthError("Please enter your email");
-    setAuthLoading(true); setAuthError("");
-    const res = await authFetch("otp", { email: email.trim(), type: "email", options: { shouldCreateUser: true } });
-    setAuthLoading(false);
-    if (res.error) return setAuthError(res.error.message || res.error.msg || JSON.stringify(res.error));
-    setAuthStep("code"); setCode(["","","","","",""]); setResendCountdown(30);
-  };
-
-  const verifyOTPWithCode = async (codeArr) => {
-    const token = codeArr.join("");
-    if (token.length !== 6) return setAuthError("Please enter the full 6-digit code");
-    setAuthLoading(true); setAuthError("");
-    const res = await authFetch("verify", { email: email.trim(), token, type:"email" });
-    setAuthLoading(false);
-    if (res.error) { setAuthError("Invalid or expired code. Please try again."); setCode(["","","","","",""]); setTimeout(() => codeRefs[0].current?.focus(), 50); return; }
-    if (res.access_token) {
-      const userData = await getUser(res.access_token);
-      const sess = { access_token: res.access_token, refresh_token: res.refresh_token, user: userData };
-      setSession(sess); setUserId(userData.id);
-      localStorage.setItem("dean_crm_session", JSON.stringify(sess));
-    }
-  };
-
-  const verifyOTP = () => verifyOTPWithCode(code);
-
-  const handleCodeInput = (i, val) => {
-    const digit = val.replace(/\D/g,"").slice(-1);
-    const next = [...code]; next[i] = digit; setCode(next); setAuthError("");
-    if (digit && i < 5) codeRefs[i+1].current?.focus();
-    if (next.every(d => d !== "")) setTimeout(() => verifyOTPWithCode(next), 80);
-  };
-
-  const handleCodeKeyDown = (i, e) => {
-    if (e.key === "Backspace") {
-      if (code[i]) { const next = [...code]; next[i] = ""; setCode(next); }
-      else if (i > 0) { codeRefs[i-1].current?.focus(); const next = [...code]; next[i-1] = ""; setCode(next); }
-    }
-    if (e.key === "ArrowLeft" && i > 0) codeRefs[i-1].current?.focus();
-    if (e.key === "ArrowRight" && i < 5) codeRefs[i+1].current?.focus();
-  };
-
-  const handleCodePaste = (e) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g,"").slice(0,6);
-    if (pasted.length === 6) { const arr = pasted.split(""); setCode(arr); codeRefs[5].current?.focus(); setTimeout(() => verifyOTPWithCode(arr), 80); }
-  };
-
-  const signOut = () => {
-    setSession(null); setUserId(null); localStorage.removeItem("dean_crm_session");
-    setContacts([]); setView("list"); setSelected(null); setAuthStep("email"); setCode(["","","","","",""]);
-  };
-
   const saveEntry = async () => {
     if (!editEntry.name.trim()) return showToast("Name is required");
-    if (!userId) return showToast("Not logged in");
     const isNew = editEntry._isNew;
     const { _isNew, id, touch_log, ...fields } = editEntry;
-    const payload = { ...fields, touch_log: touch_log || [], user_id: userId };
+    const payload = { ...fields, touch_log: touch_log || [], user_id: FIXED_USER_ID };
     try {
       if (isNew) {
-        const res = await api("contacts", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
+        const res = await api("contacts", { method:"POST", body: JSON.stringify(payload) });
         if (res.ok) {
           const created = await res.json();
           const newContact = Array.isArray(created) ? created[0] : created;
@@ -519,7 +402,7 @@ export default function DeanCRM() {
           showToast("Contact added!");
         } else { const err = await res.json(); showToast("Error: " + (err.message || err.hint || "Could not save")); return; }
       } else {
-        const res = await api(`contacts?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(fields) });
+        const res = await api(`contacts?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(fields) });
         if (res.ok) { setContacts(prev => prev.map(c => c.id === id ? { ...c, ...fields } : c)); showToast("Contact updated!"); }
       }
       setView("profile");
@@ -529,14 +412,14 @@ export default function DeanCRM() {
   const saveNextTouch = async () => {
     const contact = contacts[selected];
     try {
-      await api(`contacts?id=eq.${contact.id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify({ next_touch: nextTouchDraft.trim() }) });
+      await api(`contacts?id=eq.${contact.id}`, { method:"PATCH", prefer:"", body: JSON.stringify({ next_touch: nextTouchDraft.trim() }) });
       setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, next_touch: nextTouchDraft.trim() } : c));
       setEditingNextTouch(false); showToast("Next touch updated!");
     } catch { showToast("Error saving"); }
   };
 
   const deleteContact = async (id) => {
-    try { await api(`contacts?id=eq.${id}`, { method:"DELETE", token: session.access_token, prefer:"" }); setContacts(prev => prev.filter(c => c.id !== id)); } catch {}
+    try { await api(`contacts?id=eq.${id}`, { method:"DELETE", prefer:"" }); setContacts(prev => prev.filter(c => c.id !== id)); } catch {}
     setView("list"); setSelected(null); setConfirmDelete(null); showToast("Contact deleted");
   };
 
@@ -548,7 +431,7 @@ export default function DeanCRM() {
     const patch = { touch_log: updatedLog };
     if (inlineNextTouch.trim()) patch.next_touch = inlineNextTouch.trim();
     try {
-      await api(`contacts?id=eq.${contact.id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      await api(`contacts?id=eq.${contact.id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, touch_log: updatedLog, ...(inlineNextTouch.trim() ? { next_touch: inlineNextTouch.trim() } : {}) } : c));
       setNewNote(""); setAddingNote(false); setInlineNextTouch("");
       showToast(inlineNextTouch.trim() ? "Note & next touch saved!" : "Note added!");
@@ -559,7 +442,7 @@ export default function DeanCRM() {
     const contact = contacts.find(c => c.id === contactId);
     const updatedLog = contact.touch_log.filter(t => t.id !== touchId);
     try {
-      await api(`contacts?id=eq.${contactId}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify({ touch_log: updatedLog }) });
+      await api(`contacts?id=eq.${contactId}`, { method:"PATCH", prefer:"", body: JSON.stringify({ touch_log: updatedLog }) });
       setContacts(prev => prev.map(c => c.id === contactId ? { ...c, touch_log: updatedLog } : c));
     } catch {}
     setConfirmDeleteTouch(null); showToast("Note removed");
@@ -575,7 +458,7 @@ export default function DeanCRM() {
     contacts.forEach(c => { (c.touch_log||[]).forEach(t => { touchRows.push({ "Contact Name":c.name||"","Company":c.company||"","Date & Time":formatDateTime(t.createdAt),"Note":t.text||"" }); }); });
     if (touchRows.length > 0) { const ws2 = XLSX.utils.json_to_sheet(touchRows); ws2["!cols"] = [{wch:24},{wch:22},{wch:22},{wch:50}]; XLSX.utils.book_append_sheet(wb, ws2, "Touch Log"); }
     XLSX.writeFile(wb, `DeanBoard_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showToast("Exported to spreadsheet!"); setExportMenuOpen(false);
+    showToast("Exported!"); setExportMenuOpen(false);
   };
 
   const exportCSV = () => {
@@ -584,7 +467,7 @@ export default function DeanCRM() {
     const csv = [headers,...rows].map(r => r.map(v => `"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type:"text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `DeanBoard_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    showToast("Exported to CSV!"); setExportMenuOpen(false);
+    showToast("Exported!"); setExportMenuOpen(false);
   };
 
   const parseCSVLine = (line) => {
@@ -641,8 +524,8 @@ export default function DeanCRM() {
       if (!row.name.trim()) { skipped++; continue; }
       if (existingNames.has(row.name.toLowerCase().trim())) { skipped++; continue; }
       try {
-        const payload = { ...row, user_id: userId };
-        const res = await api("contacts", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
+        const payload = { ...row, user_id: FIXED_USER_ID };
+        const res = await api("contacts", { method:"POST", body: JSON.stringify(payload) });
         if (res.ok) { const created = await res.json(); const nc = Array.isArray(created)?created[0]:created; existingNames.add(nc.name.toLowerCase().trim()); added++; } else skipped++;
       } catch { skipped++; }
     }
@@ -661,49 +544,13 @@ export default function DeanCRM() {
   const contact = selected!==null?contacts[selected]:null;
   const healthOverdueCount = healthNotes.filter(h=>!h.completed&&taskDueStatus(h.due_date)==="overdue").length;
 
-  if (checkingSession) return (
+  if (loading) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
         <div style={styles.splashLogo}>D</div>
         <div style={styles.splashTitle}>DeanBoard</div>
         <div style={styles.splashTagline}>Making the World Better, one DeanTask at a Time</div>
         <div style={styles.splashSpinner}/>
-      </div>
-    </div>
-  );
-
-  if (!session) return (
-    <div style={styles.shell}>
-      <style>{css}</style>
-      <div style={styles.authScreen}>
-        <div style={styles.authLogo}>D</div>
-        <h1 style={styles.authTitle}>DeanBoard</h1>
-        <p style={styles.authSub}>Making the World Better, one DeanTask at a Time</p>
-        {authStep==="email" ? (
-          <div style={styles.authCard}>
-            <p style={styles.authCardTitle}>Sign In</p>
-            <p style={styles.authCardSub}>Enter your email and we'll send you a 6-digit code.</p>
-            <input style={styles.authInput} type="email" placeholder="your@email.com" value={email} onChange={e=>{setEmail(e.target.value);setAuthError("");}} onKeyDown={e=>e.key==="Enter"&&sendOTP()} autoCapitalize="none" autoCorrect="off"/>
-            {authError&&<div style={styles.authError}>{authError}</div>}
-            <button style={{...styles.authBtn,opacity:authLoading?0.7:1}} onClick={sendOTP} disabled={authLoading}>{authLoading?"Sending...":"Send Code"}</button>
-          </div>
-        ) : (
-          <div style={styles.authCard}>
-            <p style={styles.authCardTitle}>Enter your code</p>
-            <p style={styles.authCardSub}>We sent a 6-digit code to <strong>{email}</strong></p>
-            <div style={styles.codeRow} onPaste={handleCodePaste}>
-              {code.map((digit,i)=>(
-                <input key={i} ref={codeRefs[i]} style={{...styles.codeBox,borderColor:digit?"#2563eb":authError?"#dc2626":"#e2e8f0"}} type="text" inputMode="numeric" maxLength={1} value={digit} onChange={e=>handleCodeInput(i,e.target.value)} onKeyDown={e=>handleCodeKeyDown(i,e)} onFocus={e=>e.target.select()}/>
-              ))}
-            </div>
-            {authError&&<div style={{...styles.authError,marginTop:8}}>{authError}</div>}
-            <button style={{...styles.authBtn,opacity:authLoading?0.7:1,marginTop:16}} onClick={verifyOTP} disabled={authLoading}>{authLoading?"Verifying...":"Verify Code"}</button>
-            <div style={styles.resendRow}>
-              {resendCountdown>0?<span style={styles.resendTimer}>Resend in {resendCountdown}s</span>:<button style={styles.resendBtn} onClick={()=>{setCode(["","","","","",""]);sendOTP();}}>Resend code</button>}
-              <button style={styles.changeEmailBtn} onClick={()=>{setAuthStep("email");setAuthError("");setCode(["","","","","",""]);}} >Change email</button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -727,11 +574,7 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {importDone&&(
-        <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-          Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
-        </div>
-      )}
+      {importDone&&(<div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` \u00b7 ${importDone.skipped} skipped`:""}</div>)}
 
       {importModal&&importPreview?.allRows&&(
         <div style={styles.overlay}>
@@ -742,7 +585,7 @@ export default function DeanCRM() {
               {importPreview.preview.map((r,i)=>(
                 <div key={i} style={{borderBottom:i<importPreview.preview.length-1?"1px solid rgba(255,255,255,0.08)":"none",paddingBottom:i<importPreview.preview.length-1?8:0,marginBottom:i<importPreview.preview.length-1?8:0}}>
                   <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{r.name}</div>
-                  <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" · ")||"No extra fields detected"}</div>
+                  <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:2}}>{[r.company,r.email,r.phone].filter(Boolean).join(" \u00b7 ")||"No extra fields detected"}</div>
                 </div>
               ))}
             </div>
@@ -766,9 +609,7 @@ export default function DeanCRM() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
         ):(
-          <button style={styles.signOutBtn} onClick={signOut}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          </button>
+          <div style={{width:32}}/>
         )}
         <span style={styles.headerTitle}>
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
@@ -803,47 +644,34 @@ export default function DeanCRM() {
               <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
               <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
-                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{tasks.filter(t=>!t.completed).length}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Open Tasks</div>
-                </div>
-                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Overdue</div>
-                </div>
-                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingContacts.length}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Follow-ups</div>
-                </div>
-                <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{contacts.length}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Contacts</div>
-                </div>
+                {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length},{label:"Follow-ups",val:upcomingContacts.length},{label:"Contacts",val:contacts.length}].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 10px",border:"1px solid rgba(59,130,246,0.2)"}}>
+                    <div style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>{kpi.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
-              <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
+              <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} · next 7 days</span>
             </div>
             {upcomingTasks.length===0?(
-              <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"28px 20px",textAlign:"center"}}>
-                <div style={{fontSize:28,marginBottom:8}}>🎉</div>
-                <div style={{fontSize:13,color:"rgba(148,163,184,0.7)",fontWeight:500}}>No tasks due in the next 7 days</div>
+              <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"24px 20px",textAlign:"center"}}>
+                <div style={{fontSize:13,color:"rgba(148,163,184,0.7)"}}>No tasks due in the next 7 days 🎉</div>
               </div>
             ):(
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingTasks.map(t=>{
-                  const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
+                  const status=taskDueStatus(t.due_date);
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4,marginBottom:8}}>
-                        <span style={{...styles.taskDueChip,...chipStyle,fontSize:10}}>{status==="overdue"?`Overdue ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
-                      </div>
+                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
+                      <span style={{...styles.taskDueChip,...chipStyle,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
-                      <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>&#10003; Complete</button>
+                      <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
                     </div>
                   );
                 })}
@@ -862,9 +690,9 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
                   return(
-                    <div key={c.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                    <div key={c.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                        <div style={{width:32,height:32,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
+                        <div style={{width:30,height:30,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
                           <div style={{fontSize:12,fontWeight:600,color:"#e2e8f0",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
                           <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
@@ -888,8 +716,7 @@ export default function DeanCRM() {
             <input style={styles.searchInput} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
             {search&&<button style={styles.clearSearch} onClick={()=>setSearch("")}>x</button>}
           </div>
-          {loading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
-          :contacts.length===0?<div style={styles.empty}><div style={styles.emptyIcon}>📋</div><p style={styles.emptyTitle}>No contacts yet</p><p style={styles.emptySub}>Tap + to add your first contact</p></div>
+          {contacts.length===0?<div style={styles.empty}><div style={styles.emptyIcon}>📋</div><p style={styles.emptyTitle}>No contacts yet</p><p style={styles.emptySub}>Tap + to add your first contact</p></div>
           :filtered.length===0?<div style={styles.empty}><p style={styles.emptyTitle}>No results for "{search}"</p></div>
           :(
             <div style={styles.listScroll}>
@@ -927,34 +754,32 @@ export default function DeanCRM() {
             {(() => {
               const open=tasks.filter(t=>!t.completed);const done=tasks.filter(t=>t.completed);
               return(<>
-                <div style={styles.taskListHeader}><span style={styles.taskListTitle}>📋 Open Tasks ({open.length})</span></div>
+                <div style={styles.taskListHeader}><span style={styles.taskListTitle}>Open Tasks ({open.length})</span></div>
                 {tasksLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
-                :open.length===0?<div style={{padding:"14px 14px 4px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open tasks 🎉</div>
+                :open.length===0?<div style={{padding:"14px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open tasks 🎉</div>
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
-                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb",boxShadow:"0 0 0 3px rgba(37,99,235,0.12)"}:{})}}>
+                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb"}:{})}}>
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
-                          <div style={styles.taskEditLabel}>Task note</div>
                           <textarea style={styles.taskEditTextarea} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
-                          <div style={{...styles.taskEditLabel,marginTop:8}}>Due date</div>
                           <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
-                            <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save Changes</button>
+                            <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
                             <button style={styles.taskEditCancelBtn} onClick={()=>setEditingTaskId(null)}>Cancel</button>
                           </div>
                         </>):(<>
                           <div style={styles.taskCardTop}>
                             <div style={styles.taskCardText}>{t.note}</div>
                             <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
-                              <button style={styles.taskEditBtn} onClick={()=>startEditTask(t)}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
+                              <button style={styles.taskEditBtn} onClick={()=>startEditTask(t)}>Edit</button>
                               <button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
                           <div style={styles.taskCardFooter}>
-                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Due Today":`Due ${formatTaskDue(t.due_date)}`}</span>:<span style={styles.taskDueNone}>No due date</span>}
-                            <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>&#10003; Mark Complete</button>
+                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>:<span style={styles.taskDueNone}>No due date</span>}
+                            <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>Done</button>
                           </div>
                         </>)}
                       </div>
@@ -962,12 +787,12 @@ export default function DeanCRM() {
                   );
                 })}
                 {done.length>0&&(<>
-                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>&#10003; Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
+                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
                   {showCompleted&&done.map(t=>(
-                    <div key={t.id} style={{...styles.taskCard,opacity:0.75,borderColor:"rgba(59,130,246,0.2)"}}>
+                    <div key={t.id} style={{...styles.taskCard,opacity:0.7}}>
                       <div style={styles.taskCardBody}>
                         <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"rgba(147,197,253,0.5)"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:700}}>Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>Undo</button></div>
+                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:600}}>Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>Undo</button></div>
                       </div>
                     </div>
                   ))}
@@ -982,30 +807,23 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="health"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            {/* KPI strip */}
             <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"16px 16px 18px",borderBottom:"1px solid rgba(16,185,129,0.15)"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Health Dashboard</div>
               <div style={{display:"flex",gap:8}}>
-                {[
-                  {label:"Open",val:healthNotes.filter(h=>!h.completed).length,accent:"rgba(16,185,129,0.2)"},
-                  {label:"Overdue",val:healthNotes.filter(h=>!h.completed&&taskDueStatus(h.due_date)==="overdue").length,accent:"rgba(220,38,38,0.2)"},
-                  {label:"Upcoming",val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,accent:"rgba(59,130,246,0.2)"},
-                  {label:"Done",val:healthNotes.filter(h=>h.completed).length,accent:"rgba(139,92,246,0.2)"},
-                ].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:kpi.accent,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                    <div style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
+                {[{label:"Open",val:healthNotes.filter(h=>!h.completed).length,bg:"rgba(16,185,129,0.15)"},{label:"Overdue",val:healthOverdueCount,bg:"rgba(220,38,38,0.15)"},{label:"Upcoming",val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,bg:"rgba(59,130,246,0.15)"},{label:"Done",val:healthNotes.filter(h=>h.completed).length,bg:"rgba(139,92,246,0.15)"}].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:kpi.bg,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                    <div style={{fontSize:20,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
                     <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:3,fontWeight:500}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Add new note */}
-            <div style={{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
+            <div style={{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
                 {HEALTH_CATEGORIES.map(cat=>(
-                  <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:"rgba(148,163,184,0.6)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                  <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:"rgba(148,163,184,0.6)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                     {cat.emoji} {cat.label}
                   </button>
                 ))}
@@ -1015,8 +833,7 @@ export default function DeanCRM() {
               <button style={{display:"block",width:"100%",marginTop:10,padding:"10px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addHealthNote}>Add Note</button>
             </div>
 
-            {/* Open notes */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"}}>
+            <div style={{display:"flex",alignItems:"center",padding:"16px 20px 8px"}}>
               <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNotes.filter(h=>!h.completed).length})</span>
             </div>
             {healthLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
@@ -1024,14 +841,12 @@ export default function DeanCRM() {
             :healthNotes.filter(h=>!h.completed).map(h=>{
               const status=taskDueStatus(h.due_date);const cat=getCat(h.category);const isEditing=editingHealthId===h.id;
               return(
-                <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:`1px solid ${isEditing?"#10b981":"rgba(255,255,255,0.08)"}`,overflow:"hidden",...(isEditing?{boxShadow:"0 0 0 3px rgba(16,185,129,0.12)"}:{})}}>
+                <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",borderRadius:12,border:`1px solid ${isEditing?"#10b981":"rgba(255,255,255,0.08)"}`,overflow:"hidden"}}>
                   <div style={{padding:"14px"}}>
                     {isEditing?(<>
                       <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
                         {HEALTH_CATEGORIES.map(c=>(
-                          <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-                            {c.emoji} {c.label}
-                          </button>
+                          <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
                         ))}
                       </div>
                       <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
@@ -1043,15 +858,15 @@ export default function DeanCRM() {
                     </>):(<>
                       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
                         <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
-                        <div style={{display:"flex",gap:5,flexShrink:0}}>
-                          <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
-                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                        <div style={{display:"flex",gap:5}}>
+                          <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
+                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                         </div>
                       </div>
                       <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="overdue"?`Due ${formatTaskDue(h.due_date)}`:status==="today"?"Due Today":`Due ${formatTaskDue(h.due_date)}`}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
-                        <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>&#10003; Done</button>
+                        {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="overdue"?`Due ${formatTaskDue(h.due_date)}`:status==="today"?"Today":`${formatTaskDue(h.due_date)}`}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
+                        <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
                       </div>
                     </>)}
                   </div>
@@ -1059,7 +874,6 @@ export default function DeanCRM() {
               );
             })}
 
-            {/* Completed notes */}
             {healthNotes.filter(h=>h.completed).length>0&&(<>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px 8px"}}>
                 <span style={{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.5)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthNotes.filter(h=>h.completed).length})</span>
@@ -1068,18 +882,16 @@ export default function DeanCRM() {
               {showCompletedHealth&&healthNotes.filter(h=>h.completed).map(h=>{
                 const cat=getCat(h.category);
                 return(
-                  <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",overflow:"hidden",opacity:0.7}}>
-                    <div style={{padding:"12px 14px"}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
-                          <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through",lineHeight:1.4}}>{h.note}</div>
-                          <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
-                        </div>
-                        <div style={{display:"flex",gap:5,flexShrink:0}}>
-                          <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
-                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-                        </div>
+                  <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",opacity:0.7}}>
+                    <div style={{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
+                        <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through"}}>{h.note}</div>
+                        <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
+                      </div>
+                      <div style={{display:"flex",gap:5}}>
+                        <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
+                        <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                       </div>
                     </div>
                   </div>
@@ -1102,24 +914,18 @@ export default function DeanCRM() {
             <div style={styles.card}>
               {(() => {
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                const emailHref = isMobile
-                  ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}`
-                  : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
+                const emailHref = isMobile ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}` : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
                 return [
-                  { icon: "📞", label: "Phone", val: contact.phone, href: `tel:${contact.phone}` },
-                  { icon: "✉️", label: "Email", val: contact.email, href: emailHref, target: isMobile ? "_self" : "_blank" },
-                  { icon: "📅", label: "Date Added", val: formatDate(contact.date) }
+                  { icon:"📞", label:"Phone", val:contact.phone, href:`tel:${contact.phone}` },
+                  { icon:"✉️", label:"Email", val:contact.email, href:emailHref, target:isMobile?"_self":"_blank" },
+                  { icon:"📅", label:"Date Added", val:formatDate(contact.date) }
                 ];
               })().filter(f=>f.val).map(f=>(
                 <div key={f.label} style={styles.fieldRow}>
                   <span style={styles.fieldIcon}>{f.icon}</span>
                   <div style={styles.fieldBody}>
                     <div style={styles.fieldLabel}>{f.label}</div>
-                    {f.href ? (
-                      <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>
-                    ) : (
-                      <div style={styles.fieldValue}>{f.val}</div>
-                    )}
+                    {f.href?<a href={f.href} target={f.target||"_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>:<div style={styles.fieldValue}>{f.val}</div>}
                   </div>
                 </div>
               ))}
@@ -1133,7 +939,7 @@ export default function DeanCRM() {
                 ):(
                   <div style={{display:"flex",alignItems:"center",gap:8,marginTop:2}}>
                     <div style={styles.fieldValue}>{contact.next_touch||<span style={{color:"rgba(148,163,184,0.4)"}}>Not set</span>}</div>
-                    <button style={styles.ntEditBtn} onClick={()=>{setNextTouchDraft(contact.next_touch||"");setEditingNextTouch(true);}}>Update Next Touch</button>
+                    <button style={styles.ntEditBtn} onClick={()=>{setNextTouchDraft(contact.next_touch||"");setEditingNextTouch(true);}}>Update</button>
                   </div>
                 )}
               </div></div>
@@ -1150,7 +956,7 @@ export default function DeanCRM() {
                   <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button><button style={styles.cancelNoteBtn} onClick={()=>{setAddingNote(false);setNewNote("");setInlineNextTouch("");}}>Cancel</button></div>
                 </div>
               )}
-              {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet. Tap "+ Add Note" to record an interaction.</div>
+              {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet.</div>
               :(contact.touch_log||[]).map((touch,i)=>(
                 <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid rgba(255,255,255,0.05)"}}>
                   <div style={styles.touchEntryHeader}><span style={styles.touchEntryDate}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
@@ -1192,10 +998,8 @@ const styles = {
   header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
   headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},
   backBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
-  signOutBtn:{background:"none",border:"none",color:"rgba(255,255,255,0.35)",cursor:"pointer",padding:"6px",borderRadius:8,display:"flex",alignItems:"center"},
   exportBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
-  exportMenu:{position:"fixed",top:60,right:16,background:"rgba(13,28,57,0.98)",backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(59,130,246,0.2)",zIndex:9999,minWidth:230,overflow:"hidden"},
   exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#e2e8f0"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
   exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
@@ -1219,7 +1023,7 @@ const styles = {
   rowSub:{fontSize:12,color:"rgba(148,163,184,0.7)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   touchBadge:{background:"rgba(59,130,246,0.15)",color:"#93c5fd",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid rgba(59,130,246,0.25)"},
   chevron:{color:"rgba(255,255,255,0.2)",flexShrink:0},
-  fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.5),0 0 0 1px rgba(59,130,246,0.3)",transition:"transform 0.15s,box-shadow 0.15s",zIndex:10},
+  fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.5)",transition:"transform 0.15s",zIndex:10},
   empty:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,textAlign:"center"},
   emptyIcon:{fontSize:48,marginBottom:14},
   emptyTitle:{fontSize:17,fontWeight:600,color:"rgba(226,232,240,0.8)",marginBottom:6},
@@ -1276,8 +1080,7 @@ const styles = {
   taskDueNone:{fontSize:11,color:"rgba(148,163,184,0.5)",fontWeight:500},
   taskCompleteBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd"},
   taskUndoBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"},
-  taskEditBtn:{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit",whiteSpace:"nowrap"},
-  taskEditLabel:{fontSize:9,fontWeight:700,color:"rgba(148,163,184,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
+  taskEditBtn:{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"},
   taskEditTextarea:{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box"},
   taskEditSaveBtn:{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
@@ -1303,29 +1106,13 @@ const styles = {
   splashTitle:{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
   splashTagline:{fontSize:12,color:"rgba(147,197,253,0.5)",textAlign:"center",maxWidth:260,lineHeight:1.6},
   splashSpinner:{width:26,height:26,border:"2.5px solid rgba(59,130,246,0.2)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
-  authScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"30px 24px",paddingTop:"calc(30px + env(safe-area-inset-top))"},
-  authLogo:{width:64,height:64,borderRadius:16,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:"#fff",marginBottom:16,boxShadow:"0 0 32px rgba(59,130,246,0.4)"},
-  authTitle:{fontSize:24,fontWeight:700,color:"#fff",margin:"0 0 6px",letterSpacing:"-0.02em"},
-  authSub:{fontSize:13,color:"rgba(147,197,253,0.5)",margin:"0 0 32px",textAlign:"center",lineHeight:1.6,maxWidth:260},
-  authCard:{background:"rgba(13,28,57,0.9)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:360,boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},
-  authCardTitle:{fontSize:16,fontWeight:700,color:"#e2e8f0",margin:"0 0 6px",textAlign:"center"},
-  authCardSub:{fontSize:13,color:"rgba(148,163,184,0.7)",margin:"0 0 18px",textAlign:"center",lineHeight:1.6},
-  authInput:{width:"100%",padding:"12px 14px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10,background:"rgba(255,255,255,0.05)"},
-  authError:{fontSize:12,color:"#f87171",textAlign:"center"},
-  authBtn:{display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(37,99,235,0.4)"},
-  codeRow:{display:"flex",gap:8,justifyContent:"center",margin:"4px 0 0"},
-  codeBox:{width:42,height:50,textAlign:"center",fontSize:22,fontWeight:700,color:"#e2e8f0",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,outline:"none",fontFamily:"inherit",background:"rgba(255,255,255,0.05)",transition:"border-color 0.15s"},
-  resendRow:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14},
-  resendTimer:{fontSize:12,color:"rgba(148,163,184,0.6)"},
-  resendBtn:{fontSize:13,color:"#60a5fa",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,padding:0},
-  changeEmailBtn:{fontSize:13,color:"rgba(148,163,184,0.6)",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0},
 };
 
 const css = `
 @keyframes spin { to { transform: rotate(360deg); } }
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 .contact-row:hover { background: rgba(59,130,246,0.06) !important; }
-.fab:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(37,99,235,0.6), 0 0 0 1px rgba(59,130,246,0.4) !important; }
+.fab:hover { transform: scale(1.06); }
 input[type="date"] { color-scheme: dark; }
 input:focus, textarea:focus { border-color: rgba(59,130,246,0.6) !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important; }
 ::-webkit-scrollbar { width: 9px; }
