@@ -42,7 +42,7 @@ const formatDateTime = (iso) => {
   if (!iso) return "";
   const dt = new Date(iso);
   return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
-    " · " + dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    " \u00b7 " + dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 };
 
 const initials = (name) => name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -101,7 +101,7 @@ const NextTouchChip = ({ val }) => {
     : status === "today"
     ? { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#d97706", background:"#fffbeb", borderRadius:6, padding:"2px 8px", border:"1px solid #fde68a" }
     : { display:"inline-block", marginTop:4, fontSize:11, fontWeight:600, color:"#2563eb", background:"#eff6ff", borderRadius:6, padding:"2px 8px", border:"1px solid #dbeafe" };
-  const label = status === "overdue" ? `⚠ Overdue · ${val}` : status === "today" ? `📌 Today · ${val}` : `🗓 ${val}`;
+  const label = status === "overdue" ? `\u26a0 Overdue \u00b7 ${val}` : status === "today" ? `\ud83d\udccc Today \u00b7 ${val}` : `\ud83d\uddd3 ${val}`;
   return <div style={chipStyle}>{label}</div>;
 };
 
@@ -134,9 +134,9 @@ function MiniCalendar({ value, onChange, onClose }) {
   return (
     <div style={calStyles.wrap}>
       <div style={calStyles.header}>
-        <button style={calStyles.nav} onClick={prevMonth}>‹</button>
+        <button style={calStyles.nav} onClick={prevMonth}>&lsaquo;</button>
         <span style={calStyles.month}>{MONTHS[view.m]} {view.y}</span>
-        <button style={calStyles.nav} onClick={nextMonth}>›</button>
+        <button style={calStyles.nav} onClick={nextMonth}>&rsaquo;</button>
       </div>
       <div style={calStyles.grid}>
         <div style={calStyles.dayNames}>{DAYS.map(d => <div key={d} style={calStyles.dayName}>{d}</div>)}</div>
@@ -193,9 +193,9 @@ function NextTouchInput({ value, onChange, inputStyle }) {
       </div>
       {value && (
         <div style={{ fontSize:11, marginTop:4, fontWeight:600 }}>
-          {status === "overdue" && <span style={{color:"#f87171"}}>⚠ This date is in the past</span>}
-          {status === "today" && <span style={{color:"#fcd34d"}}>📌 Today</span>}
-          {status === "upcoming" && <span style={{color:"#60a5fa"}}>✓ Upcoming</span>}
+          {status === "overdue" && <span style={{color:"#f87171"}}>&warning; This date is in the past</span>}
+          {status === "today" && <span style={{color:"#fcd34d"}}>Today</span>}
+          {status === "upcoming" && <span style={{color:"#60a5fa"}}>&#10003; Upcoming</span>}
         </div>
       )}
       {calOpen && <MiniCalendar value={value} onChange={(v) => { onChange(v); setCalOpen(false); }} onClose={() => setCalOpen(false)}/>}
@@ -203,6 +203,14 @@ function NextTouchInput({ value, onChange, inputStyle }) {
   );
 }
 
+const HEALTH_CATEGORIES = [
+  { id:"exercise", label:"Exercise", emoji:"🏃", color:"#10b981", bg:"rgba(16,185,129,0.12)", border:"rgba(16,185,129,0.3)" },
+  { id:"nutrition", label:"Nutrition", emoji:"🥗", color:"#f59e0b", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.3)" },
+  { id:"sleep", label:"Sleep", emoji:"😴", color:"#8b5cf6", bg:"rgba(139,92,246,0.12)", border:"rgba(139,92,246,0.3)" },
+  { id:"appointment", label:"Appointment", emoji:"🩺", color:"#3b82f6", bg:"rgba(59,130,246,0.12)", border:"rgba(59,130,246,0.3)" },
+  { id:"general", label:"General", emoji:"📝", color:"#94a3b8", bg:"rgba(148,163,184,0.12)", border:"rgba(148,163,184,0.3)" },
+];
+const getCat = (id) => HEALTH_CATEGORIES.find(c => c.id === id) || HEALTH_CATEGORIES[4];
 
 // ── Main App ───────────────────────────────────────────────────────────
 export default function DeanCRM() {
@@ -245,6 +253,18 @@ export default function DeanCRM() {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState("");
   const [taskDraftDate, setTaskDraftDate] = useState("");
+  // Health state
+  const [healthNotes, setHealthNotes] = useState([]);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [newHealthNote, setNewHealthNote] = useState("");
+  const [newHealthDate, setNewHealthDate] = useState("");
+  const [newHealthCategory, setNewHealthCategory] = useState("general");
+  const [confirmDeleteHealth, setConfirmDeleteHealth] = useState(null);
+  const [showCompletedHealth, setShowCompletedHealth] = useState(false);
+  const [editingHealthId, setEditingHealthId] = useState(null);
+  const [healthDraftNote, setHealthDraftNote] = useState("");
+  const [healthDraftDate, setHealthDraftDate] = useState("");
+  const [healthDraftCategory, setHealthDraftCategory] = useState("general");
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -290,7 +310,7 @@ export default function DeanCRM() {
     init();
   }, []);
 
-  useEffect(() => { if (session && userId) { fetchContacts(); fetchTasks(); } }, [session, userId]);
+  useEffect(() => { if (session && userId) { fetchContacts(); fetchTasks(); fetchHealthNotes(); } }, [session, userId]);
   useEffect(() => { if (resendCountdown > 0) { const t = setTimeout(() => setResendCountdown(r => r-1), 1000); return () => clearTimeout(t); } }, [resendCountdown]);
   useEffect(() => { if (authStep === "code") setTimeout(() => codeRefs[0].current?.focus(), 100); }, [authStep]);
   useEffect(() => {
@@ -318,6 +338,15 @@ export default function DeanCRM() {
     setTasksLoading(false);
   };
 
+  const fetchHealthNotes = async () => {
+    setHealthLoading(true);
+    try {
+      const res = await api("health_notes?order=due_date.asc,created_at.desc", { token: session.access_token, prefer:"" });
+      if (res.ok) { const data = await res.json(); setHealthNotes(data); }
+    } catch {}
+    setHealthLoading(false);
+  };
+
   const addTask = async () => {
     if (!newTaskNote.trim()) return showToast("Task note is required");
     const isoDate = newTaskDate.trim() ? parseNextTouch(newTaskDate.trim()) || null : null;
@@ -338,7 +367,7 @@ export default function DeanCRM() {
     try {
       await api(`tasks?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
       setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
-      showToast(undo ? "Task reopened" : "Task completed! ✓");
+      showToast(undo ? "Task reopened" : "Task completed! &#10003;");
     } catch { showToast("Error updating task"); }
   };
 
@@ -362,6 +391,53 @@ export default function DeanCRM() {
     setEditingTaskId(t.id); setTaskDraftNote(t.note);
     if (t.due_date) { const [yyyy,mm,dd] = t.due_date.slice(0,10).split("-"); setTaskDraftDate(`${mm}/${dd}/${yyyy}`); }
     else setTaskDraftDate("");
+  };
+
+  // Health CRUD
+  const addHealthNote = async () => {
+    if (!newHealthNote.trim()) return showToast("Note is required");
+    const isoDate = newHealthDate.trim() ? parseNextTouch(newHealthDate.trim()) || null : null;
+    const payload = { note: newHealthNote.trim(), category: newHealthCategory, due_date: isoDate, completed: false, completed_at: null, user_id: userId };
+    try {
+      const res = await api("health_notes", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        const h = Array.isArray(created) ? created[0] : created;
+        setHealthNotes(prev => [...prev, h].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
+        setNewHealthNote(""); setNewHealthDate(""); setNewHealthCategory("general"); showToast("Health note added!");
+      } else showToast("Error saving note");
+    } catch { showToast("Error saving note"); }
+  };
+
+  const completeHealthNote = async (id, undo = false) => {
+    const patch = { completed: !undo, completed_at: !undo ? new Date().toISOString() : null };
+    try {
+      await api(`health_notes?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      setHealthNotes(prev => prev.map(h => h.id === id ? { ...h, ...patch } : h));
+      showToast(undo ? "Reopened" : "Done!");
+    } catch { showToast("Error updating"); }
+  };
+
+  const deleteHealthNote = async (id) => {
+    try { await api(`health_notes?id=eq.${id}`, { method:"DELETE", token: session.access_token, prefer:"" }); setHealthNotes(prev => prev.filter(h => h.id !== id)); } catch {}
+    setConfirmDeleteHealth(null); showToast("Deleted");
+  };
+
+  const saveHealthEdit = async (id) => {
+    if (!healthDraftNote.trim()) return showToast("Note is required");
+    const isoDate = healthDraftDate.trim() ? parseNextTouch(healthDraftDate.trim()) || null : null;
+    const patch = { note: healthDraftNote.trim(), due_date: isoDate, category: healthDraftCategory };
+    try {
+      await api(`health_notes?id=eq.${id}`, { method:"PATCH", token: session.access_token, prefer:"", body: JSON.stringify(patch) });
+      setHealthNotes(prev => prev.map(h => h.id === id ? { ...h, ...patch } : h));
+      setEditingHealthId(null); showToast("Updated!");
+    } catch { showToast("Error updating"); }
+  };
+
+  const startEditHealth = (h) => {
+    setEditingHealthId(h.id); setHealthDraftNote(h.note); setHealthDraftCategory(h.category || "general");
+    if (h.due_date) { const [yyyy,mm,dd] = h.due_date.slice(0,10).split("-"); setHealthDraftDate(`${mm}/${dd}/${yyyy}`); }
+    else setHealthDraftDate("");
   };
 
   const sendOTP = async () => {
@@ -532,27 +608,11 @@ export default function DeanCRM() {
       if (map.name === -1) map.name = 0;
       const preview = lines.slice(1, 6).map(line => {
         const cols = parseCSVLine(line);
-        return {
-          name: cols[map.name] || "",
-          company: map.company >= 0 ? cols[map.company] || "" : "",
-          phone: map.phone >= 0 ? cols[map.phone] || "" : "",
-          email: map.email >= 0 ? cols[map.email] || "" : "",
-          notes: map.notes >= 0 ? cols[map.notes] || "" : "",
-          next_touch: map.next_touch >= 0 ? cols[map.next_touch] || "" : "",
-        };
+        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?cols[map.next_touch]||"":"" };
       }).filter(r => r.name);
       const allRows = lines.slice(1).map(line => {
         const cols = parseCSVLine(line);
-        return {
-          name: cols[map.name] || "",
-          company: map.company >= 0 ? cols[map.company] || "" : "",
-          phone: map.phone >= 0 ? cols[map.phone] || "" : "",
-          email: map.email >= 0 ? cols[map.email] || "" : "",
-          notes: map.notes >= 0 ? cols[map.notes] || "" : "",
-          next_touch: map.next_touch >= 0 ? cols[map.next_touch] || "" : "",
-          date: new Date().toISOString().slice(0,10),
-          touch_log: [],
-        };
+        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?cols[map.next_touch]||"":"", date: new Date().toISOString().slice(0,10), touch_log: [] };
       }).filter(r => r.name);
       setImportPreview({ preview, allRows, total: allRows.length });
       setImportModal(true);
@@ -572,40 +632,23 @@ export default function DeanCRM() {
       try {
         const payload = { ...row, user_id: userId };
         const res = await api("contacts", { method:"POST", token: session.access_token, body: JSON.stringify(payload) });
-        if (res.ok) {
-          const created = await res.json();
-          const nc = Array.isArray(created) ? created[0] : created;
-          existingNames.add(nc.name.toLowerCase().trim());
-          added++;
-        } else skipped++;
+        if (res.ok) { const created = await res.json(); const nc = Array.isArray(created)?created[0]:created; existingNames.add(nc.name.toLowerCase().trim()); added++; } else skipped++;
       } catch { skipped++; }
     }
     await fetchContacts();
-    setImportLoading(false);
-    setImportModal(false);
-    setImportPreview([]);
-    setImportDone({ added, skipped });
-    setTimeout(() => setImportDone(null), 4000);
+    setImportLoading(false); setImportModal(false); setImportPreview([]);
+    setImportDone({ added, skipped }); setTimeout(() => setImportDone(null), 4000);
   };
 
   const todayIso = new Date().toISOString().slice(0,10);
   const in7DaysIso = new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10);
   const upcomingTasks = tasks.filter(t=>!t.completed&&t.due_date&&t.due_date<=in7DaysIso).sort((a,b)=>a.due_date>b.due_date?1:-1);
-  const tasksByDay = upcomingTasks.reduce((acc,t)=>{if(!acc[t.due_date])acc[t.due_date]=[];acc[t.due_date].push(t);return acc;},{});
   const upcomingContacts = contacts.filter(c=>{if(!c.next_touch)return false;const iso=parseNextTouch(c.next_touch);return iso&&iso<=in7DaysIso;}).sort((a,b)=>{const ia=parseNextTouch(a.next_touch);const ib=parseNextTouch(b.next_touch);return ia>ib?1:-1;});
-
-  const getDayLabel = (iso) => {
-    if (iso===todayIso) return "Today";
-    const tomorrow = new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10);
-    if (iso===tomorrow) return "Tomorrow";
-    return new Date(iso+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-  };
-
   const getGreeting = () => { const h=new Date().getHours(); return h<12?"Good morning":h<17?"Good afternoon":"Good evening"; };
-
   const filtered = contacts.filter(c=>!search||[c.name,c.company,c.email,c.phone].some(f=>(f||"").toLowerCase().includes(search.toLowerCase())));
   const grouped = filtered.reduce((acc,c)=>{const letter=(c.name[0]||"#").toUpperCase();if(!acc[letter])acc[letter]=[];acc[letter].push({...c,_origIdx:contacts.findIndex(x=>x.id===c.id)});return acc;},{});
   const contact = selected!==null?contacts[selected]:null;
+  const healthOverdueCount = healthNotes.filter(h=>!h.completed&&taskDueStatus(h.due_date)==="overdue").length;
 
   if (checkingSession) return (
     <div style={styles.shell}>
@@ -631,7 +674,7 @@ export default function DeanCRM() {
             <p style={styles.authCardSub}>Enter your email and we'll send you a 6-digit code.</p>
             <input style={styles.authInput} type="email" placeholder="your@email.com" value={email} onChange={e=>{setEmail(e.target.value);setAuthError("");}} onKeyDown={e=>e.key==="Enter"&&sendOTP()} autoCapitalize="none" autoCorrect="off"/>
             {authError&&<div style={styles.authError}>{authError}</div>}
-            <button style={{...styles.authBtn,opacity:authLoading?0.7:1}} onClick={sendOTP} disabled={authLoading}>{authLoading?"Sending…":"Send Code →"}</button>
+            <button style={{...styles.authBtn,opacity:authLoading?0.7:1}} onClick={sendOTP} disabled={authLoading}>{authLoading?"Sending...":"Send Code"}</button>
           </div>
         ) : (
           <div style={styles.authCard}>
@@ -643,7 +686,7 @@ export default function DeanCRM() {
               ))}
             </div>
             {authError&&<div style={{...styles.authError,marginTop:8}}>{authError}</div>}
-            <button style={{...styles.authBtn,opacity:authLoading?0.7:1,marginTop:16}} onClick={verifyOTP} disabled={authLoading}>{authLoading?"Verifying…":"Verify Code ✓"}</button>
+            <button style={{...styles.authBtn,opacity:authLoading?0.7:1,marginTop:16}} onClick={verifyOTP} disabled={authLoading}>{authLoading?"Verifying...":"Verify Code"}</button>
             <div style={styles.resendRow}>
               {resendCountdown>0?<span style={styles.resendTimer}>Resend in {resendCountdown}s</span>:<button style={styles.resendBtn} onClick={()=>{setCode(["","","","","",""]);sendOTP();}}>Resend code</button>}
               <button style={styles.changeEmailBtn} onClick={()=>{setAuthStep("email");setAuthError("");setCode(["","","","","",""]);}} >Change email</button>
@@ -659,7 +702,6 @@ export default function DeanCRM() {
       <style>{css}</style>
       {toast&&<div style={styles.toast}>{toast}</div>}
 
-      {/* ── Export menu — position:fixed so it escapes all parent clipping ── */}
       {exportMenuOpen&&(
         <div style={{position:"fixed",top:60,right:16,background:"rgba(13,28,57,0.98)",backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(59,130,246,0.2)",zIndex:9999,minWidth:230,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
           <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
@@ -676,7 +718,7 @@ export default function DeanCRM() {
 
       {importDone&&(
         <div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-          ✓ Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
+          Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` · ${importDone.skipped} skipped`:""}
         </div>
       )}
 
@@ -693,16 +735,10 @@ export default function DeanCRM() {
                 </div>
               ))}
             </div>
-            <div style={{background:"rgba(217,119,6,0.1)",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#fcd34d",border:"1px solid rgba(217,119,6,0.3)"}}>
-              Duplicates (same name) will be skipped automatically.
-            </div>
+            <div style={{background:"rgba(217,119,6,0.1)",borderRadius:8,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#fcd34d",border:"1px solid rgba(217,119,6,0.3)"}}>Duplicates (same name) will be skipped automatically.</div>
             <div style={{display:"flex",gap:10}}>
-              <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>
-                {importLoading?"Importing...":"Import All"}
-              </button>
-              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>
-                Cancel
-              </button>
+              <button style={{flex:1,padding:"12px",background:importLoading?"#ccc":"#2563eb",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:700,cursor:importLoading?"not-allowed":"pointer",fontFamily:"inherit"}} onClick={runImport} disabled={importLoading}>{importLoading?"Importing...":"Import All"}</button>
+              <button style={{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setImportModal(false);setImportPreview(null);}}>Cancel</button>
             </div>
           </div>
         </div>
@@ -711,6 +747,7 @@ export default function DeanCRM() {
       {confirmDelete&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Contact?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteContact(confirmDelete)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDelete(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTouch&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTask&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Task?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteHealth&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Health Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
 
       <div style={styles.header}>
         {view!=="list"?(
@@ -742,31 +779,33 @@ export default function DeanCRM() {
           <button style={{...styles.tab,...(homeTab==="tasks"?styles.tabActive:{})}} onClick={()=>setHomeTab("tasks")}>
             Tasks{tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
           </button>
+          <button style={{...styles.tab,...(homeTab==="health"?styles.tabActive:{})}} onClick={()=>setHomeTab("health")}>
+            Health{healthOverdueCount>0&&<span style={{...styles.tabBadge,background:"#dc2626"}}>{healthOverdueCount}</span>}
+          </button>
         </div>
       )}
 
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            {/* ── Dashboard Header ── */}
             <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"22px 20px 24px",borderBottom:"1px solid rgba(59,130,246,0.15)"}}>
               <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
               <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
                 <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{tasks.filter(t=>!t.completed).length}</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{tasks.filter(t=>!t.completed).length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Open Tasks</div>
                 </div>
                 <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Overdue</div>
                 </div>
                 <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{upcomingContacts.length}</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{upcomingContacts.length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Follow-ups</div>
                 </div>
                 <div style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 0 20px rgba(147,197,253,0.4)"}}>{contacts.length}</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff",lineHeight:1}}>{contacts.length}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>Contacts</div>
                 </div>
               </div>
@@ -776,7 +815,6 @@ export default function DeanCRM() {
               <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
               <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} task{upcomingTasks.length!==1?"s":""} · next 7 days</span>
             </div>
-
             {upcomingTasks.length===0?(
               <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"28px 20px",textAlign:"center"}}>
                 <div style={{fontSize:28,marginBottom:8}}>🎉</div>
@@ -785,29 +823,16 @@ export default function DeanCRM() {
             ):(
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingTasks.map(t=>{
-                  const status=taskDueStatus(t.due_date);
-                  const isEditing=editingTaskId===t.id;
+                  const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`,...(isEditing?{border:`1.5px solid ${accentColor}`,boxShadow:`0 0 0 3px ${accentColor}18`}:{})}}>
-                      {isEditing?(<>
-                        <div style={styles.taskEditLabel}>Due date</div>
-                        <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"5px 8px",border:"none",outline:"none",fontSize:12,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
-                        <div style={{display:"flex",gap:5,marginTop:8}}>
-                          <button style={{...styles.taskEditSaveBtn,fontSize:11,padding:"6px"}} onClick={()=>saveTaskEdit(t.id)}>Save</button>
-                          <button style={{...styles.taskEditCancelBtn,fontSize:11,padding:"6px"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
-                        </div>
-                      </>):(<>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4,marginBottom:8}}>
-                          <span style={{...styles.taskDueChip,...chipStyle,fontSize:10}}>{status==="overdue"?`⚠ ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Today":`🗓 ${formatTaskDue(t.due_date)}`}</span>
-                          <button style={{background:"none",border:"none",cursor:"pointer",padding:"1px",display:"flex",alignItems:"center",flexShrink:0}} onClick={()=>startEditTask(t)}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(147,197,253,0.5)" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                          </button>
-                        </div>
-                        <div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
-                        <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>✓ Complete</button>
-                      </>)}
+                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4,marginBottom:8}}>
+                        <span style={{...styles.taskDueChip,...chipStyle,fontSize:10}}>{status==="overdue"?`Overdue ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
+                      </div>
+                      <div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
+                      <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>&#10003; Complete</button>
                     </div>
                   );
                 })}
@@ -821,8 +846,7 @@ export default function DeanCRM() {
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingContacts.map(c=>{
-                  const iso=parseNextTouch(c.next_touch);
-                  const status=nextTouchStatus(c.next_touch);
+                  const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);
                   const origIdx=contacts.findIndex(x=>x.id===c.id);
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
@@ -835,13 +859,12 @@ export default function DeanCRM() {
                           <div style={{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
                         </div>
                       </div>
-                      <span style={{...badgeStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"⚠ Overdue":status==="today"?"📌 Today":`🗓 ${formatTaskDue(iso)}`}</span>
+                      <span style={{...badgeStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"Overdue":status==="today"?"Today":`${formatTaskDue(iso)}`}</span>
                     </div>
                   );
                 })}
               </div>
             </>)}
-
             <div style={{height:32}}/>
           </div>
         </div>
@@ -851,8 +874,8 @@ export default function DeanCRM() {
         <div style={styles.body}>
           <div style={styles.searchWrap}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input style={styles.searchInput} placeholder="Search contacts…" value={search} onChange={e=>setSearch(e.target.value)}/>
-            {search&&<button style={styles.clearSearch} onClick={()=>setSearch("")}>✕</button>}
+            <input style={styles.searchInput} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            {search&&<button style={styles.clearSearch} onClick={()=>setSearch("")}>x</button>}
           </div>
           {loading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
           :contacts.length===0?<div style={styles.empty}><div style={styles.emptyIcon}>📋</div><p style={styles.emptyTitle}>No contacts yet</p><p style={styles.emptySub}>Tap + to add your first contact</p></div>
@@ -885,7 +908,7 @@ export default function DeanCRM() {
         <div style={styles.body}>
           <div style={styles.listScroll}>
             <div style={styles.taskAddPanel}>
-              <div style={styles.taskAddTitle}>➕ New Task</div>
+              <div style={styles.taskAddTitle}>+ New Task</div>
               <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
               <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
@@ -919,8 +942,8 @@ export default function DeanCRM() {
                             </div>
                           </div>
                           <div style={styles.taskCardFooter}>
-                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`⚠ Due ${formatTaskDue(t.due_date)}`:status==="today"?"📌 Due Today":`🗓 Due ${formatTaskDue(t.due_date)}`}</span>:<span style={styles.taskDueNone}>No due date</span>}
-                            <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>✓ Mark Complete</button>
+                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Due Today":`Due ${formatTaskDue(t.due_date)}`}</span>:<span style={styles.taskDueNone}>No due date</span>}
+                            <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>&#10003; Mark Complete</button>
                           </div>
                         </>)}
                       </div>
@@ -928,12 +951,12 @@ export default function DeanCRM() {
                   );
                 })}
                 {done.length>0&&(<>
-                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>✓ Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide ↑":"Show ↓"}</button></div>
+                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>&#10003; Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
                   {showCompleted&&done.map(t=>(
                     <div key={t.id} style={{...styles.taskCard,opacity:0.75,borderColor:"rgba(59,130,246,0.2)"}}>
                       <div style={styles.taskCardBody}>
                         <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"rgba(147,197,253,0.5)"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:700}}>✓ Completed {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>↩ Undo</button></div>
+                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:700}}>Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>Undo</button></div>
                       </div>
                     </div>
                   ))}
@@ -941,6 +964,118 @@ export default function DeanCRM() {
                 <div style={{height:40}}/>
               </>);
             })()}
+          </div>
+        </div>
+      )}
+
+      {view==="list"&&homeTab==="health"&&(
+        <div style={styles.body}>
+          <div style={styles.listScroll}>
+            {/* KPI strip */}
+            <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"16px 16px 18px",borderBottom:"1px solid rgba(16,185,129,0.15)"}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Health Dashboard</div>
+              <div style={{display:"flex",gap:8}}>
+                {[
+                  {label:"Open",val:healthNotes.filter(h=>!h.completed).length,accent:"rgba(16,185,129,0.2)"},
+                  {label:"Overdue",val:healthNotes.filter(h=>!h.completed&&taskDueStatus(h.due_date)==="overdue").length,accent:"rgba(220,38,38,0.2)"},
+                  {label:"Upcoming",val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,accent:"rgba(59,130,246,0.2)"},
+                  {label:"Done",val:healthNotes.filter(h=>h.completed).length,accent:"rgba(139,92,246,0.2)"},
+                ].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:kpi.accent,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                    <div style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:3,fontWeight:500}}>{kpi.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Add new note */}
+            <div style={{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+                {HEALTH_CATEGORIES.map(cat=>(
+                  <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:"rgba(148,163,184,0.6)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                    {cat.emoji} {cat.label}
+                  </button>
+                ))}
+              </div>
+              <div style={{marginBottom:8}}><NextTouchInput value={newHealthDate} onChange={setNewHealthDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
+              <textarea style={{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:4}} placeholder="What do you want to track?" value={newHealthNote} onChange={e=>setNewHealthNote(e.target.value)} rows={2}/>
+              <button style={{display:"block",width:"100%",marginTop:10,padding:"10px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addHealthNote}>Add Note</button>
+            </div>
+
+            {/* Open notes */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"}}>
+              <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNotes.filter(h=>!h.completed).length})</span>
+            </div>
+            {healthLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
+            :healthNotes.filter(h=>!h.completed).length===0?<div style={{padding:"14px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open health notes 🎉</div>
+            :healthNotes.filter(h=>!h.completed).map(h=>{
+              const status=taskDueStatus(h.due_date);const cat=getCat(h.category);const isEditing=editingHealthId===h.id;
+              return(
+                <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:`1px solid ${isEditing?"#10b981":"rgba(255,255,255,0.08)"}`,overflow:"hidden",...(isEditing?{boxShadow:"0 0 0 3px rgba(16,185,129,0.12)"}:{})}}>
+                  <div style={{padding:"14px"}}>
+                    {isEditing?(<>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+                        {HEALTH_CATEGORIES.map(c=>(
+                          <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                            {c.emoji} {c.label}
+                          </button>
+                        ))}
+                      </div>
+                      <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                      <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
+                      <div style={{display:"flex",gap:6,marginTop:9}}>
+                        <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
+                        <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
+                      </div>
+                    </>):(<>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                        <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
+                        <div style={{display:"flex",gap:5,flexShrink:0}}>
+                          <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:3,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
+                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                        </div>
+                      </div>
+                      <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="overdue"?`Due ${formatTaskDue(h.due_date)}`:status==="today"?"Due Today":`Due ${formatTaskDue(h.due_date)}`}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
+                        <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>&#10003; Done</button>
+                      </div>
+                    </>)}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Completed notes */}
+            {healthNotes.filter(h=>h.completed).length>0&&(<>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px 8px"}}>
+                <span style={{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.5)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthNotes.filter(h=>h.completed).length})</span>
+                <button style={{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedHealth(s=>!s)}>{showCompletedHealth?"Hide":"Show"}</button>
+              </div>
+              {showCompletedHealth&&healthNotes.filter(h=>h.completed).map(h=>{
+                const cat=getCat(h.category);
+                return(
+                  <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",overflow:"hidden",opacity:0.7}}>
+                    <div style={{padding:"12px 14px"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
+                          <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through",lineHeight:1.4}}>{h.note}</div>
+                          <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
+                        </div>
+                        <div style={{display:"flex",gap:5,flexShrink:0}}>
+                          <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
+                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </>)}
+            <div style={{height:40}}/>
           </div>
         </div>
       )}
@@ -970,9 +1105,7 @@ export default function DeanCRM() {
                   <div style={styles.fieldBody}>
                     <div style={styles.fieldLabel}>{f.label}</div>
                     {f.href ? (
-                      <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>
-                        {f.val}
-                      </a>
+                      <a href={f.href} target={f.target || "_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>
                     ) : (
                       <div style={styles.fieldValue}>{f.val}</div>
                     )}
@@ -1032,7 +1165,7 @@ export default function DeanCRM() {
               </div>
             ))}
             <div style={styles.formGroup}><label style={styles.formLabel}>Next Touch Date</label><NextTouchInput value={editEntry.next_touch||""} onChange={v=>setEditEntry({...editEntry,next_touch:v})}/></div>
-            <div style={styles.formGroup}><label style={styles.formLabel}>Notes</label><textarea style={styles.formTextarea} placeholder="General notes about this contact…" value={editEntry.notes||""} onChange={e=>setEditEntry({...editEntry,notes:e.target.value})} rows={4}/></div>
+            <div style={styles.formGroup}><label style={styles.formLabel}>Notes</label><textarea style={styles.formTextarea} placeholder="General notes about this contact..." value={editEntry.notes||""} onChange={e=>setEditEntry({...editEntry,notes:e.target.value})} rows={4}/></div>
             <button style={styles.btnPrimary} onClick={saveEntry}>{view==="add"?"Add Contact":"Save Changes"}</button>
             <button style={styles.btnSecondaryFull} onClick={()=>setView(view==="add"?"list":"profile")}>Cancel</button>
             <div style={{height:40}}/>
@@ -1056,29 +1189,13 @@ const styles = {
   exportMenuIcon:{fontSize:20,flexShrink:0},
   exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
   exportMenuSub:{fontSize:11,color:"#64748b",marginTop:1},
-  exportMenuDivider:{height:1,background:"rgba(255,255,255,0.06)",margin:"0"},
+  exportMenuDivider:{height:1,background:"rgba(255,255,255,0.06)"},
   tabBar:{display:"flex",background:"rgba(10,22,40,0.9)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(59,130,246,0.15)",flexShrink:0},
-  tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:11,fontWeight:600,letterSpacing:"0.05em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
+  tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:10,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
   tabActive:{color:"#93c5fd",borderBottom:"2px solid #3b82f6"},
   tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-  homeGreeting:{background:"transparent",padding:"20px 20px 22px"},
-  homeGreetingTitle:{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4},
-  homeGreetingDate:{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
-  homeSectionHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 10px"},
-  homeSectionTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.9)",textTransform:"uppercase",letterSpacing:"0.08em"},
-  homeSectionCount:{fontSize:11,color:"rgba(148,163,184,0.6)",fontWeight:500},
-  homeDayGroup:{margin:"0 16px 6px"},
-  homeDayLabel:{fontSize:10,fontWeight:700,color:"rgba(148,163,184,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",padding:"8px 0 6px",display:"flex",alignItems:"center",gap:8},
-  homeDayLine:{flex:1,height:1,background:"rgba(255,255,255,0.07)"},
-  homeTaskCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",marginBottom:8,padding:"14px 16px"},
-  homeTaskTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
-  homeTaskText:{fontSize:13,color:"#e2e8f0",lineHeight:1.5,flex:1,fontWeight:500},
-  homeTaskCompleteBtn:{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,border:"1px solid rgba(59,130,246,0.3)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit"},
-  homeTouchCard:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",margin:"0 16px 8px",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"},
-  homeEmpty:{padding:"32px 20px",textAlign:"center",fontSize:13,color:"rgba(148,163,184,0.7)",lineHeight:1.7},
-  homeEmptyIcon:{fontSize:32,marginBottom:8},
   searchWrap:{margin:"14px 16px 8px",background:"rgba(255,255,255,0.05)",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8,border:"1px solid rgba(255,255,255,0.1)"},
   searchIcon:{flexShrink:0,color:"rgba(148,163,184,0.6)"},
   searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#e2e8f0"},
@@ -1209,5 +1326,4 @@ body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button:hover { opacity: 0.88; }
-.export-menu-item:hover { background: rgba(59,130,246,0.08); }
 `;
