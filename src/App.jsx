@@ -298,7 +298,7 @@ export default function DeanCRM() {
   const addTask = async () => {
     if (!newTaskNote.trim()) return showToast("Task note is required");
     const isoDate = newTaskDate.trim() ? parseNextTouch(newTaskDate.trim()) || null : null;
-    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, user_id: FIXED_USER_ID };
+    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null };
     try {
       const res = await api("tasks", { method:"POST", body: JSON.stringify(payload) });
       if (res.ok) {
@@ -344,7 +344,7 @@ export default function DeanCRM() {
   const addHealthNote = async () => {
     if (!newHealthNote.trim()) return showToast("Note is required");
     const isoDate = newHealthDate.trim() ? parseNextTouch(newHealthDate.trim()) || null : null;
-    const payload = { note: newHealthNote.trim(), category: newHealthCategory, due_date: isoDate, completed: false, completed_at: null, user_id: FIXED_USER_ID };
+    const payload = { note: newHealthNote.trim(), category: newHealthCategory, due_date: isoDate, completed: false, completed_at: null };
     try {
       const res = await api("health_notes", { method:"POST", body: JSON.stringify(payload) });
       if (res.ok) {
@@ -391,7 +391,7 @@ export default function DeanCRM() {
     if (!editEntry.name.trim()) return showToast("Name is required");
     const isNew = editEntry._isNew;
     const { _isNew, id, touch_log, ...fields } = editEntry;
-    const payload = { ...fields, touch_log: touch_log || [], user_id: FIXED_USER_ID };
+    const payload = { ...fields, touch_log: touch_log || [] };
     try {
       if (isNew) {
         const res = await api("contacts", { method:"POST", body: JSON.stringify(payload) });
@@ -524,7 +524,7 @@ export default function DeanCRM() {
       if (!row.name.trim()) { skipped++; continue; }
       if (existingNames.has(row.name.toLowerCase().trim())) { skipped++; continue; }
       try {
-        const payload = { ...row, user_id: FIXED_USER_ID };
+        const payload = { ...row };
         const res = await api("contacts", { method:"POST", body: JSON.stringify(payload) });
         if (res.ok) { const created = await res.json(); const nc = Array.isArray(created)?created[0]:created; existingNames.add(nc.name.toLowerCase().trim()); added++; } else skipped++;
       } catch { skipped++; }
