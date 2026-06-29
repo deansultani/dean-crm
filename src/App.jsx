@@ -18,12 +18,23 @@ const api = async (path, opts = {}) => {
   });
 };
 
-const authFetch = (path, body) =>
-  fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
-    method: "POST",
-    headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  }).then((r) => r.json());
+const authFetch = async (path, body) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    return res.json();
+  } catch (err) {
+    clearTimeout(timer);
+    return { error: { message: err.name === "AbortError" ? "Request timed out — check your connection" : `Network error: ${err.message}` } };
+  }
+};
 
 const getUser = async (access_token) => {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -443,9 +454,9 @@ export default function DeanCRM() {
   const sendOTP = async () => {
     if (!email.trim()) return setAuthError("Please enter your email");
     setAuthLoading(true); setAuthError("");
-    const res = await authFetch("otp", { email: email.trim(), create_user: true, email_redirect_to: null, go_true_enabled: false });
+    const res = await authFetch("otp", { email: email.trim() });
     setAuthLoading(false);
-    if (res.error) return setAuthError(res.error.message || "Something went wrong");
+    if (res.error) return setAuthError(res.error.message || res.error.msg || JSON.stringify(res.error));
     setAuthStep("code"); setCode(["","","","","",""]); setResendCountdown(30);
   };
 
