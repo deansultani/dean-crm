@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 
-const SUPABASE_URL = "https://ecjinukgzizwysiezoyz.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjamludWtneml6d3lzaWV6b3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTU0NTksImV4cCI6MjA5NTEzMTQ1OX0._T6LNKlodbxYhb5IaIubn9oac3ToQgCjp3UQcmA1-8U";
+const SUPABASE_URL = "https://httokflilaixlvsbptsp.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dG9rZmxpbGFpeGx2c2JwdHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NDYxNDksImV4cCI6MjA5NTMyMjE0OX0.V5dRc75rMuD9kkzyl4XYWeoxbiop1cmDuRz_gRr7Axk";
 
 const api = async (path, opts = {}) => {
   const token = opts.token || SUPABASE_ANON;
