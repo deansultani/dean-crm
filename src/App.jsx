@@ -849,10 +849,16 @@ export default function DeanCRM() {
                 {done.length>0&&(<>
                   <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:"rgba(148,163,184,0.5)"}}>Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
                   {showCompleted&&done.map(t=>(
-                    <div key={t.id} style={{...styles.taskCard,opacity:0.7}}>
+                    <div key={t.id} style={{...styles.taskCard,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderLeft:"3px solid rgba(59,130,246,0.3)"}}>
                       <div style={styles.taskCardBody}>
-                        <div style={styles.taskCardTop}><div style={{...styles.taskCardText,textDecoration:"line-through",color:"rgba(147,197,253,0.5)"}}>{t.note}</div><button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                        <div style={styles.taskCardFooter}><span style={{fontSize:11,color:"#60a5fa",fontWeight:600}}>Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span><button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>Undo</button></div>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:7}}>
+                          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)"}}>✓ Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span>
+                          <div style={{display:"flex",gap:5,flexShrink:0}}>
+                            <button style={styles.taskUndoBtn} onClick={()=>completeTask(t.id,true)}>Undo</button>
+                            <button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                          </div>
+                        </div>
+                        <div style={{fontSize:13,color:"rgba(226,232,240,0.45)",fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{t.note}</div>
                       </div>
                     </div>
                   ))}
