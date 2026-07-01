@@ -244,6 +244,8 @@ export default function DeanCRM() {
   const [healthDraftCategory, setHealthDraftCategory] = useState("general");
   // ── NEW: category filter for Health tab ──
   const [healthFilter, setHealthFilter] = useState("all");
+  // ── Dark/Light mode ──
+  const [dark, setDark] = useState(true);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -563,6 +565,93 @@ export default function DeanCRM() {
   const healthNonOverdue = healthOpen.filter(h => taskDueStatus(h.due_date) !== "overdue");
   const healthDone       = applyHealthFilter(healthNotes.filter(h => h.completed));
 
+  // ── Theme palette ──
+  const T = dark ? {
+    shell:       "linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%)",
+    shellColor:  "#e2e8f0",
+    heroBg:      "linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",
+    headerBg:    "rgba(10,22,40,0.85)",
+    headerBorder:"rgba(59,130,246,0.2)",
+    tabBg:       "rgba(10,22,40,0.9)",
+    tabBorder:   "rgba(59,130,246,0.15)",
+    tabColor:    "rgba(255,255,255,0.35)",
+    tabActive:   "#93c5fd",
+    sectionBg:   "rgba(10,22,40,0.6)",
+    sectionColor:"rgba(59,130,246,0.8)",
+    rowBg:       "rgba(255,255,255,0.02)",
+    rowBorder:   "rgba(255,255,255,0.05)",
+    cardBg:      "rgba(255,255,255,0.04)",
+    cardBorder:  "rgba(255,255,255,0.08)",
+    inputBg:     "rgba(255,255,255,0.05)",
+    inputBorder: "rgba(255,255,255,0.1)",
+    inputColor:  "#e2e8f0",
+    text:        "#e2e8f0",
+    textSub:     "rgba(148,163,184,0.7)",
+    textMuted:   "rgba(148,163,184,0.5)",
+    btnSecBorder:"rgba(255,255,255,0.12)",
+    btnSecColor: "rgba(226,232,240,0.7)",
+    iconBtnBg:   "rgba(255,255,255,0.06)",
+    iconBtnBorder:"rgba(255,255,255,0.1)",
+    iconBtnColor:"rgba(255,255,255,0.8)",
+    overlayBg:   "rgba(5,12,25,0.7)",
+    modalBg:     "rgba(13,28,57,0.98)",
+    toastBg:     "rgba(13,28,57,0.95)",
+    toastColor:  "#93c5fd",
+    exportBg:    "rgba(13,28,57,0.98)",
+    kpiBg:       "rgba(59,130,246,0.08)",
+    kpiBorder:   "rgba(59,130,246,0.2)",
+    kpiColor:    "#fff",
+    kpiLabel:    "rgba(255,255,255,0.45)",
+    fieldLabel:  "rgba(148,163,184,0.7)",
+    touchColor:  "#60a5fa",
+    touchText:   "rgba(226,232,240,0.85)",
+    splashBg:    "linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",
+    completedNote:"rgba(226,232,240,0.45)",
+    deleteIcon:  "rgba(255,255,255,0.2)",
+  } : {
+    shell:       "linear-gradient(160deg,#f0f4ff 0%,#e8eeff 50%,#f0f4ff 100%)",
+    shellColor:  "#1e293b",
+    heroBg:      "linear-gradient(160deg,#dbeafe 0%,#eff6ff 60%,#f0f9ff 100%)",
+    headerBg:    "rgba(255,255,255,0.92)",
+    headerBorder:"rgba(59,130,246,0.15)",
+    tabBg:       "rgba(255,255,255,0.95)",
+    tabBorder:   "rgba(59,130,246,0.1)",
+    tabColor:    "rgba(30,41,59,0.4)",
+    tabActive:   "#2563eb",
+    sectionBg:   "rgba(240,244,255,0.9)",
+    sectionColor:"#2563eb",
+    rowBg:       "rgba(255,255,255,0.7)",
+    rowBorder:   "rgba(59,130,246,0.08)",
+    cardBg:      "rgba(255,255,255,0.8)",
+    cardBorder:  "rgba(59,130,246,0.12)",
+    inputBg:     "rgba(255,255,255,0.9)",
+    inputBorder: "rgba(59,130,246,0.2)",
+    inputColor:  "#1e293b",
+    text:        "#1e293b",
+    textSub:     "#64748b",
+    textMuted:   "#94a3b8",
+    btnSecBorder:"rgba(59,130,246,0.2)",
+    btnSecColor: "#475569",
+    iconBtnBg:   "rgba(59,130,246,0.07)",
+    iconBtnBorder:"rgba(59,130,246,0.15)",
+    iconBtnColor:"#475569",
+    overlayBg:   "rgba(30,41,59,0.5)",
+    modalBg:     "rgba(255,255,255,0.98)",
+    toastBg:     "rgba(255,255,255,0.97)",
+    toastColor:  "#2563eb",
+    exportBg:    "rgba(255,255,255,0.98)",
+    kpiBg:       "rgba(59,130,246,0.06)",
+    kpiBorder:   "rgba(59,130,246,0.15)",
+    kpiColor:    "#1e293b",
+    kpiLabel:    "#64748b",
+    fieldLabel:  "#64748b",
+    touchColor:  "#2563eb",
+    touchText:   "#334155",
+    splashBg:    "linear-gradient(160deg,#dbeafe 0%,#eff6ff 60%,#f0f9ff 100%)",
+    completedNote:"#94a3b8",
+    deleteIcon:  "#cbd5e1",
+  };
+
   if (loading) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -575,12 +664,12 @@ export default function DeanCRM() {
   );
 
   return (
-    <div style={styles.shell}>
-      <style>{css}</style>
-      {toast&&<div style={styles.toast}>{toast}</div>}
+    <div style={{...styles.shell, background:T.shell, color:T.text}}>
+      <style>{getCss(dark)}</style>
+      {toast&&<div style={{...styles.toast,background:T.toastBg,color:T.toastColor}}>{toast}</div>}
 
       {exportMenuOpen&&(
-        <div style={{position:"fixed",top:60,right:16,background:"rgba(13,28,57,0.98)",backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(59,130,246,0.2)",zIndex:9999,minWidth:230,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:"fixed",top:60,right:16,background:T.exportBg,backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.3)",border:`1px solid ${T.cardBorder}`,zIndex:9999,minWidth:230,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
           <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
           <div style={styles.exportMenuDivider}/>
           <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
@@ -596,7 +685,7 @@ export default function DeanCRM() {
       {importDone&&(<div style={{position:"absolute",bottom:"calc(94px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"#0f1f3d",color:"#f0f4f8",padding:"10px 20px",borderRadius:30,fontSize:13,fontWeight:600,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>Imported {importDone.added} contact{importDone.added!==1?"s":""}{importDone.skipped>0?` \u00b7 ${importDone.skipped} skipped`:""}</div>)}
 
       {importModal&&importPreview?.allRows&&(
-        <div style={styles.overlay}>
+        <div style={{...styles.overlay,background:T.overlayBg}}>
           <div style={{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"22px 20px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto",border:"1px solid rgba(59,130,246,0.2)",boxShadow:"0 24px 64px rgba(0,0,0,0.5)"}}>
             <p style={{fontSize:17,fontWeight:700,color:"#e2e8f0",margin:"0 0 4px"}}>Import Contacts</p>
             <p style={{fontSize:13,color:"rgba(148,163,184,0.7)",margin:"0 0 14px"}}>{importPreview.total} contact{importPreview.total!==1?"s":""} found. Preview (first 5):</p>
@@ -617,12 +706,12 @@ export default function DeanCRM() {
         </div>
       )}
 
-      {confirmDelete&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Contact?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteContact(confirmDelete)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDelete(null)}>Cancel</button></div></div></div>)}
-      {confirmDeleteTouch&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
-      {confirmDeleteTask&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Task?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
-      {confirmDeleteHealth&&(<div style={styles.overlay}><div style={styles.modal}><p style={styles.modalTitle}>Delete Health Note?</p><p style={styles.modalSub}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={styles.btnSecondary} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
+      {confirmDelete&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Contact?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteContact(confirmDelete)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDelete(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteTouch&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteTask&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Task?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteHealth&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Health Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
 
-      <div style={styles.header}>
+      <div style={{...styles.header, background:T.headerBg, borderBottom:`1px solid ${T.headerBorder}`}}>
         {view!=="list"?(
           <button style={styles.backBtn} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
@@ -633,6 +722,7 @@ export default function DeanCRM() {
         <span style={styles.headerTitle}>
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
+        <button style={{background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor,cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"}} onClick={()=>setDark(d=>!d)} title={dark?"Switch to Light Mode":"Switch to Dark Mode"}>{dark?(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>):(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>)}</button>
         {view==="list"&&homeTab!=="contacts"&&<div style={{width:36}}/>}
         {view==="list"&&homeTab==="contacts"&&(
           <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
@@ -644,29 +734,28 @@ export default function DeanCRM() {
       </div>
 
       {view==="list"&&(
-        <div style={styles.tabBar}>
-          <button style={{...styles.tab,...(homeTab==="home"?styles.tabActive:{})}} onClick={()=>setHomeTab("home")}>🏠 Home</button>
-          <button style={{...styles.tab,...(homeTab==="contacts"?styles.tabActive:{})}} onClick={()=>setHomeTab("contacts")}>Contacts</button>
-          <button style={{...styles.tab,...(homeTab==="tasks"?styles.tabActive:{})}} onClick={()=>setHomeTab("tasks")}>
-            Tasks{tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
-          </button>
-          <button style={{...styles.tab,...(homeTab==="health"?styles.tabActive:{})}} onClick={()=>setHomeTab("health")}>
-            Health{healthOverdueCount>0&&<span style={{...styles.tabBadge,background:"#dc2626"}}>{healthOverdueCount}</span>}
-          </button>
+        <div style={{...styles.tabBar, background:T.tabBg, borderBottom:`1px solid ${T.tabBorder}`}}>
+          {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
+            <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:"2px solid #3b82f6"}:{})}} onClick={()=>setHomeTab(id)}>
+              {label}
+              {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
+              {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:"#dc2626"}}>{healthOverdueCount}</span>}
+            </button>
+          ))}
         </div>
       )}
 
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"22px 20px 24px",borderBottom:"1px solid rgba(59,130,246,0.15)"}}>
-              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
-              <div style={{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+            <div style={{background:T.heroBg,padding:"22px 20px 24px",borderBottom:`1px solid ${T.kpiBorder}`}}>
+              <div style={{fontSize:11,fontWeight:600,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
+              <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
                 {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length},{label:"Follow-ups",val:upcomingContacts.length},{label:"Contacts",val:contacts.length}].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 10px",border:"1px solid rgba(59,130,246,0.2)"}}>
-                    <div style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:4,fontWeight:500}}>{kpi.label}</div>
+                  <div key={kpi.label} style={{flex:1,background:T.kpiBg,backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 10px",border:`1px solid ${T.kpiBorder}`}}>
+                    <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:10,color:T.kpiLabel,marginTop:4,fontWeight:500}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
@@ -771,22 +860,22 @@ export default function DeanCRM() {
 
       {view==="list"&&homeTab==="contacts"&&(
         <div style={styles.body}>
-          <div style={styles.searchWrap}>
+          <div style={{...styles.searchWrap,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input style={styles.searchInput} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            <input style={{...styles.searchInput,color:T.text}} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
             {search&&<button style={styles.clearSearch} onClick={()=>setSearch("")}>x</button>}
           </div>
           {contacts.length===0?<div style={styles.empty}><div style={styles.emptyIcon}>📋</div><p style={styles.emptyTitle}>No contacts yet</p><p style={styles.emptySub}>Tap + to add your first contact</p></div>
-          :filtered.length===0?<div style={styles.empty}><p style={styles.emptyTitle}>No results for "{search}"</p></div>
+          :filtered.length===0?<div style={styles.empty}><p style={{...styles.emptyTitle,color:T.text}}>No results for "{search}"</p></div>
           :(
             <div style={styles.listScroll}>
               {Object.keys(grouped).sort().map(letter=>(
                 <div key={letter}>
-                  <div style={styles.sectionHeader}>{letter}</div>
+                  <div style={{...styles.sectionHeader,background:T.sectionBg,color:T.sectionColor}}>{letter}</div>
                   {grouped[letter].map(c=>(
-                    <div key={c.id} style={styles.contactRow} className="contact-row" onClick={()=>{setSelected(c._origIdx);setView("profile");}}>
+                    <div key={c.id} style={{...styles.contactRow,background:T.rowBg,borderBottom:`1px solid ${T.rowBorder}`}} className="contact-row" onClick={()=>{setSelected(c._origIdx);setView("profile");}}>
                       <div style={{...styles.avatar,background:avatarColor(c.name)}}>{initials(c.name)}</div>
-                      <div style={styles.rowInfo}><div style={styles.rowName}>{c.name}</div><div style={styles.rowSub}>{c.company||c.email||c.phone||"—"}</div><NextTouchChip val={c.next_touch}/></div>
+                      <div style={styles.rowInfo}><div style={{...styles.rowName,color:T.text}}>{c.name}</div><div style={{...styles.rowSub,color:T.textSub}}>{c.company||c.email||c.phone||"—"}</div><NextTouchChip val={c.next_touch}/></div>
                       {(c.touch_log||[]).length>0&&<span style={styles.touchBadge}>{c.touch_log.length}</span>}
                       <svg style={styles.chevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
                     </div>
@@ -805,10 +894,10 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="tasks"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={styles.taskAddPanel}>
+            <div style={{...styles.taskAddPanel,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
               <div style={styles.taskAddTitle}>+ New Task</div>
               <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
-              <textarea style={styles.taskAddTextarea} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
+              <textarea style={{...styles.taskAddTextarea,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
             {(() => {
@@ -820,7 +909,7 @@ export default function DeanCRM() {
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
-                    <div key={t.id} style={{...styles.taskCard,...(isEditing?{border:"1.5px solid #2563eb"}:{})}}>
+                    <div key={t.id} style={{...styles.taskCard,background:T.cardBg,border:isEditing?"1.5px solid #2563eb":`1px solid ${T.cardBorder}`}}>
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
                           <textarea style={styles.taskEditTextarea} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
@@ -831,7 +920,7 @@ export default function DeanCRM() {
                           </div>
                         </>):(<>
                           <div style={styles.taskCardTop}>
-                            <div style={styles.taskCardText}>{t.note}</div>
+                            <div style={{...styles.taskCardText,color:T.text}}>{t.note}</div>
                             <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
                               <button style={styles.taskEditBtn} onClick={()=>startEditTask(t)}>Edit</button>
                               <button style={styles.taskDeleteBtn} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
@@ -874,7 +963,7 @@ export default function DeanCRM() {
         <div style={styles.body}>
           <div style={styles.listScroll}>
 
-            <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"16px 16px 18px",borderBottom:"1px solid rgba(16,185,129,0.15)"}}>
+            <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:"1px solid rgba(16,185,129,0.15)"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Health Dashboard</div>
               <div style={{display:"flex",gap:8}}>
                 {[
@@ -1038,12 +1127,12 @@ export default function DeanCRM() {
       {view==="profile"&&contact&&(
         <div style={styles.body}>
           <div style={styles.profileScroll}>
-            <div style={styles.profileHero}>
+            <div style={{...styles.profileHero,background:T.heroBg}}>
               <div style={{...styles.avatarLg,background:avatarColor(contact.name)}}>{initials(contact.name)}</div>
-              <h2 style={styles.profileName}>{contact.name}</h2>
+              <h2 style={{...styles.profileName,color:T.text}}>{contact.name}</h2>
               {contact.company&&<p style={styles.profileCompany}>{contact.company}</p>}
             </div>
-            <div style={styles.card}>
+            <div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
               {(() => {
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 const emailHref = isMobile ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}` : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
@@ -1056,13 +1145,13 @@ export default function DeanCRM() {
                 <div key={f.label} style={styles.fieldRow}>
                   <span style={styles.fieldIcon}>{f.icon}</span>
                   <div style={styles.fieldBody}>
-                    <div style={styles.fieldLabel}>{f.label}</div>
-                    {f.href?<a href={f.href} target={f.target||"_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>:<div style={styles.fieldValue}>{f.val}</div>}
+                    <div style={{...styles.fieldLabel,color:T.fieldLabel}}>{f.label}</div>
+                    {f.href?<a href={f.href} target={f.target||"_self"} rel="noopener noreferrer" style={{...styles.fieldValue,color:"#60a5fa"}}>{f.val}</a>:<div style={{...styles.fieldValue,color:T.text}}>{f.val}</div>}
                   </div>
                 </div>
               ))}
               <div style={styles.fieldRow}><span style={styles.fieldIcon}>🗓</span><div style={styles.fieldBody}>
-                <div style={styles.fieldLabel}>Next Touch</div>
+                <div style={{...styles.fieldLabel,color:T.fieldLabel}}>Next Touch</div>
                 {editingNextTouch?(
                   <div style={{marginTop:2}}>
                     <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1px solid rgba(59,130,246,0.4)",borderRadius:8,padding:"5px 9px",fontSize:14,background:"rgba(255,255,255,0.05)",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%",color:"#e2e8f0"}}/>
@@ -1076,8 +1165,8 @@ export default function DeanCRM() {
                 )}
               </div></div>
             </div>
-            {contact.notes&&<div style={styles.card}><div style={styles.notesLabel}>📝 Notes</div><div style={styles.notesText}>{contact.notes}</div></div>}
-            <div style={styles.touchSection}>
+            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}><div style={styles.notesLabel}>📝 Notes</div><div style={styles.notesText}>{contact.notes}</div></div>}
+            <div style={{...styles.touchSection,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
               <div style={styles.touchHeader}><span style={styles.touchHeaderTitle}>🤝 Touch Log</span><button style={styles.addNoteBtn} onClick={()=>{setAddingNote(true);setNewNote("");setInlineNextTouch(contact.next_touch||"");}}>+ Add Note</button></div>
               {addingNote&&(
                 <div style={styles.addNotePanel}>
@@ -1091,8 +1180,8 @@ export default function DeanCRM() {
               {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet.</div>
               :(contact.touch_log||[]).map((touch,i)=>(
                 <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid rgba(255,255,255,0.05)"}}>
-                  <div style={styles.touchEntryHeader}><span style={styles.touchEntryDate}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                  <div style={styles.touchEntryText}>{touch.text}</div>
+                  <div style={styles.touchEntryHeader}><span style={{...styles.touchEntryDate,color:T.touchColor}}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
+                  <div style={{...styles.touchEntryText,color:T.touchText}}>{touch.text}</div>
                 </div>
               ))}
             </div>
@@ -1107,14 +1196,14 @@ export default function DeanCRM() {
           <div style={styles.formScroll}>
             {[{key:"name",label:"Full Name",placeholder:"Jane Smith",type:"text",required:true},{key:"company",label:"Company",placeholder:"Acme Corp",type:"text"},{key:"phone",label:"Phone",placeholder:"916-213-4051",type:"tel"},{key:"email",label:"Email",placeholder:"jane@acme.com",type:"email"},{key:"date",label:"Date Added",placeholder:"",type:"date"}].map(f=>(
               <div key={f.key} style={styles.formGroup}>
-                <label style={styles.formLabel}>{f.label}{f.required&&<span style={styles.required}> *</span>}</label>
-                <input style={styles.formInput} type={f.type} placeholder={f.placeholder} value={editEntry[f.key]||""} maxLength={f.key==="phone"?12:undefined} inputMode={f.key==="phone"?"numeric":undefined}
+                <label style={{...styles.formLabel,color:T.fieldLabel}}>{f.label}{f.required&&<span style={styles.required}> *</span>}</label>
+                <input style={{...styles.formInput,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} type={f.type} placeholder={f.placeholder} value={editEntry[f.key]||""} maxLength={f.key==="phone"?12:undefined} inputMode={f.key==="phone"?"numeric":undefined}
                   onChange={e=>{if(f.key==="phone"){const d=e.target.value.replace(/\D/g,"").slice(0,10);let fmt=d;if(d.length>6)fmt=d.slice(0,3)+"-"+d.slice(3,6)+"-"+d.slice(6);else if(d.length>3)fmt=d.slice(0,3)+"-"+d.slice(3);setEditEntry({...editEntry,phone:fmt});}else setEditEntry({...editEntry,[f.key]:e.target.value});}}/>
                 {f.key==="phone"&&<div style={styles.phoneHint}>{(editEntry.phone||"").replace(/\D/g,"").length}/10 digits</div>}
               </div>
             ))}
-            <div style={styles.formGroup}><label style={styles.formLabel}>Next Touch Date</label><NextTouchInput value={editEntry.next_touch||""} onChange={v=>setEditEntry({...editEntry,next_touch:v})}/></div>
-            <div style={styles.formGroup}><label style={styles.formLabel}>Notes</label><textarea style={styles.formTextarea} placeholder="General notes about this contact..." value={editEntry.notes||""} onChange={e=>setEditEntry({...editEntry,notes:e.target.value})} rows={4}/></div>
+            <div style={styles.formGroup}><label style={{...styles.formLabel,color:T.fieldLabel}}>Next Touch Date</label><NextTouchInput value={editEntry.next_touch||""} onChange={v=>setEditEntry({...editEntry,next_touch:v})}/></div>
+            <div style={styles.formGroup}><label style={{...styles.formLabel,color:T.fieldLabel}}>Notes</label><textarea style={{...styles.formTextarea,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="General notes about this contact..." value={editEntry.notes||""} onChange={e=>setEditEntry({...editEntry,notes:e.target.value})} rows={4}/></div>
             <button style={styles.btnPrimary} onClick={saveEntry}>{view==="add"?"Add Contact":"Save Changes"}</button>
             <button style={styles.btnSecondaryFull} onClick={()=>setView(view==="add"?"list":"profile")}>Cancel</button>
             <div style={{height:40}}/>
@@ -1126,54 +1215,54 @@ export default function DeanCRM() {
 }
 
 const styles = {
-  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%)",color:"#e2e8f0",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
-  header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#fff",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
+  shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"var(--shell-bg, linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%))",color:"#e2e8f0",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
+  header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#e2e8f0",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
   headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},
   backBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   exportBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
-  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#e2e8f0"},
+  exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"inherit"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
-  exportMenuLabel:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
+  exportMenuLabel:{fontSize:13,fontWeight:600,color:"inherit"},
   exportMenuSub:{fontSize:11,color:"#64748b",marginTop:1},
   exportMenuDivider:{height:1,background:"rgba(255,255,255,0.06)"},
   tabBar:{display:"flex",background:"rgba(10,22,40,0.9)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(59,130,246,0.15)",flexShrink:0},
-  tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:10,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
+  tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:10,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",color:"inherit",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
   tabActive:{color:"#93c5fd",borderBottom:"2px solid #3b82f6"},
   tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-  searchWrap:{margin:"14px 16px 8px",background:"rgba(255,255,255,0.05)",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8,border:"1px solid rgba(255,255,255,0.1)"},
+  searchWrap:{margin:"14px 16px 8px",background:"rgba(255,255,255,0.05)",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8,border:"1px solid rgba(255,255,255,0.1)"},/* searchWrap */
   searchIcon:{flexShrink:0,color:"rgba(148,163,184,0.6)"},
-  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"#e2e8f0"},
+  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit",color:"inherit"},
   clearSearch:{background:"none",border:"none",cursor:"pointer",color:"rgba(148,163,184,0.6)",fontSize:14,padding:2},
-  sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,color:"rgba(59,130,246,0.8)",letterSpacing:"0.14em",textTransform:"uppercase",background:"rgba(10,22,40,0.6)"},
-  contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)",transition:"background 0.15s"},
+  sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,color:"rgba(59,130,246,0.8)",letterSpacing:"0.14em",textTransform:"uppercase",background:"rgba(10,22,40,0.6)"},/* sectionHeader */
+  contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",borderBottom:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)",transition:"background 0.15s"},/* contactRow */
   avatar:{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#fff",flexShrink:0},
   rowInfo:{flex:1,minWidth:0},
-  rowName:{fontSize:14,fontWeight:600,color:"#e2e8f0",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  rowSub:{fontSize:12,color:"rgba(148,163,184,0.7)",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  rowName:{fontSize:14,fontWeight:600,color:"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  rowSub:{fontSize:12,color:"inherit",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   touchBadge:{background:"rgba(59,130,246,0.15)",color:"#93c5fd",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid rgba(59,130,246,0.25)"},
   chevron:{color:"rgba(255,255,255,0.2)",flexShrink:0},
   fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.5)",transition:"transform 0.15s",zIndex:10},
   empty:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,textAlign:"center"},
   emptyIcon:{fontSize:48,marginBottom:14},
-  emptyTitle:{fontSize:17,fontWeight:600,color:"rgba(226,232,240,0.8)",marginBottom:6},
-  emptySub:{fontSize:13,color:"rgba(148,163,184,0.6)"},
+  emptyTitle:{fontSize:17,fontWeight:600,color:"inherit",marginBottom:6},
+  emptySub:{fontSize:13,color:"inherit"},
   profileScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 0 20px"},
-  profileHero:{background:"linear-gradient(160deg,#0a1628 0%,#0f2347 100%)",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,borderBottom:"1px solid rgba(59,130,246,0.15)"},
+  profileHero:{background:"linear-gradient(160deg,#0a1628 0%,#0f2347 100%)",padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,borderBottom:"1px solid rgba(59,130,246,0.15)"},/* profileHero */
   avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff",boxShadow:"0 0 0 3px rgba(59,130,246,0.3),0 8px 24px rgba(0,0,0,0.3)"},
-  profileName:{fontSize:20,fontWeight:700,color:"#fff",margin:0,textAlign:"center"},
+  profileName:{fontSize:20,fontWeight:700,color:"inherit",margin:0,textAlign:"center"},
   profileCompany:{fontSize:13,color:"rgba(147,197,253,0.7)",margin:0,textAlign:"center"},
-  card:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
+  card:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},/* card */
   fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14,borderBottom:"1px solid rgba(255,255,255,0.05)"},
   fieldIcon:{fontSize:16,flexShrink:0,marginTop:1},
   fieldBody:{flex:1,minWidth:0},
-  fieldLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},
-  fieldValue:{fontSize:14,color:"#e2e8f0",textDecoration:"none",wordBreak:"break-all"},
+  fieldLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},/* fieldLabel */
+  fieldValue:{fontSize:14,color:"inherit",textDecoration:"none",wordBreak:"break-all"},
   notesLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
   notesText:{fontSize:13,color:"rgba(226,232,240,0.8)",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
-  touchSection:{margin:"14px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
+  touchSection:{margin:"14px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},/* touchSection */
   touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)"},
   touchHeaderTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",letterSpacing:"0.08em",textTransform:"uppercase"},
   addNoteBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
@@ -1186,23 +1275,23 @@ const styles = {
   touchEmpty:{padding:"20px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center",lineHeight:1.6},
   touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
-  touchEntryDate:{fontSize:11,color:"#60a5fa",fontWeight:600},
+  touchEntryDate:{fontSize:11,color:"#60a5fa",fontWeight:600},/* touchEntryDate */
   touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
-  touchEntryText:{fontSize:13,color:"rgba(226,232,240,0.85)",lineHeight:1.65,whiteSpace:"pre-wrap"},
+  touchEntryText:{fontSize:13,color:"inherit",lineHeight:1.65,whiteSpace:"pre-wrap"},
   ntEditBtn:{background:"rgba(59,130,246,0.12)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntSaveBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntCancelBtn:{background:"none",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-  taskAddPanel:{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"16px"},
+  taskAddPanel:{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"16px"},/* taskAddPanel */
   taskAddTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
-  taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:8},
+  taskAddTextarea:{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"inherit",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:8},
   taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"},
   taskListTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",textTransform:"uppercase",letterSpacing:"0.08em"},
   taskFilterBtn:{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
-  taskCard:{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},
+  taskCard:{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},/* taskCard */
   taskCardBody:{padding:"14px"},
   taskCardTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
-  taskCardText:{fontSize:13,color:"#e2e8f0",lineHeight:1.5,flex:1,fontWeight:500},
+  taskCardText:{fontSize:13,color:"inherit",lineHeight:1.5,flex:1,fontWeight:500},
   taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
   taskCardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10},
   taskDueChip:{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px"},
@@ -1220,38 +1309,38 @@ const styles = {
   formGroup:{marginBottom:16},
   formLabel:{display:"block",fontSize:11,color:"rgba(148,163,184,0.8)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
   required:{color:"#f87171"},
-  formInput:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s"},
-  formTextarea:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
+  formInput:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"inherit",fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s"},
+  formTextarea:{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"inherit",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   btnPrimary:{display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10,boxShadow:"0 4px 14px rgba(37,99,235,0.4)"},
   btnSecondaryFull:{display:"block",width:"100%",padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnSecondary:{flex:1,padding:"12px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.7)",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},/* btnSec */
   btnDanger:{flex:1,padding:"12px",background:"rgba(220,38,38,0.8)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid rgba(239,68,68,0.3)",color:"#f87171",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
   phoneHint:{fontSize:11,color:"rgba(148,163,184,0.6)",marginTop:4,textAlign:"right"},
-  overlay:{position:"absolute",inset:0,background:"rgba(5,12,25,0.7)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24},
-  modal:{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},
+  overlay:{position:"absolute",inset:0,background:"rgba(5,12,25,0.7)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24},/* overlay */
+  modal:{background:"rgba(13,28,57,0.98)",backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.15)"},/* modal */
   modalTitle:{fontSize:17,fontWeight:700,color:"#e2e8f0",margin:"0 0 6px"},
-  modalSub:{fontSize:13,color:"rgba(148,163,184,0.8)",margin:0},
-  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"rgba(13,28,57,0.95)",backdropFilter:"blur(12px)",color:"#93c5fd",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.4)",border:"1px solid rgba(59,130,246,0.3)"},
-  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",gap:16},
+  modalSub:{fontSize:13,color:"rgba(148,163,184,0.8)",margin:0},/* modalSub */
+  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",background:"rgba(13,28,57,0.95)",backdropFilter:"blur(12px)",color:"#93c5fd",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.4)",border:"1px solid rgba(59,130,246,0.3)"},/* toast */
+  splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16},
   splashLogo:{width:68,height:68,borderRadius:18,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",boxShadow:"0 0 40px rgba(59,130,246,0.4)"},
   splashTitle:{fontSize:22,fontWeight:700,color:"#fff",letterSpacing:"-0.02em"},
   splashTagline:{fontSize:12,color:"rgba(147,197,253,0.5)",textAlign:"center",maxWidth:260,lineHeight:1.6},
   splashSpinner:{width:26,height:26,border:"2.5px solid rgba(59,130,246,0.2)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
 };
 
-const css = `
+const getCss = (dark) => `
 @keyframes spin { to { transform: rotate(360deg); } }
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 .contact-row:hover { background: rgba(59,130,246,0.06) !important; }
 .fab:hover { transform: scale(1.06); }
-input[type="date"] { color-scheme: dark; }
+input[type="date"] { color-scheme: ${dark ? "dark" : "light"}; }
 input:focus, textarea:focus { border-color: rgba(59,130,246,0.6) !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important; }
 ::-webkit-scrollbar { width: 9px; }
 ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.55); }
 ::-webkit-scrollbar-track { background: transparent; }
-html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: #050c19; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#050c19" : "#e8f0ff"}; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
