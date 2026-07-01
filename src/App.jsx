@@ -715,6 +715,47 @@ export default function DeanCRM() {
                 })}
               </div>
             </>)}
+            {/* ── Health Highlights on Home ── */}
+            {(() => {
+              const homeHealthItems = healthNotes
+                .filter(h => !h.completed)
+                .filter(h => {
+                  const s = taskDueStatus(h.due_date);
+                  return s === "overdue" || s === "today" || (h.due_date && h.due_date <= in7DaysIso);
+                })
+                .slice(0, 6);
+              if (homeHealthItems.length === 0) return null;
+              return (<>
+                <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.8)",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
+                  <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+                  {homeHealthItems.map(h => {
+                    const status = taskDueStatus(h.due_date);
+                    const cat = getCat(h.category);
+                    const accentColor = status==="overdue" ? "#dc2626" : status==="today" ? "#d97706" : "#10b981";
+                    const chipStyle = status==="overdue"
+                      ? {color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}
+                      : status==="today"
+                      ? {color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}
+                      : {color:"#6ee7b7",background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)"};
+                    const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
+                    return (
+                      <div key={h.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
+                        <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
+                        <div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
+                          <span style={{...chipStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
+                          <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399",flexShrink:0}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>);
+            })()}
+
             <div style={{height:32}}/>
           </div>
         </div>
