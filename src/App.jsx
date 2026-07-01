@@ -496,21 +496,29 @@ export default function DeanCRM() {
       if (lines.length < 2) return showToast("CSV appears empty");
       const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g,""));
       const map = {
-        name: headers.findIndex(h => h.includes("name") && !h.includes("company") && !h.includes("contact")),
+        name: headers.findIndex(h => h === "name" || (h.includes("name") && !h.includes("company") && !h.includes("contact"))),
         company: headers.findIndex(h => h.includes("company") || h.includes("firm") || h.includes("org")),
         phone: headers.findIndex(h => h.includes("phone") || h.includes("mobile") || h.includes("tel")),
         email: headers.findIndex(h => h.includes("email") || h.includes("mail")),
-        notes: headers.findIndex(h => h.includes("note") || h.includes("comment") || h.includes("memo")),
-        next_touch: headers.findIndex(h => h.includes("nexttouch") || h.includes("followup") || h.includes("next")),
+        notes: headers.findIndex(h => h === "lastnote" || h.includes("lastnote") || h.includes("comment") || h.includes("memo") || (h.includes("note") && !h.includes("notes_count"))),
+        next_touch: headers.findIndex(h => h === "followupdate" || h.includes("followup") || h.includes("nexttouch") || h.includes("next")),
       };
       if (map.name === -1) map.name = 0;
+      const toNextTouch = (val) => {
+        if (!val || !val.trim()) return "";
+        const v = val.trim();
+        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)) return v;
+        const iso = v.slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) { const [yyyy, mm, dd] = iso.split("-"); return `${mm}/${dd}/${yyyy}`; }
+        return "";
+      };
       const preview = lines.slice(1, 6).map(line => {
         const cols = parseCSVLine(line);
-        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?cols[map.next_touch]||"":"" };
+        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?toNextTouch(cols[map.next_touch]||""):"" };
       }).filter(r => r.name);
       const allRows = lines.slice(1).map(line => {
         const cols = parseCSVLine(line);
-        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?cols[map.next_touch]||"":"", date: new Date().toISOString().slice(0,10), touch_log: [] };
+        return { name: cols[map.name]||"", company: map.company>=0?cols[map.company]||"":"", phone: map.phone>=0?cols[map.phone]||"":"", email: map.email>=0?cols[map.email]||"":"", notes: map.notes>=0?cols[map.notes]||"":"", next_touch: map.next_touch>=0?toNextTouch(cols[map.next_touch]||""):"", date: new Date().toISOString().slice(0,10), touch_log: [] };
       }).filter(r => r.name);
       setImportPreview({ preview, allRows, total: allRows.length });
       setImportModal(true);
