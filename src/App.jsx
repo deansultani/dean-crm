@@ -189,14 +189,16 @@ function NextTouchInput({ value, onChange, inputStyle }) {
   );
 }
 
+// ── Health Categories (Medication added between Nutrition and Sleep) ──
 const HEALTH_CATEGORIES = [
-  { id:"exercise", label:"Exercise", emoji:"🏃", color:"#10b981", bg:"rgba(16,185,129,0.12)", border:"rgba(16,185,129,0.3)" },
-  { id:"nutrition", label:"Nutrition", emoji:"🥗", color:"#f59e0b", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.3)" },
-  { id:"sleep", label:"Sleep", emoji:"😴", color:"#8b5cf6", bg:"rgba(139,92,246,0.12)", border:"rgba(139,92,246,0.3)" },
-  { id:"appointment", label:"Appointment", emoji:"🩺", color:"#3b82f6", bg:"rgba(59,130,246,0.12)", border:"rgba(59,130,246,0.3)" },
-  { id:"general", label:"General", emoji:"📝", color:"#94a3b8", bg:"rgba(148,163,184,0.12)", border:"rgba(148,163,184,0.3)" },
+  { id:"exercise",    label:"Exercise",    emoji:"🏃", color:"#10b981", bg:"rgba(16,185,129,0.12)",  border:"rgba(16,185,129,0.3)"  },
+  { id:"nutrition",   label:"Nutrition",   emoji:"🥗", color:"#f59e0b", bg:"rgba(245,158,11,0.12)",  border:"rgba(245,158,11,0.3)"  },
+  { id:"medication",  label:"Medication",  emoji:"💊", color:"#f472b6", bg:"rgba(244,114,182,0.12)", border:"rgba(244,114,182,0.3)" },
+  { id:"sleep",       label:"Sleep",       emoji:"😴", color:"#8b5cf6", bg:"rgba(139,92,246,0.12)",  border:"rgba(139,92,246,0.3)"  },
+  { id:"appointment", label:"Appointment", emoji:"🩺", color:"#3b82f6", bg:"rgba(59,130,246,0.12)",  border:"rgba(59,130,246,0.3)"  },
+  { id:"general",     label:"General",     emoji:"📝", color:"#94a3b8", bg:"rgba(148,163,184,0.12)", border:"rgba(148,163,184,0.3)" },
 ];
-const getCat = (id) => HEALTH_CATEGORIES.find(c => c.id === id) || HEALTH_CATEGORIES[4];
+const getCat = (id) => HEALTH_CATEGORIES.find(c => c.id === id) || HEALTH_CATEGORIES[5];
 
 // ── Main App ───────────────────────────────────────────────────────────
 export default function DeanCRM() {
@@ -240,6 +242,8 @@ export default function DeanCRM() {
   const [healthDraftNote, setHealthDraftNote] = useState("");
   const [healthDraftDate, setHealthDraftDate] = useState("");
   const [healthDraftCategory, setHealthDraftCategory] = useState("general");
+  // ── NEW: category filter for Health tab ──
+  const [healthFilter, setHealthFilter] = useState("all");
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -544,6 +548,13 @@ export default function DeanCRM() {
   const contact = selected!==null?contacts[selected]:null;
   const healthOverdueCount = healthNotes.filter(h=>!h.completed&&taskDueStatus(h.due_date)==="overdue").length;
 
+  // ── Health filter helpers ──
+  const applyHealthFilter = (list) => healthFilter === "all" ? list : list.filter(h => h.category === healthFilter);
+  const healthOpen       = applyHealthFilter(healthNotes.filter(h => !h.completed));
+  const healthOverdue    = healthOpen.filter(h => taskDueStatus(h.due_date) === "overdue");
+  const healthNonOverdue = healthOpen.filter(h => taskDueStatus(h.due_date) !== "overdue");
+  const healthDone       = applyHealthFilter(healthNotes.filter(h => h.completed));
+
   if (loading) return (
     <div style={styles.shell}>
       <div style={styles.splashScreen}>
@@ -807,10 +818,16 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="health"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
+
             <div style={{background:"linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",padding:"16px 16px 18px",borderBottom:"1px solid rgba(16,185,129,0.15)"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Health Dashboard</div>
               <div style={{display:"flex",gap:8}}>
-                {[{label:"Open",val:healthNotes.filter(h=>!h.completed).length,bg:"rgba(16,185,129,0.15)"},{label:"Overdue",val:healthOverdueCount,bg:"rgba(220,38,38,0.15)"},{label:"Upcoming",val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,bg:"rgba(59,130,246,0.15)"},{label:"Done",val:healthNotes.filter(h=>h.completed).length,bg:"rgba(139,92,246,0.15)"}].map(kpi=>(
+                {[
+                  {label:"Open",     val:healthNotes.filter(h=>!h.completed).length,                                                           bg:"rgba(16,185,129,0.15)"},
+                  {label:"Overdue",  val:healthOverdueCount,                                                                                   bg:"rgba(220,38,38,0.15)"},
+                  {label:"Upcoming", val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,         bg:"rgba(59,130,246,0.15)"},
+                  {label:"Done",     val:healthNotes.filter(h=>h.completed).length,                                                            bg:"rgba(139,92,246,0.15)"},
+                ].map(kpi=>(
                   <div key={kpi.label} style={{flex:1,background:kpi.bg,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
                     <div style={{fontSize:20,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
                     <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:3,fontWeight:500}}>{kpi.label}</div>
@@ -833,71 +850,129 @@ export default function DeanCRM() {
               <button style={{display:"block",width:"100%",marginTop:10,padding:"10px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addHealthNote}>Add Note</button>
             </div>
 
-            <div style={{display:"flex",alignItems:"center",padding:"16px 20px 8px"}}>
-              <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNotes.filter(h=>!h.completed).length})</span>
-            </div>
-            {healthLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
-            :healthNotes.filter(h=>!h.completed).length===0?<div style={{padding:"14px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open health notes 🎉</div>
-            :healthNotes.filter(h=>!h.completed).map(h=>{
-              const status=taskDueStatus(h.due_date);const cat=getCat(h.category);const isEditing=editingHealthId===h.id;
-              return(
-                <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",borderRadius:12,border:`1px solid ${isEditing?"#10b981":"rgba(255,255,255,0.08)"}`,overflow:"hidden"}}>
-                  <div style={{padding:"14px"}}>
-                    {isEditing?(<>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
-                        {HEALTH_CATEGORIES.map(c=>(
-                          <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
-                        ))}
-                      </div>
-                      <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
-                      <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
-                      <div style={{display:"flex",gap:6,marginTop:9}}>
-                        <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
-                        <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
-                      </div>
-                    </>):(<>
-                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
-                        <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
-                        <div style={{display:"flex",gap:5}}>
-                          <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
-                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-                        </div>
-                      </div>
-                      <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="overdue"?`Due ${formatTaskDue(h.due_date)}`:status==="today"?"Today":`${formatTaskDue(h.due_date)}`}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
-                        <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
-                      </div>
-                    </>)}
-                  </div>
-                </div>
-              );
-            })}
-
-            {healthNotes.filter(h=>h.completed).length>0&&(<>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px 8px"}}>
-                <span style={{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.5)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthNotes.filter(h=>h.completed).length})</span>
-                <button style={{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedHealth(s=>!s)}>{showCompletedHealth?"Hide":"Show"}</button>
+            <div style={{padding:"14px 16px 10px"}}>
+              <div style={{fontSize:10,fontWeight:700,color:"rgba(147,197,253,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Filter by category</div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <button onClick={()=>setHealthFilter("all")} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter==="all"?"#3b82f6":"rgba(59,130,246,0.25)"}`,background:healthFilter==="all"?"rgba(59,130,246,0.15)":"transparent",color:healthFilter==="all"?"#93c5fd":"rgba(148,163,184,0.55)"}}>All</button>
+                {HEALTH_CATEGORIES.map(cat=>(
+                  <button key={cat.id} onClick={()=>setHealthFilter(cat.id)} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter===cat.id?cat.color:cat.border}`,background:healthFilter===cat.id?cat.bg:"transparent",color:healthFilter===cat.id?cat.color:"rgba(148,163,184,0.55)"}}>
+                    {cat.emoji} {cat.label}
+                  </button>
+                ))}
               </div>
-              {showCompletedHealth&&healthNotes.filter(h=>h.completed).map(h=>{
-                const cat=getCat(h.category);
+            </div>
+
+            {healthLoading ? (
+              <div style={styles.empty}><div style={styles.splashSpinner}/></div>
+            ) : (<>
+              {healthOverdue.length > 0 && (<>
+                <div style={{display:"flex",alignItems:"center",padding:"4px 20px 8px"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:"#f87171",textTransform:"uppercase",letterSpacing:"0.08em"}}>⚠ Overdue ({healthOverdue.length})</span>
+                </div>
+                {healthOverdue.map(h=>{
+                  const cat=getCat(h.category); const isEditing=editingHealthId===h.id;
+                  return(
+                    <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",borderRadius:12,borderTop:"1px solid rgba(255,255,255,0.08)",borderRight:"1px solid rgba(255,255,255,0.08)",borderBottom:"1px solid rgba(255,255,255,0.08)",borderLeft:"3px solid #dc2626",overflow:"hidden"}}>
+                      <div style={{padding:"14px"}}>
+                        {isEditing?(<>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+                            {HEALTH_CATEGORIES.map(c=>(
+                              <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
+                            ))}
+                          </div>
+                          <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                          <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
+                          <div style={{display:"flex",gap:6,marginTop:9}}>
+                            <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
+                            <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
+                          </div>
+                        </>):(<>
+                          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                            <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
+                            <div style={{display:"flex",gap:5}}>
+                              <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
+                              <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                            </div>
+                          </div>
+                          <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                            <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}}>Due {formatTaskDue(h.due_date)}</span>
+                            <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                          </div>
+                        </>)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>)}
+
+              <div style={{display:"flex",alignItems:"center",padding:`${healthOverdue.length>0?"10px":"4px"} 20px 8px`}}>
+                <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNonOverdue.length})</span>
+              </div>
+              {healthNonOverdue.length===0&&healthOverdue.length===0?(
+                <div style={{padding:"14px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open health notes 🎉</div>
+              ):healthNonOverdue.length===0?null:healthNonOverdue.map(h=>{
+                const status=taskDueStatus(h.due_date); const cat=getCat(h.category); const isEditing=editingHealthId===h.id;
                 return(
-                  <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",opacity:0.7}}>
-                    <div style={{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-                      <div style={{flex:1,minWidth:0}}>
-                        <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
-                        <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through"}}>{h.note}</div>
-                        <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
-                      </div>
-                      <div style={{display:"flex",gap:5}}>
-                        <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
-                        <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-                      </div>
+                  <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.04)",borderRadius:12,border:`1px solid ${isEditing?"#10b981":"rgba(255,255,255,0.08)"}`,overflow:"hidden"}}>
+                    <div style={{padding:"14px"}}>
+                      {isEditing?(<>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+                          {HEALTH_CATEGORIES.map(c=>(
+                            <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
+                          ))}
+                        </div>
+                        <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                        <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
+                        <div style={{display:"flex",gap:6,marginTop:9}}>
+                          <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
+                          <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
+                        </div>
+                      </>):(<>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
+                          <div style={{display:"flex",gap:5}}>
+                            <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
+                            <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                          </div>
+                        </div>
+                        <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                          {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
+                          <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                        </div>
+                      </>)}
                     </div>
                   </div>
                 );
               })}
+
+              {healthDone.length>0&&(<>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px 8px"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.5)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthDone.length})</span>
+                  <button style={{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedHealth(s=>!s)}>{showCompletedHealth?"Hide":"Show"}</button>
+                </div>
+                {showCompletedHealth&&healthDone.map(h=>{
+                  const cat=getCat(h.category);
+                  return(
+                    <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",opacity:0.7}}>
+                      <div style={{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
+                          <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through"}}>{h.note}</div>
+                          <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
+                        </div>
+                        <div style={{display:"flex",gap:5}}>
+                          <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
+                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>)}
             </>)}
+
             <div style={{height:40}}/>
           </div>
         </div>
