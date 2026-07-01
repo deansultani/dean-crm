@@ -1004,17 +1004,19 @@ export default function DeanCRM() {
                 {showCompletedHealth&&healthDone.map(h=>{
                   const cat=getCat(h.category);
                   return(
-                    <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.06)",opacity:0.7}}>
-                      <div style={{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:4,display:"inline-block"}}>{cat.emoji} {cat.label}</span>
-                          <div style={{fontSize:13,color:"rgba(147,197,253,0.5)",textDecoration:"line-through"}}>{h.note}</div>
-                          <div style={{fontSize:11,color:"#60a5fa",fontWeight:600,marginTop:4}}>Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</div>
+                    <div key={h.id} style={{margin:"0 16px 8px",background:"rgba(255,255,255,0.02)",borderRadius:12,border:"1px solid rgba(255,255,255,0.05)",borderLeft:"3px solid rgba(16,185,129,0.3)"}}>
+                      <div style={{padding:"12px 14px"}}>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:7}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                            <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
+                            <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"rgba(16,185,129,0.1)",color:"#6ee7b7",border:"1px solid rgba(16,185,129,0.25)"}}>✓ Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</span>
+                          </div>
+                          <div style={{display:"flex",gap:5,flexShrink:0}}>
+                            <button style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.08)",color:"rgba(147,197,253,0.7)",border:"1px solid rgba(59,130,246,0.15)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
+                            <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                          </div>
                         </div>
-                        <div style={{display:"flex",gap:5}}>
-                          <button style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.2)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
-                          <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-                        </div>
+                        <div style={{fontSize:13,color:"rgba(226,232,240,0.45)",fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{h.note}</div>
                       </div>
                     </div>
                   );
