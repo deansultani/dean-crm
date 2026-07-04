@@ -567,89 +567,88 @@ export default function DeanCRM() {
 
   // ── Theme palette ──
   const T = dark ? {
-    shell:       "linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%)",
-    shellColor:  "#e2e8f0",
-    heroBg:      "linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",
-    headerBg:    "rgba(10,22,40,0.85)",
-    headerBorder:"rgba(59,130,246,0.2)",
-    tabBg:       "rgba(10,22,40,0.9)",
-    tabBorder:   "rgba(59,130,246,0.15)",
-    tabColor:    "rgba(255,255,255,0.35)",
-    tabActive:   "#93c5fd",
-    sectionBg:   "rgba(10,22,40,0.6)",
-    sectionColor:"rgba(59,130,246,0.8)",
-    rowBg:       "rgba(255,255,255,0.02)",
-    rowBorder:   "rgba(255,255,255,0.05)",
-    cardBg:      "rgba(255,255,255,0.04)",
-    cardBorder:  "rgba(255,255,255,0.08)",
-    inputBg:     "rgba(255,255,255,0.05)",
-    inputBorder: "rgba(255,255,255,0.1)",
-    inputColor:  "#e2e8f0",
-    text:        "#e2e8f0",
-    textSub:     "rgba(148,163,184,0.7)",
-    textMuted:   "rgba(148,163,184,0.5)",
-    btnSecBorder:"rgba(255,255,255,0.12)",
-    btnSecColor: "rgba(226,232,240,0.7)",
-    iconBtnBg:   "rgba(255,255,255,0.06)",
-    iconBtnBorder:"rgba(255,255,255,0.1)",
-    iconBtnColor:"rgba(255,255,255,0.8)",
-    overlayBg:   "rgba(5,12,25,0.7)",
-    modalBg:     "rgba(13,28,57,0.98)",
-    toastBg:     "rgba(13,28,57,0.95)",
-    toastColor:  "#93c5fd",
-    exportBg:    "rgba(13,28,57,0.98)",
-    kpiBg:       "rgba(59,130,246,0.08)",
-    kpiBorder:   "rgba(59,130,246,0.2)",
-    kpiColor:    "#fff",
-    kpiLabel:    "rgba(255,255,255,0.45)",
-    fieldLabel:  "rgba(148,163,184,0.7)",
-    touchColor:  "#60a5fa",
-    touchText:   "rgba(226,232,240,0.85)",
-    splashBg:    "linear-gradient(160deg,#050c19 0%,#0a1628 60%,#0d1f3c 100%)",
-    completedNote:"rgba(226,232,240,0.45)",
-    deleteIcon:  "rgba(255,255,255,0.2)",
-  } : {
-    shell:       "#f0f2f5",
-    shellColor:  "#1a2332",
-    heroBg:      "#ffffff",
-    headerBg:    "#ffffff",
-    headerBorder:"#e2e8f0",
-    tabBg:       "#ffffff",
-    tabBorder:   "#e2e8f0",
-    tabColor:    "#64748b",
-    tabActive:   "#2563eb",
-    sectionBg:   "#f8fafc",
-    sectionColor:"#2563eb",
-    rowBg:       "#ffffff",
-    rowBorder:   "#e2e8f0",
-    cardBg:      "#ffffff",
-    cardBorder:  "#e2e8f0",
-    inputBg:     "#f8fafc",
-    inputBorder: "#cbd5e1",
-    inputColor:  "#1a2332",
-    text:        "#1a2332",
-    textSub:     "#64748b",
-    textMuted:   "#94a3b8",
-    btnSecBorder:"#cbd5e1",
-    btnSecColor: "#475569",
-    iconBtnBg:   "#f1f5f9",
-    iconBtnBorder:"#e2e8f0",
-    iconBtnColor:"#475569",
-    overlayBg:   "rgba(15,23,42,0.45)",
-    modalBg:     "#ffffff",
-    toastBg:     "#1e293b",
-    toastColor:  "#f8fafc",
-    exportBg:    "#ffffff",
-    kpiBg:       "#f8fafc",
-    kpiBorder:   "#e2e8f0",
-    kpiColor:    "#1a2332",
-    kpiLabel:    "#64748b",
-    fieldLabel:  "#64748b",
-    touchColor:  "#2563eb",
-    touchText:   "#1a2332",
-    splashBg:    "#f0f2f5",
-    completedNote:"#94a3b8",
-    deleteIcon:  "#94a3b8",
+    shell:        "#0f172a",
+    shellColor:   "#f1f5f9",
+    heroBg:       "#1e293b",
+    headerBg:     "#1e293b",
+    headerBorder: "#334155",
+    tabBg:        "#1e293b",
+    tabBorder:    "#334155",
+    tabColor:     "#94a3b8",
+    tabActive:    "#93c5fd",
+    sectionBg:    "#0f172a",
+    sectionColor: "#60a5fa",
+    rowBg:        "#1e293b",
+    rowBorder:    "#334155",
+    cardBg:       "#1e293b",
+    cardBorder:   "#334155",
+    inputBg:      "#0f172a",
+    inputBorder:  "#475569",
+    inputColor:   "#f1f5f9",
+    text:         "#f1f5f9",
+    textSub:      "#cbd5e1",
+    textMuted:    "#64748b",
+    btnSecBorder: "#475569",
+    btnSecColor:  "#cbd5e1",
+    iconBtnBg:    "#334155",
+    iconBtnBorder:"#475569",
+    iconBtnColor: "#cbd5e1",
+    overlayBg:    "rgba(0,0,0,0.6)",
+    modalBg:      "#1e293b",
+    toastBg:      "#0f172a",
+    toastColor:   "#93c5fd",
+    exportBg:     "#1e293b",
+    kpiBg:        "rgba(37,99,235,0.15)",
+    kpiBorder:    "#1d4ed8",
+    kpiColor:     "#f1f5f9",
+    kpiLabel:     "#93c5fd",
+    fieldLabel:   "#94a3b8",
+    touchColor:   "#60a5fa",
+    touchText:    "#e2e8f0",
+    splashBg:     "#0f172a",
+    completedNote:"#475569",
+    deleteIcon:   "#475569",
+  } : {ll:        "#f4f6f8",
+    shellColor:   "#111827",
+    heroBg:       "#ffffff",
+    headerBg:     "#ffffff",
+    headerBorder: "#d1d5db",
+    tabBg:        "#ffffff",
+    tabBorder:    "#d1d5db",
+    tabColor:     "#6b7280",
+    tabActive:    "#2563eb",
+    sectionBg:    "#f4f6f8",
+    sectionColor: "#2563eb",
+    rowBg:        "#ffffff",
+    rowBorder:    "#d1d5db",
+    cardBg:       "#ffffff",
+    cardBorder:   "#d1d5db",
+    inputBg:      "#ffffff",
+    inputBorder:  "#9ca3af",
+    inputColor:   "#111827",
+    text:         "#111827",
+    textSub:      "#374151",
+    textMuted:    "#6b7280",
+    btnSecBorder: "#d1d5db",
+    btnSecColor:  "#374151",
+    iconBtnBg:    "#f3f4f6",
+    iconBtnBorder:"#d1d5db",
+    iconBtnColor: "#374151",
+    overlayBg:    "rgba(17,24,39,0.5)",
+    modalBg:      "#ffffff",
+    toastBg:      "#111827",
+    toastColor:   "#f9fafb",
+    exportBg:     "#ffffff",
+    kpiBg:        "#eff6ff",
+    kpiBorder:    "#bfdbfe",
+    kpiColor:     "#1e40af",
+    kpiLabel:     "#3b82f6",
+    fieldLabel:   "#6b7280",
+    touchColor:   "#2563eb",
+    touchText:    "#111827",
+    splashBg:     "#f4f6f8",
+    completedNote:"#9ca3af",
+    deleteIcon:   "#9ca3af",
   };
 
   if (loading) return (
@@ -753,7 +752,7 @@ export default function DeanCRM() {
               <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
                 {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length},{label:"Follow-ups",val:upcomingContacts.length},{label:"Contacts",val:contacts.length}].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:T.kpiBg,backdropFilter:"blur(8px)",borderRadius:10,padding:"12px 10px",border:`1px solid ${T.kpiBorder}`}}>
+                  <div key={kpi.label} style={{flex:1,background:T.kpiBg,borderRadius:10,padding:"12px 10px",border:`2px solid ${T.kpiBorder}`}}>
                     <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
                     <div style={{fontSize:10,color:T.kpiLabel,marginTop:4,fontWeight:500}}>{kpi.label}</div>
                   </div>
@@ -763,7 +762,7 @@ export default function DeanCRM() {
 
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
-              <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingTasks.length} · next 7 days</span>
+              <span style={{fontSize:11,color:T.textMuted}}>{upcomingTasks.length} · next 7 days</span>
             </div>
             {upcomingTasks.length===0?(
               <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"24px 20px",textAlign:"center"}}>
@@ -789,7 +788,7 @@ export default function DeanCRM() {
             {upcomingContacts.length>0&&(<>
               <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
-                <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
+                <span style={{fontSize:11,color:T.textMuted}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingContacts.map(c=>{
@@ -825,7 +824,7 @@ export default function DeanCRM() {
               return (<>
                 <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.8)",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
-                  <span style={{fontSize:11,color:"rgba(148,163,184,0.55)"}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
+                  <span style={{fontSize:11,color:T.textMuted}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                   {homeHealthItems.map(h => {
@@ -860,7 +859,7 @@ export default function DeanCRM() {
 
       {view==="list"&&homeTab==="contacts"&&(
         <div style={styles.body}>
-          <div style={{...styles.searchWrap,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
+          <div style={{...styles.searchWrap,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
             <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input style={{...styles.searchInput,color:T.text}} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
             {search&&<button style={styles.clearSearch} onClick={()=>setSearch("")}>x</button>}
@@ -894,7 +893,7 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="tasks"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={{...styles.taskAddPanel,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
+            <div style={{...styles.taskAddPanel,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={styles.taskAddTitle}>+ New Task</div>
               <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
               <textarea style={{...styles.taskAddTextarea,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
@@ -909,7 +908,7 @@ export default function DeanCRM() {
                 :open.map(t=>{
                   const status=taskDueStatus(t.due_date);const isEditing=editingTaskId===t.id;
                   return(
-                    <div key={t.id} style={{...styles.taskCard,background:T.cardBg,border:isEditing?"1.5px solid #2563eb":`1px solid ${T.cardBorder}`}}>
+                    <div key={t.id} style={{...styles.taskCard,background:T.cardBg,border:isEditing?"2px solid #2563eb":`1.5px solid ${T.cardBorder}`}}>
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
                           <textarea style={styles.taskEditTextarea} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
@@ -980,7 +979,7 @@ export default function DeanCRM() {
               </div>
             </div>
 
-            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
+            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:"2px solid rgba(16,185,129,0.35)",padding:"16px"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
                 {HEALTH_CATEGORIES.map(cat=>(
@@ -1132,7 +1131,7 @@ export default function DeanCRM() {
               <h2 style={{...styles.profileName,color:T.text}}>{contact.name}</h2>
               {contact.company&&<p style={styles.profileCompany}>{contact.company}</p>}
             </div>
-            <div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
+            <div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               {(() => {
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 const emailHref = isMobile ? `googlegmail:///co?to=${encodeURIComponent(contact.email)}` : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
@@ -1165,8 +1164,8 @@ export default function DeanCRM() {
                 )}
               </div></div>
             </div>
-            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{contact.notes}</div></div>}
-            <div style={{...styles.touchSection,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
+            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{contact.notes}</div></div>}
+            <div style={{...styles.touchSection,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={styles.touchHeader}><span style={styles.touchHeaderTitle}>🤝 Touch Log</span><button style={styles.addNoteBtn} onClick={()=>{setAddingNote(true);setNewNote("");setInlineNextTouch(contact.next_touch||"");}}>+ Add Note</button></div>
               {addingNote&&(
                 <div style={styles.addNotePanel}>
@@ -1340,7 +1339,7 @@ input:focus, textarea:focus { border-color: rgba(59,130,246,0.6) !important; box
 ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.55); }
 ::-webkit-scrollbar-track { background: transparent; }
-html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#050c19" : "#f0f2f5"}; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#0f172a" : "#f4f6f8"}; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
