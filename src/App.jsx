@@ -622,7 +622,7 @@ export default function DeanCRM() {
     rowBg:        "#ffffff",
     rowBorder:    "#d1d5db",
     cardBg:       "#ffffff",
-    cardBorder:   "#d1d5db",
+    cardBorder:   "#6b7280",
     inputBg:      "#f9fafb",
     inputBorder:  "#9ca3af",
     inputColor:   "#111827",
@@ -743,6 +743,27 @@ export default function DeanCRM() {
         </div>
       )}
 
+      {view==="list"&&homeTab==="contacts"&&(
+          <button style={styles.exportBtn} onClick={e=>{e.stopPropagation();setExportMenuOpen(o=>!o);}}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        )}
+        {view==="profile"&&<button style={{...styles.exportBtn,background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor}} onClick={()=>{setEditEntry({...contact});setView("edit");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>}
+        {(view==="profile"||view==="add"||view==="edit")&&<button style={{...styles.homeBtn,background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor}} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>}
+      </div>
+
+      {view==="list"&&(
+        <div style={{...styles.tabBar,background:T.tabBg,borderBottom:`1.5px solid ${T.tabBorder}`}}>
+          {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
+            <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:"2px solid #3b82f6"}:{})}} onClick={()=>setHomeTab(id)}>
+              {label}
+              {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
+              {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:"#dc2626"}}>{healthOverdueCount}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
@@ -760,11 +781,11 @@ export default function DeanCRM() {
             </div>
 
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
+              <span style={{fontSize:11,fontWeight:700,color:dark?"#93c5fd":"#2563eb",textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
               <span style={{fontSize:11,color:T.textMuted}}>{upcomingTasks.length} · next 7 days</span>
             </div>
             {upcomingTasks.length===0?(
-              <div style={{margin:"0 16px 16px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"24px 20px",textAlign:"center"}}>
+              <div style={{margin:"0 16px 16px",background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,padding:"24px 20px",textAlign:"center"}}>
                 <div style={{fontSize:13,color:"rgba(148,163,184,0.7)"}}>No tasks due in the next 7 days 🎉</div>
               </div>
             ):(
@@ -774,7 +795,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
+                    <div key={t.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
@@ -786,7 +807,7 @@ export default function DeanCRM() {
 
             {upcomingContacts.length>0&&(<>
               <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <span style={{fontSize:11,fontWeight:700,color:"rgba(147,197,253,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
+                <span style={{fontSize:11,fontWeight:700,color:dark?"#93c5fd":"#2563eb",textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
                 <span style={{fontSize:11,color:T.textMuted}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
@@ -796,7 +817,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
                   return(
-                    <div key={c.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:100,borderTop:`3px solid ${accentColor}`,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                    <div key={c.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                         <div style={{width:30,height:30,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
@@ -822,7 +843,7 @@ export default function DeanCRM() {
               if (homeHealthItems.length === 0) return null;
               return (<>
                 <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.8)",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
+                  <span style={{fontSize:11,fontWeight:700,color:dark?"#34d399":"#059669",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
                   <span style={{fontSize:11,color:T.textMuted}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
@@ -837,7 +858,7 @@ export default function DeanCRM() {
                       : {color:"#6ee7b7",background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)"};
                     const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
                     return (
-                      <div key={h.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,borderTop:`3px solid ${accentColor}`}}>
+                      <div key={h.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
