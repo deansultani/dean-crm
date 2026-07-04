@@ -652,6 +652,92 @@ export default function DeanCRM() {
     deleteIcon:   "#9ca3af",
   };
 
+
+  // ── Theme ──────────────────────────────────────────────────────────
+  const T = dark ? {
+    shell:        "#0f172a",
+    splashBg:     "#050c19",
+    heroBg:       "#1e293b",
+    headerBg:     "#1e293b",
+    headerBorder: "#334155",
+    tabBg:        "#1e293b",
+    tabBorder:    "#334155",
+    tabColor:     "#94a3b8",
+    tabActive:    "#93c5fd",
+    sectionBg:    "#0f172a",
+    sectionColor: "#60a5fa",
+    rowBg:        "#1e293b",
+    rowBorder:    "#334155",
+    cardBg:       "#1e293b",
+    cardBorder:   "#334155",
+    inputBg:      "#0f172a",
+    inputBorder:  "#475569",
+    inputColor:   "#f1f5f9",
+    text:         "#f1f5f9",
+    textSub:      "#cbd5e1",
+    textMuted:    "#64748b",
+    completedNote:"#475569",
+    deleteIcon:   "#475569",
+    fieldLabel:   "#94a3b8",
+    touchColor:   "#60a5fa",
+    touchText:    "#e2e8f0",
+    btnSecBorder: "#475569",
+    btnSecColor:  "#cbd5e1",
+    iconBtnBg:    "#334155",
+    iconBtnBorder:"#475569",
+    iconBtnColor: "#cbd5e1",
+    overlayBg:    "rgba(0,0,0,0.65)",
+    modalBg:      "#1e293b",
+    toastBg:      "#0f172a",
+    toastColor:   "#93c5fd",
+    exportBg:     "#1e293b",
+    kpiBg:        "rgba(37,99,235,0.18)",
+    kpiBorder:    "#1d4ed8",
+    kpiColor:     "#f1f5f9",
+    kpiLabel:     "#93c5fd",
+  } : {
+    shell:        "#f4f6f8",
+    splashBg:     "#f4f6f8",
+    heroBg:       "#ffffff",
+    headerBg:     "#ffffff",
+    headerBorder: "#d1d5db",
+    tabBg:        "#ffffff",
+    tabBorder:    "#d1d5db",
+    tabColor:     "#6b7280",
+    tabActive:    "#2563eb",
+    sectionBg:    "#f4f6f8",
+    sectionColor: "#2563eb",
+    rowBg:        "#ffffff",
+    rowBorder:    "#d1d5db",
+    cardBg:       "#ffffff",
+    cardBorder:   "#d1d5db",
+    inputBg:      "#f9fafb",
+    inputBorder:  "#9ca3af",
+    inputColor:   "#111827",
+    text:         "#111827",
+    textSub:      "#374151",
+    textMuted:    "#6b7280",
+    completedNote:"#9ca3af",
+    deleteIcon:   "#9ca3af",
+    fieldLabel:   "#6b7280",
+    touchColor:   "#2563eb",
+    touchText:    "#111827",
+    btnSecBorder: "#d1d5db",
+    btnSecColor:  "#374151",
+    iconBtnBg:    "#f3f4f6",
+    iconBtnBorder:"#d1d5db",
+    iconBtnColor: "#374151",
+    overlayBg:    "rgba(17,24,39,0.5)",
+    modalBg:      "#ffffff",
+    toastBg:      "#111827",
+    toastColor:   "#f9fafb",
+    exportBg:     "#ffffff",
+    kpiBg:        "#eff6ff",
+    kpiBorder:    "#bfdbfe",
+    kpiColor:     "#1e40af",
+    kpiLabel:     "#3b82f6",
+  };
+
   if (loading) return (
     <div style={{...styles.shell,background:T.shell,color:T.text}}>
       <div style={{...styles.splashScreen,background:T.splashBg}}>
@@ -670,13 +756,13 @@ export default function DeanCRM() {
 
       {exportMenuOpen&&(
         <div style={{position:"fixed",top:60,right:16,background:T.exportBg,backdropFilter:"blur(20px)",borderRadius:14,boxShadow:"0 20px 60px rgba(0,0,0,0.3)",border:`1px solid ${T.cardBorder}`,zIndex:9999,minWidth:230,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
-          <button style={styles.exportMenuItem} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={styles.exportMenuLabel}>Spreadsheet (.xlsx)</div><div style={styles.exportMenuSub}>Best for Google Sheets</div></div></button>
-          <div style={styles.exportMenuDivider}/>
-          <button style={styles.exportMenuItem} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={styles.exportMenuLabel}>CSV (.csv)</div><div style={styles.exportMenuSub}>Plain text, universal</div></div></button>
-          <div style={styles.exportMenuDivider}/>
+          <button style={{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:T.text}} onClick={exportXLSX}><span style={styles.exportMenuIcon}>📊</span><div><div style={{fontSize:13,fontWeight:600,color:T.text}}>Spreadsheet (.xlsx)</div><div style={{fontSize:11,color:T.textMuted,marginTop:1}}>Best for Google Sheets</div></div></button>
+          <div style={{height:1,background:T.cardBorder}}/>
+          <button style={{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:T.text}} onClick={exportCSV}><span style={styles.exportMenuIcon}>📄</span><div><div style={{fontSize:13,fontWeight:600,color:T.text}}>CSV (.csv)</div><div style={{fontSize:11,color:T.textMuted,marginTop:1}}>Plain text, universal</div></div></button>
+          <div style={{height:1,background:T.cardBorder}}/>
           <label style={{...styles.exportMenuItem,cursor:"pointer"}}>
             <span style={styles.exportMenuIcon}>📥</span>
-            <div><div style={styles.exportMenuLabel}>Import CSV</div><div style={styles.exportMenuSub}>Add contacts from file</div></div>
+            <div><div style={{fontSize:13,fontWeight:600,color:T.text}}>Import CSV</div><div style={{fontSize:11,color:T.textMuted,marginTop:1}}>Add contacts from file</div></div>
             <input type="file" accept=".csv" style={{display:"none"}} onChange={e=>{setExportMenuOpen(false);handleImportFile(e);}}/>
           </label>
         </div>
@@ -861,7 +947,7 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="contacts"&&(
         <div style={styles.body}>
           <div style={{...styles.searchWrap,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
-            <svg style={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg style={{flexShrink:0,color:T.textMuted}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input style={{...styles.searchInput,color:T.text}} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)}/>
             {search&&<button style={{...styles.clearSearch,color:T.textMuted}} onClick={()=>setSearch("")}>x</button>}
           </div>
@@ -877,7 +963,7 @@ export default function DeanCRM() {
                       <div style={{...styles.avatar,background:avatarColor(c.name)}}>{initials(c.name)}</div>
                       <div style={styles.rowInfo}><div style={{...styles.rowName,color:T.text}}>{c.name}</div><div style={{...styles.rowSub,color:T.textSub}}>{c.company||c.email||c.phone||"—"}</div><NextTouchChip val={c.next_touch}/></div>
                       {(c.touch_log||[]).length>0&&<span style={styles.touchBadge}>{c.touch_log.length}</span>}
-                      <svg style={styles.chevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
+                      <svg style={{color:T.textMuted,flexShrink:0}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
                     </div>
                   ))}
                 </div>
@@ -927,7 +1013,7 @@ export default function DeanCRM() {
                             </div>
                           </div>
                           <div style={styles.taskCardFooter}>
-                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>:<span style={styles.taskDueNone}>No due date</span>}
+                            {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>:<span style={{fontSize:11,color:T.textMuted,fontWeight:500}}>No due date</span>}
                             <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>Done</button>
                           </div>
                         </>)}
@@ -936,9 +1022,9 @@ export default function DeanCRM() {
                   );
                 })}
                 {done.length>0&&(<>
-                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:T.textMuted}}>Completed ({done.length})</span><button style={styles.taskFilterBtn} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
+                  <div style={styles.taskListHeader}><span style={{...styles.taskListTitle,color:T.textMuted}}>Completed ({done.length})</span><button style={{fontSize:12,color:T.textMuted,fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompleted(s=>!s)}>{showCompleted?"Hide":"Show"}</button></div>
                   {showCompleted&&done.map(t=>(
-                    <div key={t.id} style={{...styles.taskCard,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderLeft:"3px solid rgba(59,130,246,0.3)"}}>
+                    <div key={t.id} style={{...styles.taskCard,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`,borderLeft:"3px solid #3b82f6"}}>
                       <div style={styles.taskCardBody}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:7}}>
                           <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"rgba(59,130,246,0.1)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)"}}>✓ Done {t.completed_at?formatTaskDue(t.completed_at.slice(0,10)):""}</span>
@@ -1130,7 +1216,7 @@ export default function DeanCRM() {
             <div style={{...styles.profileHero,background:T.heroBg,borderBottom:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.avatarLg,background:avatarColor(contact.name)}}>{initials(contact.name)}</div>
               <h2 style={{...styles.profileName,color:T.text}}>{contact.name}</h2>
-              {contact.company&&<p style={styles.profileCompany}>{contact.company}</p>}
+              {contact.company&&<p style={{fontSize:13,color:dark?"rgba(147,197,253,0.7)":"#2563eb",margin:0,textAlign:"center"}}>{contact.company}</p>}
             </div>
             <div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               {(() => {
@@ -1155,7 +1241,7 @@ export default function DeanCRM() {
                 {editingNextTouch?(
                   <div style={{marginTop:2}}>
                     <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:"1px solid rgba(59,130,246,0.4)",borderRadius:8,padding:"5px 9px",fontSize:14,background:"rgba(255,255,255,0.05)",fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%",color:T.text}}/>
-                    <div style={{display:"flex",gap:6,marginTop:8}}><button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button><button style={styles.ntCancelBtn} onClick={()=>setEditingNextTouch(false)}>Cancel</button></div>
+                    <div style={{display:"flex",gap:6,marginTop:8}}><button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button><button style={{background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0}} onClick={()=>setEditingNextTouch(false)}>Cancel</button></div>
                   </div>
                 ):(
                   <div style={{display:"flex",alignItems:"center",gap:8,marginTop:2}}>
@@ -1177,7 +1263,7 @@ export default function DeanCRM() {
                   <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button><button style={styles.cancelNoteBtn} onClick={()=>{setAddingNote(false);setNewNote("");setInlineNextTouch("");}}>Cancel</button></div>
                 </div>
               )}
-              {(contact.touch_log||[]).length===0&&!addingNote?<div style={styles.touchEmpty}>No touch log entries yet.</div>
+              {(contact.touch_log||[]).length===0&&!addingNote?<div style={{padding:"20px",fontSize:13,color:T.textMuted,textAlign:"center",lineHeight:1.6}}>No touch log entries yet.</div>
               :(contact.touch_log||[]).map((touch,i)=>(
                 <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":"1px solid rgba(255,255,255,0.05)"}}>
                   <div style={styles.touchEntryHeader}><span style={{...styles.touchEntryDate,color:T.touchColor}}>{formatDateTime(touch.createdAt)}</span><button style={styles.touchDeleteBtn} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
@@ -1214,117 +1300,91 @@ export default function DeanCRM() {
   );
 }
 
+
 const styles = {
   shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
   header:{backdropFilter:"blur(12px)",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:10,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0},
   headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em"},
-  backBtn:{cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",background:"none",border:"none"},
-  exportBtn:{cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
-  homeBtn:{cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
+  iconBtn:{cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   exportMenuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textAlign:"left"},
   exportMenuIcon:{fontSize:20,flexShrink:0},
-  exportMenuLabel:{fontSize:13,fontWeight:600},
-  exportMenuSub:{fontSize:11,marginTop:1,color:"#6b7280"},
-  exportMenuDivider:{height:1},
-  tabBar:{display:"flex",backdropFilter:"blur(12px)",flexShrink:0},
+  exportMenuSub:{fontSize:11,color:"#6b7280",marginTop:1},
+  tabBar:{display:"flex",flexShrink:0},
   tab:{flex:1,padding:"12px 0",textAlign:"center",fontSize:10,fontWeight:600,letterSpacing:"0.04em",textTransform:"uppercase",cursor:"pointer",background:"none",border:"none",borderBottom:"2px solid transparent",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"color 0.2s"},
-  tabActive:{borderBottom:"2px solid #3b82f6"},
-  tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px",fontFamily:"sans-serif"},
+  tabBadge:{background:"#ef4444",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"},
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
-  searchWrap:{margin:"14px 16px 8px",backdropFilter:"blur(8px)",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8},
-  searchIcon:{flexShrink:0},
+  searchWrap:{margin:"14px 16px 8px",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8},
   searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit"},
   clearSearch:{background:"none",border:"none",cursor:"pointer",fontSize:14,padding:2},
   sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase"},
   contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",transition:"background 0.15s"},
   avatar:{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#fff",flexShrink:0},
   rowInfo:{flex:1,minWidth:0},
-  rowName:{fontSize:14,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
-  rowSub:{fontSize:12,marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   touchBadge:{background:"rgba(59,130,246,0.15)",color:"#93c5fd",fontSize:10,fontWeight:700,borderRadius:6,padding:"2px 7px",marginRight:4,border:"1px solid rgba(59,130,246,0.25)"},
-  chevron:{flexShrink:0},
   fab:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",right:"max(20px, env(safe-area-inset-right))",width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 20px rgba(37,99,235,0.5)",transition:"transform 0.15s",zIndex:10},
   empty:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,textAlign:"center"},
   emptyIcon:{fontSize:48,marginBottom:14},
-  emptyTitle:{fontSize:17,fontWeight:600,marginBottom:6},
-  emptySub:{fontSize:13},
   profileScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 0 20px"},
   profileHero:{padding:"28px 20px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:10},
   avatarLg:{width:70,height:70,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700,color:"#fff",boxShadow:"0 0 0 3px rgba(59,130,246,0.3),0 8px 24px rgba(0,0,0,0.3)"},
-  profileName:{fontSize:20,fontWeight:700,margin:0,textAlign:"center"},
-  profileCompany:{fontSize:13,color:"#60a5fa",margin:0,textAlign:"center"},
   card:{backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,padding:"4px 0",overflow:"hidden"},
   fieldRow:{display:"flex",alignItems:"flex-start",padding:"13px 16px",gap:14},
   fieldIcon:{fontSize:16,flexShrink:0,marginTop:1},
   fieldBody:{flex:1,minWidth:0},
-  fieldLabel:{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},
-  fieldValue:{fontSize:14,textDecoration:"none",wordBreak:"break-all"},
-  notesLabel:{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
-  notesText:{fontSize:13,padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
-  touchSection:{margin:"14px 16px 0",backdropFilter:"blur(8px)",borderRadius:12,overflow:"hidden"},
+  touchSection:{backdropFilter:"blur(8px)",margin:"14px 16px 0",borderRadius:12,overflow:"hidden"},
   touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px"},
-  touchHeaderTitle:{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"},
   addNoteBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   addNotePanel:{padding:"14px 16px"},
-  addNoteDate:{fontSize:11,fontWeight:600,marginBottom:8},
-  addNoteDivider:{display:"flex",alignItems:"center",gap:8,margin:"10px 0 0",fontSize:10,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase"},
   addNoteTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   saveNoteBtn:{flex:1,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",borderRadius:9,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  touchEmpty:{padding:"20px",fontSize:13,textAlign:"center",lineHeight:1.6},
   touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
-  touchEntryDate:{fontSize:11,fontWeight:600},
   touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
-  touchEntryText:{fontSize:13,lineHeight:1.65,whiteSpace:"pre-wrap"},
   ntEditBtn:{background:"rgba(59,130,246,0.12)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntSaveBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
-  ntCancelBtn:{borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-  taskAddPanel:{margin:"16px 16px 0",backdropFilter:"blur(8px)",borderRadius:12,padding:"16px"},
-  taskAddTitle:{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12},
-  taskAddTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,marginTop:8},
+  taskAddPanel:{margin:"16px 16px 0",borderRadius:12,padding:"16px"},
   taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"},
-  taskListTitle:{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em"},
-  taskFilterBtn:{fontSize:12,fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"},
-  taskCard:{margin:"0 16px 8px",backdropFilter:"blur(8px)",borderRadius:12,overflow:"hidden"},
+  taskCard:{margin:"0 16px 8px",borderRadius:12,overflow:"hidden"},
   taskCardBody:{padding:"14px"},
   taskCardTop:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10},
-  taskCardText:{fontSize:13,lineHeight:1.5,flex:1,fontWeight:500},
   taskDeleteBtn:{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",display:"flex",alignItems:"center",flexShrink:0,borderRadius:4},
   taskCardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10},
   taskDueChip:{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px"},
-  taskDueOverdue:{color:"#dc2626",background:"rgba(220,38,38,0.1)",border:"1px solid rgba(220,38,38,0.3)"},
-  taskDueToday:{color:"#d97706",background:"rgba(217,119,6,0.1)",border:"1px solid rgba(217,119,6,0.3)"},
-  taskDueUpcoming:{color:"#2563eb",background:"rgba(37,99,235,0.1)",border:"1px solid rgba(37,99,235,0.3)"},
-  taskDueNone:{fontSize:11,fontWeight:500},
+  taskDueOverdue:{color:"#dc2626",background:"rgba(220,38,38,0.1)",border:"1px solid rgba(220,38,38,0.35)"},
+  taskDueToday:{color:"#d97706",background:"rgba(217,119,6,0.1)",border:"1px solid rgba(217,119,6,0.35)"},
+  taskDueUpcoming:{color:"#2563eb",background:"rgba(37,99,235,0.1)",border:"1px solid rgba(37,99,235,0.35)"},
   taskCompleteBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(59,130,246,0.3)",background:"rgba(59,130,246,0.1)",color:"#2563eb"},
   taskUndoBtn:{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.1)",color:"#2563eb",border:"1px solid rgba(59,130,246,0.25)"},
-  taskEditBtn:{background:"none",borderRadius:6,cursor:"pointer",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"},
-  taskEditTextarea:{width:"100%",padding:"8px 10px",borderRadius:8,fontSize:13,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,boxSizing:"border-box"},
   taskEditSaveBtn:{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  taskEditCancelBtn:{flex:1,padding:"8px",background:"transparent",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
   formScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px"},
   formGroup:{marginBottom:16},
-  formLabel:{display:"block",fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6},
   required:{color:"#f87171"},
-  formInput:{width:"100%",padding:"11px 14px",borderRadius:10,fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s"},
-  formTextarea:{width:"100%",padding:"11px 14px",borderRadius:10,fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   btnPrimary:{display:"block",width:"100%",padding:"13px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10,boxShadow:"0 4px 14px rgba(37,99,235,0.4)"},
-  btnSecondaryFull:{display:"block",width:"100%",padding:"12px",background:"transparent",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnSecondary:{flex:1,padding:"12px",background:"transparent",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnDanger:{flex:1,padding:"12px",background:"rgba(220,38,38,0.8)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid rgba(239,68,68,0.3)",color:"#ef4444",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  phoneHint:{fontSize:11,marginTop:4,textAlign:"right"},
+  btnDanger:{flex:1,padding:"12px",background:"rgba(220,38,38,0.85)",border:"none",color:"#fff",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  btnDangerFull:{display:"block",width:"calc(100% - 32px)",margin:"14px 16px 0",padding:"12px",background:"transparent",border:"1px solid rgba(239,68,68,0.4)",color:"#ef4444",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
   overlay:{position:"absolute",inset:0,backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:24},
-  modal:{backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,0.3)"},
-  modalTitle:{fontSize:17,fontWeight:700,margin:"0 0 6px"},
-  modalSub:{fontSize:13,margin:0},
-  toast:{position:"absolute",bottom:"calc(20px + env(safe-area-inset-bottom))",left:"50%",transform:"translateX(-50%)",backdropFilter:"blur(12px)",padding:"10px 20px",borderRadius:10,fontSize:13,fontWeight:500,zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.2)",border:"1px solid rgba(59,130,246,0.3)"},
+  modal:{backdropFilter:"blur(16px)",borderRadius:16,padding:"24px",width:"100%",maxWidth:320,textAlign:"center"},
   splashScreen:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16},
   splashLogo:{width:68,height:68,borderRadius:18,background:"linear-gradient(135deg,#1d4ed8,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",boxShadow:"0 0 40px rgba(59,130,246,0.4)"},
-  splashTitle:{fontSize:22,fontWeight:700,letterSpacing:"-0.02em"},
-  splashTagline:{fontSize:12,textAlign:"center",maxWidth:260,lineHeight:1.6},
   splashSpinner:{width:26,height:26,border:"2.5px solid rgba(59,130,246,0.2)",borderTop:"2.5px solid #3b82f6",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
 };
+
+
+const getCss = (dark) => `
+@keyframes spin { to { transform: rotate(360deg); } }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+.contact-row:hover { background: ${dark ? "rgba(255,255,255,0.04)" : "rgba(37,99,235,0.04)"} !important; }
+.fab:hover { transform: scale(1.06); }
+input[type="date"] { color-scheme: ${dark ? "dark" : "light"}; }
+input:focus, textarea:focus { border-color: rgba(59,130,246,0.6) !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: ${dark ? "rgba(71,85,105,0.8)" : "#d1d5db"}; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#050c19" : "#f4f6f8"}; }
+body { -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+button:hover { opacity: 0.88; }
+`;
