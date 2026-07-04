@@ -651,7 +651,7 @@ export default function DeanCRM() {
   };
 
   if (loading) return (
-    <div style={{...styles.shell,background:T.shell,color:T.text}}>
+    <div style={{...styles.shell,background:dark?"#0f172a":"#f0f2f5",color:dark?"#f1f5f9":"#111827"}}>
       <div style={{...styles.splashScreen,background:T.splashBg}}>
         <div style={styles.splashLogo}>D</div>
         <div style={{...styles.splashTitle,color:T.text}}>DeanBoard</div>
@@ -709,7 +709,7 @@ export default function DeanCRM() {
       {confirmDeleteTask&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Task?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteHealth&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Health Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
 
-      <div style={{...styles.header,background:T.headerBg,borderBottom:`1.5px solid ${T.headerBorder}`}}>
+      <div style={{...styles.header,background:dark?"#1e293b":"#ffffff",borderBottom:dark?"1px solid #334155":"2px solid #e5e7eb"}}>
         {view!=="list"?(
           <button style={{...styles.backBtn,background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor}} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
@@ -732,7 +732,7 @@ export default function DeanCRM() {
       </div>
 
       {view==="list"&&(
-        <div style={{...styles.tabBar,background:T.tabBg,borderBottom:`1.5px solid ${T.tabBorder}`}}>
+        <div style={{...styles.tabBar,background:dark?"#1e293b":"#ffffff",borderBottom:dark?"1px solid #334155":"2px solid #e5e7eb"}}>
           {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
             <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:"2px solid #3b82f6"}:{})}} onClick={()=>setHomeTab(id)}>
               {label}
@@ -753,7 +753,7 @@ export default function DeanCRM() {
       </div>
 
       {view==="list"&&(
-        <div style={{...styles.tabBar,background:T.tabBg,borderBottom:`1.5px solid ${T.tabBorder}`}}>
+        <div style={{...styles.tabBar,background:dark?"#1e293b":"#ffffff",borderBottom:dark?"1px solid #334155":"2px solid #e5e7eb"}}>
           {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
             <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:"2px solid #3b82f6"}:{})}} onClick={()=>setHomeTab(id)}>
               {label}
@@ -767,14 +767,14 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={{background:T.heroBg,padding:"22px 20px 24px",borderBottom:`1px solid ${T.kpiBorder}`}}>
+            <div style={{background:dark?"#1e293b":"#ffffff",padding:"22px 20px 24px",borderBottom:dark?"1px solid #334155":"2px solid #e5e7eb"}}>
               <div style={{fontSize:11,fontWeight:600,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
-              <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+              <div style={{fontSize:22,fontWeight:700,color:dark?"#f1f5f9":"#111827",letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
                 {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length},{label:"Follow-ups",val:upcomingContacts.length},{label:"Contacts",val:contacts.length}].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:T.kpiBg,borderRadius:10,padding:"12px 10px",border:`2px solid ${T.kpiBorder}`}}>
-                    <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
-                    <div style={{fontSize:10,color:T.kpiLabel,marginTop:4,fontWeight:500}}>{kpi.label}</div>
+                  <div key={kpi.label} style={{flex:1,background:dark?"rgba(37,99,235,0.18)":"#eff6ff",borderRadius:10,padding:"12px 10px",border:dark?"2px solid #1d4ed8":"2px solid #93c3fb",boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.06)"}}>
+                    <div style={{fontSize:22,fontWeight:700,color:dark?"#f1f5f9":"#1e40af",lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:10,color:dark?"#93c5fd":"#3b82f6",marginTop:4,fontWeight:500}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
@@ -785,7 +785,7 @@ export default function DeanCRM() {
               <span style={{fontSize:11,color:T.textMuted}}>{upcomingTasks.length} · next 7 days</span>
             </div>
             {upcomingTasks.length===0?(
-              <div style={{margin:"0 16px 16px",background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,padding:"24px 20px",textAlign:"center"}}>
+              <div style={{margin:"0 16px 16px",background:dark?"#1e293b":"#ffffff",borderRadius:10,border:dark?"2px solid #334155":"2px solid #6b7280",padding:"24px 20px",textAlign:"center",boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
                 <div style={{fontSize:13,color:"rgba(148,163,184,0.7)"}}>No tasks due in the next 7 days 🎉</div>
               </div>
             ):(
@@ -795,7 +795,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
+                    <div key={t.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
@@ -817,7 +817,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
                   return(
-                    <div key={c.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                    <div key={c.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer",boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                         <div style={{width:30,height:30,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
@@ -858,7 +858,7 @@ export default function DeanCRM() {
                       : {color:"#6ee7b7",background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)"};
                     const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
                     return (
-                      <div key={h.id} style={{background:T.kpiBg,borderRadius:10,border:`2px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
+                      <div key={h.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
@@ -992,7 +992,7 @@ export default function DeanCRM() {
                   {label:"Done",     val:healthNotes.filter(h=>h.completed).length,                                                            bg:"rgba(139,92,246,0.15)"},
                 ].map(kpi=>(
                   <div key={kpi.label} style={{flex:1,background:kpi.bg,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                    <div style={{fontSize:20,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:20,fontWeight:700,color:dark?"#f1f5f9":"#1e40af",lineHeight:1}}>{kpi.val}</div>
                     <div style={{fontSize:10,color:T.kpiLabel,marginTop:3,fontWeight:500}}>{kpi.label}</div>
                   </div>
                 ))}
