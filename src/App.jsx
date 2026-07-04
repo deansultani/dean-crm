@@ -785,7 +785,7 @@ export default function DeanCRM() {
               <span style={{fontSize:11,color:T.textMuted}}>{upcomingTasks.length} · next 7 days</span>
             </div>
             {upcomingTasks.length===0?(
-              <div style={{margin:"0 16px 16px",background:dark?"#1e293b":"#ffffff",borderRadius:10,border:dark?"2px solid #334155":"2px solid #6b7280",padding:"24px 20px",textAlign:"center",boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
+              <div className="home-tile" style={{margin:"0 16px 16px",padding:"24px 20px",textAlign:"center"}}>
                 <div style={{fontSize:13,color:"rgba(148,163,184,0.7)"}}>No tasks due in the next 7 days 🎉</div>
               </div>
             ):(
@@ -795,7 +795,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
                   return(
-                    <div key={t.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
+                    <div key={t.id} className="home-tile" style={{borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:"1px solid rgba(59,130,246,0.25)",background:"rgba(59,130,246,0.1)",color:"#93c5fd",cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
@@ -817,7 +817,7 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":"#2563eb";
                   const badgeStyle=status==="overdue"?{color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}:status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"};
                   return(
-                    <div key={c.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer",boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
+                    <div key={c.id} className="home-tile" style={{borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                         <div style={{width:30,height:30,borderRadius:8,background:avatarColor(c.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(c.name)}</div>
                         <div style={{minWidth:0}}>
@@ -858,7 +858,7 @@ export default function DeanCRM() {
                       : {color:"#6ee7b7",background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)"};
                     const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
                     return (
-                      <div key={h.id} style={{background:dark?"#1e293b":"#ffffff",borderRadius:10,borderTop:`4px solid ${accentColor}`,borderRight:dark?"2px solid #334155":"2px solid #6b7280",borderBottom:dark?"2px solid #334155":"2px solid #6b7280",borderLeft:dark?"2px solid #334155":"2px solid #6b7280",padding:"14px",display:"flex",flexDirection:"column",minHeight:110,boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.08)"}}>
+                      <div key={h.id} className="home-tile" style={{borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
@@ -1320,4 +1320,12 @@ body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button:hover { opacity: 0.88; }
+.home-tile {
+  background: ${dark ? "#1e293b" : "#ffffff"} !important;
+  border-right: 2px solid ${dark ? "#475569" : "#374151"} !important;
+  border-bottom: 2px solid ${dark ? "#475569" : "#374151"} !important;
+  border-left: 2px solid ${dark ? "#475569" : "#374151"} !important;
+  border-radius: 10px !important;
+  box-shadow: ${dark ? "none" : "0 2px 6px rgba(0,0,0,0.12)"} !important;
+}
 `;
