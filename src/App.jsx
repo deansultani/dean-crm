@@ -719,7 +719,7 @@ export default function DeanCRM() {
         ):(
           <div style={{width:32}}/>
         )}
-        <span style={styles.headerTitle}>
+        <span style={{...styles.headerTitle, background: dark ? "linear-gradient(90deg,#fff 0%,#93c5fd 100%)" : "none", WebkitBackgroundClip: dark ? "text" : "unset", WebkitTextFillColor: dark ? "transparent" : "#1a2332", color: dark ? "#fff" : "#1a2332"}}>
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
         <button style={{background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor,cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"}} onClick={()=>setDark(d=>!d)} title={dark?"Switch to Light Mode":"Switch to Dark Mode"}>{dark?(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>):(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>)}</button>
@@ -973,33 +973,33 @@ export default function DeanCRM() {
                   {label:"Done",     val:healthNotes.filter(h=>h.completed).length,                                                            bg:"rgba(139,92,246,0.15)"},
                 ].map(kpi=>(
                   <div key={kpi.label} style={{flex:1,background:kpi.bg,borderRadius:10,padding:"10px 8px",border:"1px solid rgba(255,255,255,0.08)"}}>
-                    <div style={{fontSize:20,fontWeight:700,color:"#fff",lineHeight:1}}>{kpi.val}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:3,fontWeight:500}}>{kpi.label}</div>
+                    <div style={{fontSize:20,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
+                    <div style={{fontSize:10,color:T.kpiLabel,marginTop:3,fontWeight:500}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{margin:"16px 16px 0",background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
+            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:"1px solid rgba(16,185,129,0.2)",padding:"16px"}}>
               <div style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
                 {HEALTH_CATEGORIES.map(cat=>(
-                  <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:"rgba(148,163,184,0.6)",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                  <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:T.textSub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                     {cat.emoji} {cat.label}
                   </button>
                 ))}
               </div>
-              <div style={{marginBottom:8}}><NextTouchInput value={newHealthDate} onChange={setNewHealthDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
-              <textarea style={{width:"100%",padding:"10px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",marginTop:4}} placeholder="What do you want to track?" value={newHealthNote} onChange={e=>setNewHealthNote(e.target.value)} rows={2}/>
+              <div style={{marginBottom:8}}><NextTouchInput value={newHealthDate} onChange={setNewHealthDate} inputStyle={{flex:1,padding:"9px 12px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,fontSize:14,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"rgba(255,255,255,0.05)"}}/></div>
+              <textarea style={{width:"100%",padding:"10px 12px",border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:13,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:T.inputBg,marginTop:4}} placeholder="What do you want to track?" value={newHealthNote} onChange={e=>setNewHealthNote(e.target.value)} rows={2}/>
               <button style={{display:"block",width:"100%",marginTop:10,padding:"10px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addHealthNote}>Add Note</button>
             </div>
 
             <div style={{padding:"14px 16px 10px"}}>
-              <div style={{fontSize:10,fontWeight:700,color:"rgba(147,197,253,0.6)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Filter by category</div>
+              <div style={{fontSize:10,fontWeight:700,color:dark?"rgba(147,197,253,0.6)":"#64748b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Filter by category</div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                <button onClick={()=>setHealthFilter("all")} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter==="all"?"#3b82f6":"rgba(59,130,246,0.25)"}`,background:healthFilter==="all"?"rgba(59,130,246,0.15)":"transparent",color:healthFilter==="all"?"#93c5fd":"rgba(148,163,184,0.55)"}}>All</button>
+                <button onClick={()=>setHealthFilter("all")} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter==="all"?"#3b82f6":"rgba(59,130,246,0.25)"}`,background:healthFilter==="all"?"rgba(59,130,246,0.15)":"transparent",color:healthFilter==="all"?"#2563eb":T.textSub}}>All</button>
                 {HEALTH_CATEGORIES.map(cat=>(
-                  <button key={cat.id} onClick={()=>setHealthFilter(cat.id)} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter===cat.id?cat.color:cat.border}`,background:healthFilter===cat.id?cat.bg:"transparent",color:healthFilter===cat.id?cat.color:"rgba(148,163,184,0.55)"}}>
+                  <button key={cat.id} onClick={()=>setHealthFilter(cat.id)} style={{padding:"5px 12px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${healthFilter===cat.id?cat.color:cat.border}`,background:healthFilter===cat.id?cat.bg:"transparent",color:healthFilter===cat.id?cat.color:T.textSub}}>
                     {cat.emoji} {cat.label}
                   </button>
                 ))}
@@ -1021,24 +1021,24 @@ export default function DeanCRM() {
                         {isEditing?(<>
                           <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
                             {HEALTH_CATEGORIES.map(c=>(
-                              <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
+                              <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:T.textSub,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
                             ))}
                           </div>
-                          <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
-                          <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
+                          <textarea style={{width:"100%",padding:"8px 10px",border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:13,color:T.inputColor,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:T.inputBg,boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                          <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
-                            <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
+                            <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
                           </div>
                         </>):(<>
                           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
                             <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
                             <div style={{display:"flex",gap:5}}>
-                              <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
+                              <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
                               <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
-                          <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                          <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",color:"#fca5a5",background:"rgba(220,38,38,0.15)",border:"1px solid rgba(220,38,38,0.3)"}}>Due {formatTaskDue(h.due_date)}</span>
                             <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
@@ -1054,7 +1054,7 @@ export default function DeanCRM() {
                 <span style={{fontSize:11,fontWeight:700,color:"rgba(16,185,129,0.7)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNonOverdue.length})</span>
               </div>
               {healthNonOverdue.length===0&&healthOverdue.length===0?(
-                <div style={{padding:"14px",fontSize:13,color:"rgba(148,163,184,0.6)",textAlign:"center"}}>No open health notes 🎉</div>
+                <div style={{padding:"14px",fontSize:13,color:T.textSub,textAlign:"center"}}>No open health notes 🎉</div>
               ):healthNonOverdue.length===0?null:healthNonOverdue.map(h=>{
                 const status=taskDueStatus(h.due_date); const cat=getCat(h.category); const isEditing=editingHealthId===h.id;
                 return(
@@ -1063,26 +1063,26 @@ export default function DeanCRM() {
                       {isEditing?(<>
                         <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
                           {HEALTH_CATEGORIES.map(c=>(
-                            <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:"rgba(148,163,184,0.6)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
+                            <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:T.textSub,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
                           ))}
                         </div>
-                        <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:"#e2e8f0",fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
-                        <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:"#e2e8f0",fontFamily:"inherit",background:"transparent"}}/>
+                        <textarea style={{width:"100%",padding:"8px 10px",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,fontSize:13,color:T.text,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:"rgba(255,255,255,0.05)",boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                        <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                         <div style={{display:"flex",gap:6,marginTop:9}}>
                           <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
-                          <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(226,232,240,0.6)",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
+                          <button style={{flex:1,padding:"8px",background:"transparent",border:"1px solid rgba(255,255,255,0.12)",color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
                         </div>
                       </>):(<>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
                           <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
                           <div style={{display:"flex",gap:5}}>
-                            <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:"rgba(148,163,184,0.8)",padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
+                            <button style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditHealth(h)}>Edit</button>
                             <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:"rgba(148,163,184,0.5)"}}>No due date</span>}
+                          {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="today"?{color:"#fcd34d",background:"rgba(217,119,6,0.15)",border:"1px solid rgba(217,119,6,0.3)"}:{color:"#93c5fd",background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.25)"})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:T.textMuted}}>No due date</span>}
                           <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.1)",color:"#34d399"}} onClick={()=>completeHealthNote(h.id)}>Done</button>
                         </div>
                       </>)}
@@ -1093,8 +1093,8 @@ export default function DeanCRM() {
 
               {healthDone.length>0&&(<>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px 8px"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.5)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthDone.length})</span>
-                  <button style={{fontSize:12,color:"rgba(148,163,184,0.6)",fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedHealth(s=>!s)}>{showCompletedHealth?"Hide":"Show"}</button>
+                  <span style={{fontSize:11,fontWeight:700,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>Completed ({healthDone.length})</span>
+                  <button style={{fontSize:12,color:T.textSub,fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedHealth(s=>!s)}>{showCompletedHealth?"Hide":"Show"}</button>
                 </div>
                 {showCompletedHealth&&healthDone.map(h=>{
                   const cat=getCat(h.category);
@@ -1107,11 +1107,11 @@ export default function DeanCRM() {
                             <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"rgba(16,185,129,0.1)",color:"#6ee7b7",border:"1px solid rgba(16,185,129,0.25)"}}>✓ Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</span>
                           </div>
                           <div style={{display:"flex",gap:5,flexShrink:0}}>
-                            <button style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.08)",color:"rgba(147,197,253,0.7)",border:"1px solid rgba(59,130,246,0.15)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
+                            <button style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:"rgba(59,130,246,0.08)",color:dark?"rgba(147,197,253,0.7)":"rgba(59,130,246,0.8)",border:"1px solid rgba(59,130,246,0.15)"}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
                             <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.2)",padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:"rgba(226,232,240,0.45)",fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{h.note}</div>
+                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{h.note}</div>
                       </div>
                     </div>
                   );
@@ -1165,7 +1165,7 @@ export default function DeanCRM() {
                 )}
               </div></div>
             </div>
-            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}><div style={styles.notesLabel}>📝 Notes</div><div style={styles.notesText}>{contact.notes}</div></div>}
+            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{contact.notes}</div></div>}
             <div style={{...styles.touchSection,background:T.cardBg,border:`1px solid ${T.cardBorder}`}}>
               <div style={styles.touchHeader}><span style={styles.touchHeaderTitle}>🤝 Touch Log</span><button style={styles.addNoteBtn} onClick={()=>{setAddingNote(true);setNewNote("");setInlineNextTouch(contact.next_touch||"");}}>+ Add Note</button></div>
               {addingNote&&(
@@ -1217,7 +1217,7 @@ export default function DeanCRM() {
 const styles = {
   shell:{width:"100%",height:"100dvh",display:"flex",flexDirection:"column",fontFamily:"'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif",background:"var(--shell-bg, linear-gradient(160deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%))",color:"#e2e8f0",position:"relative",overflow:"hidden",paddingBottom:"env(safe-area-inset-bottom)"},
   header:{background:"rgba(10,22,40,0.85)",backdropFilter:"blur(12px)",color:"#e2e8f0",paddingTop:"calc(14px + env(safe-area-inset-top))",paddingBottom:"14px",paddingLeft:"max(20px, env(safe-area-inset-left))",paddingRight:"max(20px, env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:12,minHeight:"calc(56px + env(safe-area-inset-top))",flexShrink:0,borderBottom:"1px solid rgba(59,130,246,0.2)"},
-  headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},
+  headerTitle:{flex:1,fontSize:18,fontWeight:700,letterSpacing:"-0.01em",color:"#fff",background:"linear-gradient(90deg,#fff 0%,#93c5fd 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},/* headerTitle */
   backBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   exportBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"},
   homeBtn:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.8)",cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center",marginLeft:2},
@@ -1260,8 +1260,8 @@ const styles = {
   fieldBody:{flex:1,minWidth:0},
   fieldLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3},/* fieldLabel */
   fieldValue:{fontSize:14,color:"inherit",textDecoration:"none",wordBreak:"break-all"},
-  notesLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},
-  notesText:{fontSize:13,color:"rgba(226,232,240,0.8)",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
+  notesLabel:{fontSize:10,color:"rgba(148,163,184,0.7)",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"13px 16px 4px"},/* notesLabel */
+  notesText:{fontSize:13,color:"inherit",padding:"0 16px 14px",lineHeight:1.7,whiteSpace:"pre-wrap"},
   touchSection:{margin:"14px 16px 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(8px)",borderRadius:12,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"},/* touchSection */
   touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)"},
   touchHeaderTitle:{fontSize:11,fontWeight:700,color:"rgba(148,163,184,0.8)",letterSpacing:"0.08em",textTransform:"uppercase"},
