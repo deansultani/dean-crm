@@ -807,10 +807,10 @@ export default function DeanCRM() {
                   const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
                   const chipStyle=status==="overdue"?{color:T.railOverdue,background:dark?"rgba(111,177,255,0.14)":"rgba(220,38,38,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(220,38,38,0.35)"}`}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
                   return(
-                    <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
+                    <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("tasks");startEditTask(t);}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontFamily:T.fontMono,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
-                      <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
+                      <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={(e)=>{e.stopPropagation();completeTask(t.id);}}>Done</button>
                     </div>
                   );
                 })}
@@ -870,12 +870,12 @@ export default function DeanCRM() {
                       : {color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"#e3f5ec",border:`1px solid ${dark?"rgba(61,111,217,0.3)":"#c7ecdb"}`};
                     const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
                     return (
-                      <div key={h.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
+                      <div key={h.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("health");startEditHealth(h);}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
                           <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
-                          <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                          <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={(e)=>{e.stopPropagation();completeHealthNote(h.id);}}>Done</button>
                         </div>
                       </div>
                     );
