@@ -947,13 +947,13 @@ export default function DeanCRM() {
                           <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
-                            <button style={{...styles.taskEditCancelBtn,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
+                            <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
                           </div>
                         </>):(<>
                           <div style={styles.taskCardTop}>
                             <div style={{...styles.taskCardText,color:T.text}}>{t.note}</div>
                             <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
-                              <button style={{...styles.taskEditBtn,border:`1px solid ${T.cardBorder}`,color:T.textSub}} onClick={()=>startEditTask(t)}>Edit</button>
+                              <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditTask(t)}>Edit</button>
                               <button style={{...styles.taskDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
