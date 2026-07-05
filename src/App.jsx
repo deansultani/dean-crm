@@ -567,56 +567,62 @@ export default function DeanCRM() {
 
   // ── Theme palette ──
   const T = dark ? {
-    shell:        "#0f172a",
-    splashBg:     "#050c19",
-    heroBg:       "#1e293b",
-    headerBg:     "#1e293b",
-    headerBorder: "#334155",
-    tabBg:        "#1e293b",
-    tabBorder:    "#334155",
-    tabColor:     "#94a3b8",
-    tabActive:    "#93c5fd",
-    sectionBg:    "#0f172a",
-    sectionColor: "#60a5fa",
-    rowBg:        "#1e293b",
-    rowBorder:    "#334155",
-    cardBg:       "#1e293b",
-    cardBorder:   "#334155",
-    inputBg:      "#0f172a",
-    inputBorder:  "#475569",
-    inputColor:   "#f1f5f9",
-    text:         "#f1f5f9",
-    textSub:      "#cbd5e1",
-    textMuted:    "#64748b",
-    completedNote:"#475569",
-    deleteIcon:   "#475569",
-    fieldLabel:   "#94a3b8",
-    touchColor:   "#60a5fa",
-    touchText:    "#e2e8f0",
-    btnSecBorder: "#475569",
-    btnSecColor:  "#cbd5e1",
-    iconBtnBg:    "#334155",
-    iconBtnBorder:"#475569",
-    iconBtnColor: "#cbd5e1",
-    overlayBg:    "rgba(0,0,0,0.65)",
-    modalBg:      "#1e293b",
-    toastBg:      "#0f172a",
-    toastColor:   "#93c5fd",
-    exportBg:     "#1e293b",
-    kpiBg:        "rgba(37,99,235,0.18)",
-    kpiBorder:    "#1d4ed8",
-    kpiColor:     "#f1f5f9",
-    kpiLabel:     "#93c5fd",
-    subtleBg:     "rgba(255,255,255,0.04)",
-    subtleBg2:    "rgba(255,255,255,0.02)",
-    subtleBorder: "rgba(255,255,255,0.08)",
-    subtleBorder2:"rgba(255,255,255,0.05)",
-    inputFillAlt: "rgba(255,255,255,0.05)",
-    inputBorderAlt:"rgba(255,255,255,0.1)",
-    doneBadgeBlueBg:"rgba(59,130,246,0.1)",
-    doneBadgeBlueColor:"#93c5fd",
-    doneBadgeGreenBg:"rgba(16,185,129,0.1)",
-    doneBadgeGreenColor:"#6ee7b7",
+    shell:        "#0A0F1C",
+    splashBg:     "#0A0F1C",
+    heroBg:       "#121A2C",
+    headerBg:     "#121A2C",
+    headerBorder: "rgba(140,180,255,0.12)",
+    tabBg:        "#121A2C",
+    tabBorder:    "rgba(140,180,255,0.12)",
+    tabColor:     "#6E85AC",
+    tabActive:    "#6FB1FF",
+    sectionBg:    "#0A0F1C",
+    sectionColor: "#6FB1FF",
+    rowBg:        "#121A2C",
+    rowBorder:    "rgba(140,180,255,0.1)",
+    cardBg:       "#121A2C",
+    cardBorder:   "rgba(140,180,255,0.12)",
+    inputBg:      "#0F1526",
+    inputBorder:  "rgba(140,180,255,0.18)",
+    inputColor:   "#EAF1FF",
+    text:         "#EAF1FF",
+    textSub:      "#A9BBD9",
+    textMuted:    "#6E85AC",
+    completedNote:"#3A4762",
+    deleteIcon:   "#3A4762",
+    fieldLabel:   "#6E85AC",
+    touchColor:   "#6FB1FF",
+    touchText:    "#EAF1FF",
+    btnSecBorder: "rgba(140,180,255,0.18)",
+    btnSecColor:  "#A9BBD9",
+    iconBtnBg:    "#1B2338",
+    iconBtnBorder:"rgba(140,180,255,0.15)",
+    iconBtnColor: "#A9BBD9",
+    overlayBg:    "rgba(3,6,14,0.72)",
+    modalBg:      "#121A2C",
+    toastBg:      "#0A0F1C",
+    toastColor:   "#6FB1FF",
+    exportBg:     "#121A2C",
+    kpiBg:        "#121A2C",
+    kpiBorder:    "#3D6FD9",
+    kpiColor:     "#EAF1FF",
+    kpiLabel:     "#6E85AC",
+    subtleBg:     "#121A2C",
+    subtleBg2:    "#0F1526",
+    subtleBorder: "rgba(140,180,255,0.1)",
+    subtleBorder2:"rgba(140,180,255,0.08)",
+    inputFillAlt: "#0F1526",
+    inputBorderAlt:"rgba(140,180,255,0.15)",
+    doneBadgeBlueBg:"#1B2338",
+    doneBadgeBlueColor:"#6FB1FF",
+    doneBadgeGreenBg:"#1B2338",
+    doneBadgeGreenColor:"#3D6FD9",
+    railOverdue:  "#6FB1FF",
+    railToday:    "#6FB1FF",
+    railUpcoming: "#3D6FD9",
+    railNeutral:  "#24314F",
+    fontDisplay:  "'Space Grotesk',sans-serif",
+    fontMono:     "'IBM Plex Mono',monospace",
   } : {
     shell:        "#f3f2f2",
     splashBg:     "#f3f2f2",
@@ -668,10 +674,16 @@ export default function DeanCRM() {
     doneBadgeBlueColor:"#014486",
     doneBadgeGreenBg:"#e3f5ec",
     doneBadgeGreenColor:"#04844b",
+    railOverdue:  "#dc2626",
+    railToday:    "#d97706",
+    railUpcoming: "#0176d3",
+    railNeutral:  "#c9c7c5",
+    fontDisplay:  "'Space Grotesk',sans-serif",
+    fontMono:     "'IBM Plex Mono',monospace",
   };
 
   if (loading) return (
-    <div style={{...styles.shell,background:dark?"#0f172a":"#f0f2f5",color:dark?"#f1f5f9":"#111827"}}>
+    <div style={{...styles.shell,background:dark?"#0A0F1C":"#f0f2f5",color:dark?"#EAF1FF":"#111827"}}>
       <div style={{...styles.splashScreen,background:T.splashBg}}>
         <div style={styles.splashLogo}>D</div>
         <div style={{...styles.splashTitle,color:T.text}}>DeanBoard</div>
@@ -729,7 +741,7 @@ export default function DeanCRM() {
       {confirmDeleteTask&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Task?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteHealth&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Health Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
 
-      <div style={{...styles.header,background:T.headerBg,borderBottom:dark?"1px solid #334155":`1px solid ${T.headerBorder}`}}>
+      <div style={{...styles.header,background:T.headerBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.headerBorder}`}}>
         {view!=="list"?(
           <button style={{...styles.backBtn,background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor}} onClick={()=>{setAddingNote(false);setNewNote("");setEditingNextTouch(false);setView("list");}}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
@@ -737,7 +749,8 @@ export default function DeanCRM() {
         ):(
           <div style={{width:32}}/>
         )}
-        <span style={{...styles.headerTitle, background: dark ? "linear-gradient(90deg,#fff 0%,#93c5fd 100%)" : "none", WebkitBackgroundClip: dark ? "text" : "unset", WebkitTextFillColor: dark ? "transparent" : "#032d60", color: dark ? "#fff" : "#032d60"}}>
+        <span style={{...styles.headerTitle, fontFamily:T.fontDisplay, display:"flex", alignItems:"center", gap:8, background: "none", WebkitBackgroundClip: "unset", WebkitTextFillColor: T.text, color: T.text}}>
+          {view==="list"&&<span style={{width:7,height:7,borderRadius:"50%",background:T.sectionColor,display:"inline-block",animation:"pulseDot 2s ease-in-out infinite",flexShrink:0}}/>}
           {view==="list"?"DeanBoard":view==="profile"?contact?.name||"Contact":view==="add"?"New Contact":"Edit Contact"}
         </span>
         <button style={{background:T.iconBtnBg,border:`1px solid ${T.iconBtnBorder}`,color:T.iconBtnColor,cursor:"pointer",padding:"7px",borderRadius:9,display:"flex",alignItems:"center"}} onClick={()=>setDark(d=>!d)} title={dark?"Switch to Light Mode":"Switch to Dark Mode"}>{dark?(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>):(<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>)}</button>
@@ -752,12 +765,12 @@ export default function DeanCRM() {
       </div>
 
       {view==="list"&&(
-        <div style={{...styles.tabBar,background:T.tabBg,borderBottom:dark?"1px solid #334155":`1px solid ${T.tabBorder}`}}>
+        <div style={{...styles.tabBar,background:T.tabBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.tabBorder}`}}>
           {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
             <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:`2px solid ${T.tabActive}`}:{})}} onClick={()=>setHomeTab(id)}>
               {label}
               {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
-              {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:"#dc2626"}}>{healthOverdueCount}</span>}
+              {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:T.railOverdue}}>{healthOverdueCount}</span>}
             </button>
           ))}
         </div>
@@ -766,14 +779,14 @@ export default function DeanCRM() {
       {view==="list"&&homeTab==="home"&&(
         <div style={styles.body}>
           <div style={styles.listScroll}>
-            <div style={{background:T.heroBg,padding:"22px 20px 24px",borderBottom:dark?"1px solid #334155":`1px solid ${T.headerBorder}`}}>
-              <div style={{fontSize:11,fontWeight:600,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}}>{getGreeting()}, Dean</div>
-              <div style={{fontSize:22,fontWeight:700,color:T.text,letterSpacing:"-0.02em"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+            <div style={{background:T.heroBg,padding:"22px 20px 24px",borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.headerBorder}`}}>
+              <div style={{fontSize:11,fontWeight:600,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5,fontFamily:T.fontMono}}>{getGreeting()}, Dean</div>
+              <div style={{fontSize:22,fontWeight:700,color:T.text,letterSpacing:"-0.02em",fontFamily:T.fontDisplay}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
               <div style={{display:"flex",gap:10,marginTop:16}}>
-                {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length},{label:"Follow-ups",val:upcomingContacts.length},{label:"Contacts",val:contacts.length}].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:T.kpiBg,borderRadius:10,padding:"12px 10px",border:`2px solid ${T.kpiBorder}`,boxShadow:dark?"none":"0 1px 3px rgba(0,0,0,0.06)"}}>
-                    <div style={{fontSize:22,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
-                    <div style={{fontSize:10,color:T.kpiLabel,marginTop:4,fontWeight:500}}>{kpi.label}</div>
+                {[{label:"Open Tasks",val:tasks.filter(t=>!t.completed).length,rail:T.railUpcoming},{label:"Overdue",val:upcomingTasks.filter(t=>taskDueStatus(t.due_date)==="overdue").length,rail:T.railOverdue},{label:"Follow-ups",val:upcomingContacts.length,rail:T.railUpcoming},{label:"Contacts",val:contacts.length,rail:T.railNeutral}].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:T.cardBg,borderTop:`2px solid ${kpi.rail}`,borderRadius:"0 0 8px 8px",padding:"12px 10px"}}>
+                    <div style={{fontSize:20,fontWeight:500,color:T.text,lineHeight:1,fontFamily:T.fontMono,fontVariantNumeric:"tabular-nums"}}>{kpi.val}</div>
+                    <div style={{fontSize:9,color:T.textMuted,marginTop:4,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
@@ -791,11 +804,11 @@ export default function DeanCRM() {
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                 {upcomingTasks.map(t=>{
                   const status=taskDueStatus(t.due_date);
-                  const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":T.sectionColor;
-                  const chipStyle=status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming;
+                  const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
+                  const chipStyle=status==="overdue"?{color:T.railOverdue,background:dark?"rgba(111,177,255,0.14)":"rgba(220,38,38,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(220,38,38,0.35)"}`}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
                   return(
                     <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
-                      <span style={{...styles.taskDueChip,...chipStyle,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
+                      <span style={{...styles.taskDueChip,...chipStyle,fontFamily:T.fontMono,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
                       <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={()=>completeTask(t.id)}>Done</button>
                     </div>
@@ -813,8 +826,8 @@ export default function DeanCRM() {
                 {upcomingContacts.map(c=>{
                   const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);
                   const origIdx=contacts.findIndex(x=>x.id===c.id);
-                  const accentColor=status==="overdue"?"#dc2626":status==="today"?"#d97706":T.sectionColor;
-                  const badgeStyle=status==="overdue"?{color:"#dc2626",background:dark?"rgba(220,38,38,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(220,38,38,0.3)":"#f5c6c3"}`}:status==="today"?{color:"#d97706",background:dark?"rgba(217,119,6,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(217,119,6,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`};
+                  const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
+                  const badgeStyle=status==="overdue"?{color:T.railOverdue,background:dark?"rgba(111,177,255,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`};
                   return(
                     <div key={c.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
@@ -824,7 +837,7 @@ export default function DeanCRM() {
                           <div style={{fontSize:11,color:T.textSub,marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company||c.email||""}</div>
                         </div>
                       </div>
-                      <span style={{...badgeStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"Overdue":status==="today"?"Today":`${formatTaskDue(iso)}`}</span>
+                      <span style={{...badgeStyle,fontFamily:T.fontMono,fontSize:10,fontWeight:600,borderRadius:6,padding:"3px 8px",alignSelf:"flex-start"}}>{status==="overdue"?"Overdue":status==="today"?"Today":`${formatTaskDue(iso)}`}</span>
                     </div>
                   );
                 })}
@@ -842,27 +855,27 @@ export default function DeanCRM() {
               if (homeHealthItems.length === 0) return null;
               return (<>
                 <div style={{padding:"14px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:dark?"#34d399":"#04844b",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
+                  <span style={{fontSize:11,fontWeight:700,color:dark?T.sectionColor:"#04844b",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
                   <span style={{fontSize:11,color:T.textMuted}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
                   {homeHealthItems.map(h => {
                     const status = taskDueStatus(h.due_date);
                     const cat = getCat(h.category);
-                    const accentColor = status==="overdue" ? "#dc2626" : status==="today" ? "#d97706" : "#10b981";
+                    const accentColor = status==="overdue" ? T.railOverdue : status==="today" ? T.railToday : T.railUpcoming;
                     const chipStyle = status==="overdue"
-                      ? {color:"#dc2626",background:dark?"rgba(220,38,38,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(220,38,38,0.3)":"#f5c6c3"}`}
+                      ? {color:T.railOverdue,background:dark?"rgba(111,177,255,0.14)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}
                       : status==="today"
-                      ? {color:"#d97706",background:dark?"rgba(217,119,6,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(217,119,6,0.3)":"#fbdca3"}`}
-                      : {color:T.doneBadgeGreenColor,background:T.doneBadgeGreenBg,border:`1px solid ${dark?"rgba(16,185,129,0.3)":"#c7ecdb"}`};
+                      ? {color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}
+                      : {color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"#e3f5ec",border:`1px solid ${dark?"rgba(61,111,217,0.3)":"#c7ecdb"}`};
                     const chipLabel = status==="overdue" ? `Due ${formatTaskDue(h.due_date)}` : status==="today" ? "Today" : formatTaskDue(h.due_date);
                     return (
                       <div key={h.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
-                          <span style={{...chipStyle,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
-                          <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(16,185,129,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                          <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
+                          <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={()=>completeHealthNote(h.id)}>Done</button>
                         </div>
                       </div>
                     );
@@ -981,25 +994,25 @@ export default function DeanCRM() {
         <div style={styles.body}>
           <div style={styles.listScroll}>
 
-            <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:dark?"1px solid rgba(16,185,129,0.15)":`1px solid ${T.headerBorder}`}}>
-              <div style={{fontSize:11,fontWeight:700,color:dark?"rgba(16,185,129,0.7)":"#04844b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Health Dashboard</div>
+            <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.headerBorder}`}}>
+              <div style={{fontSize:11,fontWeight:700,color:dark?T.sectionColor:"#04844b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12,fontFamily:T.fontDisplay}}>Health Dashboard</div>
               <div style={{display:"flex",gap:8}}>
                 {[
-                  {label:"Open",     val:healthNotes.filter(h=>!h.completed).length,                                                           bg:dark?"rgba(16,185,129,0.15)":"#e3f5ec"},
-                  {label:"Overdue",  val:healthOverdueCount,                                                                                   bg:dark?"rgba(220,38,38,0.15)":"#fdecea"},
-                  {label:"Upcoming", val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,         bg:dark?"rgba(59,130,246,0.15)":"#eef4fb"},
-                  {label:"Done",     val:healthNotes.filter(h=>h.completed).length,                                                            bg:dark?"rgba(139,92,246,0.15)":"#f1ecfb"},
+                  {label:"Open",     val:healthNotes.filter(h=>!h.completed).length,                                                           rail:T.railUpcoming},
+                  {label:"Overdue",  val:healthOverdueCount,                                                                                   rail:T.railOverdue},
+                  {label:"Upcoming", val:healthNotes.filter(h=>!h.completed&&h.due_date&&taskDueStatus(h.due_date)!=="overdue").length,         rail:T.railUpcoming},
+                  {label:"Done",     val:healthNotes.filter(h=>h.completed).length,                                                            rail:T.railNeutral},
                 ].map(kpi=>(
-                  <div key={kpi.label} style={{flex:1,background:kpi.bg,borderRadius:10,padding:"10px 8px",border:`1px solid ${dark?"rgba(255,255,255,0.08)":"#dddbda"}`}}>
-                    <div style={{fontSize:20,fontWeight:700,color:T.kpiColor,lineHeight:1}}>{kpi.val}</div>
-                    <div style={{fontSize:10,color:T.kpiLabel,marginTop:3,fontWeight:500}}>{kpi.label}</div>
+                  <div key={kpi.label} style={{flex:1,background:T.cardBg,borderTop:`2px solid ${kpi.rail}`,borderRadius:"0 0 8px 8px",padding:"10px 8px"}}>
+                    <div style={{fontSize:18,fontWeight:500,color:T.text,lineHeight:1,fontFamily:T.fontMono,fontVariantNumeric:"tabular-nums"}}>{kpi.val}</div>
+                    <div style={{fontSize:9,color:T.textMuted,marginTop:3,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{kpi.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:`2px solid ${dark?"rgba(16,185,129,0.35)":"#04844b"}`,padding:"16px"}}>
-              <div style={{fontSize:11,fontWeight:700,color:dark?"rgba(16,185,129,0.7)":"#04844b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
+            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:`2px solid ${dark?"rgba(111,177,255,0.3)":"#04844b"}`,padding:"16px"}}>
+              <div style={{fontSize:11,fontWeight:700,color:dark?T.sectionColor:"#04844b",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Health Note</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
                 {HEALTH_CATEGORIES.map(cat=>(
                   <button key={cat.id} onClick={()=>setNewHealthCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newHealthCategory===cat.id?cat.color:cat.border}`,background:newHealthCategory===cat.id?cat.bg:"transparent",color:newHealthCategory===cat.id?cat.color:T.textSub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
@@ -1029,7 +1042,7 @@ export default function DeanCRM() {
             ) : (<>
               {healthOverdue.length > 0 && (<>
                 <div style={{display:"flex",alignItems:"center",padding:"4px 20px 8px"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:"#dc2626",textTransform:"uppercase",letterSpacing:"0.08em"}}>⚠ Overdue ({healthOverdue.length})</span>
+                  <span style={{fontSize:11,fontWeight:700,color:T.railOverdue,textTransform:"uppercase",letterSpacing:"0.08em"}}>⚠ Overdue ({healthOverdue.length})</span>
                 </div>
                 {healthOverdue.map(h=>{
                   const cat=getCat(h.category); const isEditing=editingHealthId===h.id;
@@ -1058,8 +1071,8 @@ export default function DeanCRM() {
                           </div>
                           <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                            <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",color:"#dc2626",background:dark?"rgba(220,38,38,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(220,38,38,0.3)":"#f5c6c3"}`}}>Due {formatTaskDue(h.due_date)}</span>
-                            <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(16,185,129,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                            <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,color:T.railOverdue,background:dark?"rgba(111,177,255,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}}>Due {formatTaskDue(h.due_date)}</span>
+                            <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
                           </div>
                         </>)}
                       </div>
@@ -1069,7 +1082,7 @@ export default function DeanCRM() {
               </>)}
 
               <div style={{display:"flex",alignItems:"center",padding:`${healthOverdue.length>0?"10px":"4px"} 20px 8px`}}>
-                <span style={{fontSize:11,fontWeight:700,color:dark?"rgba(16,185,129,0.7)":"#04844b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNonOverdue.length})</span>
+                <span style={{fontSize:11,fontWeight:700,color:dark?T.sectionColor:"#04844b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Open ({healthNonOverdue.length})</span>
               </div>
               {healthNonOverdue.length===0&&healthOverdue.length===0?(
                 <div style={{padding:"14px",fontSize:13,color:T.textSub,textAlign:"center"}}>No open health notes 🎉</div>
@@ -1100,8 +1113,8 @@ export default function DeanCRM() {
                         </div>
                         <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",...(status==="today"?{color:"#d97706",background:dark?"rgba(217,119,6,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(217,119,6,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:T.textMuted}}>No due date</span>}
-                          <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(16,185,129,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
+                          {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,...(status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:T.textMuted}}>No due date</span>}
+                          <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
                         </div>
                       </>)}
                     </div>
@@ -1117,12 +1130,12 @@ export default function DeanCRM() {
                 {showCompletedHealth&&healthDone.map(h=>{
                   const cat=getCat(h.category);
                   return(
-                    <div key={h.id} style={{margin:"0 16px 8px",background:T.subtleBg2,borderRadius:12,border:`1px solid ${T.subtleBorder2}`,borderLeft:`3px solid ${dark?"rgba(16,185,129,0.3)":"#c7ecdb"}`}}>
+                    <div key={h.id} style={{margin:"0 16px 8px",background:T.subtleBg2,borderRadius:12,border:`1px solid ${T.subtleBorder2}`,borderLeft:`3px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`}}>
                       <div style={{padding:"12px 14px"}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:7}}>
                           <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                             <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
-                            <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,border:`1px solid ${dark?"rgba(16,185,129,0.25)":"#c7ecdb"}`}}>✓ Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</span>
+                            <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,border:`1px solid ${dark?"rgba(111,177,255,0.25)":"#c7ecdb"}`}}>✓ Done {h.completed_at?formatTaskDue(h.completed_at.slice(0,10)):""}</span>
                           </div>
                           <div style={{display:"flex",gap:5,flexShrink:0}}>
                             <button style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,border:`1px solid ${dark?"rgba(59,130,246,0.15)":T.kpiBorder}`}} onClick={()=>completeHealthNote(h.id,true)}>Undo</button>
@@ -1147,7 +1160,7 @@ export default function DeanCRM() {
           <div style={styles.profileScroll}>
             <div style={{...styles.profileHero,background:T.heroBg,borderBottom:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.avatarLg,background:avatarColor(contact.name)}}>{initials(contact.name)}</div>
-              <h2 style={{...styles.profileName,color:T.text}}>{contact.name}</h2>
+              <h2 style={{...styles.profileName,color:T.text,fontFamily:T.fontDisplay}}>{contact.name}</h2>
               {contact.company&&<p style={{fontSize:13,color:T.sectionColor,margin:0,textAlign:"center"}}>{contact.company}</p>}
             </div>
             <div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
@@ -1306,15 +1319,16 @@ const styles = {
 
 const getCss = (dark) => `
 @keyframes spin { to { transform: rotate(360deg); } }
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-.contact-row:hover { background: ${dark ? "rgba(255,255,255,0.04)" : "rgba(1,118,211,0.05)"} !important; }
+@keyframes pulseDot { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+.contact-row:hover { background: ${dark ? "rgba(111,177,255,0.06)" : "rgba(1,118,211,0.05)"} !important; }
 .fab:hover { transform: scale(1.06); }
 input[type="date"] { color-scheme: ${dark ? "dark" : "light"}; }
-input:focus, textarea:focus { border-color: ${dark ? "rgba(59,130,246,0.6)" : "#0176d3"} !important; box-shadow: 0 0 0 3px ${dark ? "rgba(59,130,246,0.12)" : "rgba(1,118,211,0.15)"} !important; }
+input:focus, textarea:focus { border-color: ${dark ? "rgba(111,177,255,0.6)" : "#0176d3"} !important; box-shadow: 0 0 0 3px ${dark ? "rgba(111,177,255,0.14)" : "rgba(1,118,211,0.15)"} !important; }
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: ${dark ? "rgba(71,85,105,0.8)" : "#c9c7c5"}; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: ${dark ? "rgba(140,180,255,0.25)" : "#c9c7c5"}; border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#050c19" : "#f3f2f2"}; }
+html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#0A0F1C" : "#f3f2f2"}; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
