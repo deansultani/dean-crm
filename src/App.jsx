@@ -71,6 +71,16 @@ const formatTaskDue = (due_date) => {
   return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+const linkifyText = (text, linkColor) => {
+  if (!text) return text;
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{color:linkColor,textDecoration:"underline",overflowWrap:"anywhere",wordBreak:"break-word"}}>{part}</a>
+      : <span key={i} style={{overflowWrap:"anywhere",wordBreak:"break-word"}}>{part}</span>
+  );
+};
+
 const blankContact = () => ({
   name: "", company: "", phone: "", email: "", notes: "",
   date: new Date().toISOString().slice(0, 10),
@@ -809,7 +819,7 @@ export default function DeanCRM() {
                   return(
                     <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("tasks");startEditTask(t);}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontFamily:T.fontMono,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
-                      <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{t.note}</div>
+                      <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(t.note, T.touchColor)}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={(e)=>{e.stopPropagation();completeTask(t.id);}}>Done</button>
                     </div>
                   );
@@ -872,7 +882,7 @@ export default function DeanCRM() {
                     return (
                       <div key={h.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("health");startEditHealth(h);}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
-                        <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
+                        <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(h.note, T.touchColor)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
                           <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
                           <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={(e)=>{e.stopPropagation();completeHealthNote(h.id);}}>Done</button>
@@ -951,7 +961,7 @@ export default function DeanCRM() {
                           </div>
                         </>):(<>
                           <div style={styles.taskCardTop}>
-                            <div style={{color:T.text,fontSize:13,lineHeight:1.5,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{t.note}</div>
+                            <div style={{color:T.text,fontSize:13,lineHeight:1.5,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(t.note, T.touchColor)}</div>
                             <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
                               <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditTask(t)}>Edit</button>
                               <button style={{...styles.taskDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
@@ -978,7 +988,7 @@ export default function DeanCRM() {
                             <button style={{...styles.taskDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{t.note}</div>
+                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{linkifyText(t.note, T.touchColor)}</div>
                       </div>
                     </div>
                   ))}
@@ -1069,7 +1079,7 @@ export default function DeanCRM() {
                               <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
-                          <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
+                          <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(h.note, T.touchColor)}</div>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,color:T.railOverdue,background:dark?"rgba(111,177,255,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}}>Due {formatTaskDue(h.due_date)}</span>
                             <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
@@ -1111,7 +1121,7 @@ export default function DeanCRM() {
                             <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
+                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(h.note, T.touchColor)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                           {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,...(status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:T.textMuted}}>No due date</span>}
                           <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
@@ -1142,7 +1152,7 @@ export default function DeanCRM() {
                             <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{h.note}</div>
+                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5,fontWeight:400}}>{linkifyText(h.note, T.touchColor)}</div>
                       </div>
                     </div>
                   );
@@ -1196,7 +1206,7 @@ export default function DeanCRM() {
                 )}
               </div></div>
             </div>
-            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{contact.notes}</div></div>}
+            {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{linkifyText(contact.notes, T.touchColor)}</div></div>}
             <div style={{...styles.touchSection,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.touchHeader,borderBottom:`1px solid ${T.cardBorder}`}}><span style={{...styles.touchHeaderTitle,color:T.text}}>🤝 Touch Log</span><button style={styles.addNoteBtn} onClick={()=>{setAddingNote(true);setNewNote("");setInlineNextTouch(contact.next_touch||"");}}>+ Add Note</button></div>
               {addingNote&&(
@@ -1212,7 +1222,7 @@ export default function DeanCRM() {
               :(contact.touch_log||[]).map((touch,i)=>(
                 <div key={touch.id} style={{...styles.touchEntry,borderTop:i===0?"none":`1px solid ${T.subtleBorder}`}}>
                   <div style={styles.touchEntryHeader}><span style={{...styles.touchEntryDate,color:T.touchColor}}>{formatDateTime(touch.createdAt)}</span><button style={{...styles.touchDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTouch({contactId:contact.id,touchId:touch.id})}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button></div>
-                  <div style={{...styles.touchEntryText,color:T.touchText}}>{touch.text}</div>
+                  <div style={{...styles.touchEntryText,color:T.touchText}}>{linkifyText(touch.text, T.touchColor)}</div>
                 </div>
               ))}
             </div>
