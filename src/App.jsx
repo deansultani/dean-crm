@@ -182,7 +182,7 @@ function NextTouchInput({ value, onChange, inputStyle }) {
         <button style={{ width:36, height:36, background:"#2563eb", border:"none", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }} onClick={() => setCalOpen(o => !o)} title="Pick from calendar" type="button">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
-        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, fontSize:15, color:"#e2e8f0", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"rgba(255,255,255,0.05)" }}
+        <input style={inputStyle || { flex:1, padding:"10px 12px", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, fontSize:16, color:"#e2e8f0", fontFamily:"inherit", outline:"none", boxSizing:"border-box", background:"rgba(255,255,255,0.05)" }}
           type="text" placeholder="MM/DD/YYYY" value={value} maxLength={10} inputMode="numeric"
           onChange={handleTextChange} onFocus={() => setCalOpen(false)}
         />
@@ -937,7 +937,7 @@ export default function DeanCRM() {
           <div style={styles.listScroll}>
             <div style={{...styles.taskAddPanel,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.taskAddTitle,color:T.textMuted}}>+ New Task</div>
-              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:14,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+              <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
               <textarea style={{...styles.taskAddTextarea,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
@@ -954,7 +954,7 @@ export default function DeanCRM() {
                       <div style={styles.taskCardBody}>
                         {isEditing?(<>
                           <textarea style={{...styles.taskEditTextarea,background:T.inputBg,border:`1.5px solid ${T.inputBorder}`,color:T.inputColor}} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
-                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
+                          <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:16,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
                             <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -1030,8 +1030,8 @@ export default function DeanCRM() {
                   </button>
                 ))}
               </div>
-              <div style={{marginBottom:8}}><NextTouchInput value={newHealthDate} onChange={setNewHealthDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:14,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
-              <textarea style={{width:"100%",padding:"10px 12px",border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:13,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:T.inputBg,marginTop:4}} placeholder="What do you want to track?" value={newHealthNote} onChange={e=>setNewHealthNote(e.target.value)} rows={2}/>
+              <div style={{marginBottom:8}}><NextTouchInput value={newHealthDate} onChange={setNewHealthDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+              <textarea style={{width:"100%",padding:"10px 12px",border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,background:T.inputBg,marginTop:4}} placeholder="What do you want to track?" value={newHealthNote} onChange={e=>setNewHealthNote(e.target.value)} rows={2}/>
               <button style={{display:"block",width:"100%",marginTop:10,padding:"10px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addHealthNote}>Add Note</button>
             </div>
 
@@ -1065,8 +1065,8 @@ export default function DeanCRM() {
                               <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:T.textSub,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
                             ))}
                           </div>
-                          <textarea style={{width:"100%",padding:"8px 10px",border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:13,color:T.inputColor,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:T.inputBg,boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
-                          <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
+                          <textarea style={{width:"100%",padding:"8px 10px",border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:T.inputBg,boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                          <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:16,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
                             <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
@@ -1107,8 +1107,8 @@ export default function DeanCRM() {
                             <button key={c.id} onClick={()=>setHealthDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${healthDraftCategory===c.id?c.color:c.border}`,background:healthDraftCategory===c.id?c.bg:"transparent",color:healthDraftCategory===c.id?c.color:T.textSub,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
                           ))}
                         </div>
-                        <textarea style={{width:"100%",padding:"8px 10px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:8,fontSize:13,color:T.text,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:T.inputFillAlt,boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
-                        <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:13,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
+                        <textarea style={{width:"100%",padding:"8px 10px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:8,fontSize:16,color:T.text,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.5,background:T.inputFillAlt,boxSizing:"border-box",marginBottom:8}} value={healthDraftNote} onChange={e=>setHealthDraftNote(e.target.value)} rows={2} autoFocus/>
+                        <NextTouchInput value={healthDraftDate} onChange={setHealthDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:16,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
                         <div style={{display:"flex",gap:6,marginTop:9}}>
                           <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#059669,#10b981)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveHealthEdit(h.id)}>Save</button>
                           <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingHealthId(null)}>Cancel</button>
@@ -1195,7 +1195,7 @@ export default function DeanCRM() {
                 <div style={{...styles.fieldLabel,color:T.fieldLabel}}>Next Touch</div>
                 {editingNextTouch?(
                   <div style={{marginTop:2}}>
-                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:`1px solid ${dark?"rgba(59,130,246,0.4)":T.kpiBorder}`,borderRadius:8,padding:"5px 9px",fontSize:14,background:T.inputFillAlt,fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%",color:T.text}}/>
+                    <NextTouchInput value={nextTouchDraft} onChange={setNextTouchDraft} inputStyle={{flex:1,border:`1px solid ${dark?"rgba(59,130,246,0.4)":T.kpiBorder}`,borderRadius:8,padding:"5px 9px",fontSize:16,background:T.inputFillAlt,fontFamily:"inherit",outline:"none",boxSizing:"border-box",width:"100%",color:T.text}}/>
                     <div style={{display:"flex",gap:6,marginTop:8}}><button style={styles.ntSaveBtn} onClick={saveNextTouch}>Save</button><button style={{background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:7,padding:"5px 8px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit",flexShrink:0}} onClick={()=>setEditingNextTouch(false)}>Cancel</button></div>
                   </div>
                 ):(
@@ -1214,7 +1214,7 @@ export default function DeanCRM() {
                   <div style={{...styles.addNoteDate,color:T.textMuted}}>📅 {formatDateTime(new Date().toISOString())}</div>
                   <textarea style={{...styles.addNoteTextarea,background:T.inputBg,border:`1.5px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What happened during this touch?" value={newNote} onChange={e=>setNewNote(e.target.value)} rows={3} autoFocus/>
                   <div style={{...styles.addNoteDivider,color:T.textMuted}}><span>also update next touch</span></div>
-                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:14,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/>
+                  <NextTouchInput value={inlineNextTouch} onChange={setInlineNextTouch} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/>
                   <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addTouchNote}>Save Note</button><button style={{...styles.cancelNoteBtn,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>{setAddingNote(false);setNewNote("");setInlineNextTouch("");}}>Cancel</button></div>
                 </div>
               )}
@@ -1270,7 +1270,7 @@ const styles = {
   body:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"},
   listScroll:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"},
   searchWrap:{margin:"14px 16px 8px",borderRadius:10,display:"flex",alignItems:"center",padding:"10px 14px",gap:8},
-  searchInput:{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",fontFamily:"inherit"},
+  searchInput:{flex:1,border:"none",outline:"none",fontSize:16,background:"transparent",fontFamily:"inherit"},
   clearSearch:{background:"none",border:"none",cursor:"pointer",fontSize:14,padding:2},
   sectionHeader:{padding:"10px 20px 4px",fontSize:10,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase"},
   contactRow:{display:"flex",alignItems:"center",padding:"13px 20px",gap:14,cursor:"pointer",transition:"background 0.15s"},
@@ -1291,7 +1291,7 @@ const styles = {
   touchHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px"},
   addNoteBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   addNotePanel:{padding:"14px 16px"},
-  addNoteTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
+  addNoteTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   saveNoteBtn:{flex:1,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
@@ -1299,6 +1299,12 @@ const styles = {
   ntEditBtn:{background:"rgba(59,130,246,0.12)",color:"#93c5fd",border:"1px solid rgba(59,130,246,0.25)",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   ntSaveBtn:{background:"linear-gradient(135deg,#2563eb,#3b82f6)",color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0},
   taskAddPanel:{margin:"16px 16px 0",borderRadius:12,padding:"16px"},
+  taskAddTitle:{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10},
+  taskAddTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5},
+  taskEditTextarea:{width:"100%",padding:"8px 10px",borderRadius:8,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"none",lineHeight:1.5,marginBottom:6},
+  formLabel:{display:"block",fontSize:12,fontWeight:600,marginBottom:6},
+  formInput:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box"},
+  formTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   taskAddBtn:{display:"block",width:"100%",marginTop:12,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
   taskListHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px 8px"},
   taskCard:{margin:"0 16px 8px",borderRadius:12,overflow:"hidden"},
@@ -1338,6 +1344,7 @@ input:focus, textarea:focus { border-color: ${dark ? "rgba(111,177,255,0.6)" : "
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: ${dark ? "rgba(140,180,255,0.25)" : "#c9c7c5"}; border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
+input, textarea, select { font-size: 16px; }
 html, body { overscroll-behavior: none; overflow: hidden; height: 100%; background: ${dark ? "#0A0F1C" : "#f3f2f2"}; }
 body { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
