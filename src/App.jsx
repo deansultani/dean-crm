@@ -801,7 +801,7 @@ export default function DeanCRM() {
                 <div style={{fontSize:13,color:T.textMuted}}>No tasks due in the next 7 days 🎉</div>
               </div>
             ):(
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+              <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,padding:"0 16px 8px"}}>
                 {upcomingTasks.map(t=>{
                   const status=taskDueStatus(t.due_date);
                   const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
@@ -809,7 +809,7 @@ export default function DeanCRM() {
                   return(
                     <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("tasks");startEditTask(t);}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontFamily:T.fontMono,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
-                      <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{t.note}</div>
+                      <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{t.note}</div>
                       <button style={{marginTop:10,fontSize:10,fontWeight:600,padding:"5px 0",borderRadius:7,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,cursor:"pointer",fontFamily:"inherit",width:"100%"}} onClick={(e)=>{e.stopPropagation();completeTask(t.id);}}>Done</button>
                     </div>
                   );
@@ -822,7 +822,7 @@ export default function DeanCRM() {
                 <span style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em"}}>🗓 Follow-ups Due</span>
                 <span style={{fontSize:11,color:T.textMuted}}>{upcomingContacts.length} contact{upcomingContacts.length!==1?"s":""}</span>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+              <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,padding:"0 16px 8px"}}>
                 {upcomingContacts.map(c=>{
                   const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);
                   const origIdx=contacts.findIndex(x=>x.id===c.id);
@@ -858,7 +858,7 @@ export default function DeanCRM() {
                   <span style={{fontSize:11,fontWeight:700,color:dark?T.sectionColor:"#04844b",textTransform:"uppercase",letterSpacing:"0.08em"}}>💊 Health · Next 7 Days</span>
                   <span style={{fontSize:11,color:T.textMuted}}>{homeHealthItems.length} item{homeHealthItems.length!==1?"s":""}</span>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,padding:"0 16px 8px"}}>
+                <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,padding:"0 16px 8px"}}>
                   {homeHealthItems.map(h => {
                     const status = taskDueStatus(h.due_date);
                     const cat = getCat(h.category);
@@ -872,7 +872,7 @@ export default function DeanCRM() {
                     return (
                       <div key={h.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("health");startEditHealth(h);}}>
                         <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color,marginBottom:8,alignSelf:"flex-start"}}>{cat.emoji} {cat.label}</span>
-                        <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1}}>{h.note}</div>
+                        <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,gap:6}}>
                           <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,fontWeight:600,borderRadius:6,padding:"2px 7px"}}>{chipLabel}</span>
                           <button style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor,flexShrink:0}} onClick={(e)=>{e.stopPropagation();completeHealthNote(h.id);}}>Done</button>
@@ -951,7 +951,7 @@ export default function DeanCRM() {
                           </div>
                         </>):(<>
                           <div style={styles.taskCardTop}>
-                            <div style={{...styles.taskCardText,color:T.text}}>{t.note}</div>
+                            <div style={{color:T.text,fontSize:13,lineHeight:1.5,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{t.note}</div>
                             <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
                               <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditTask(t)}>Edit</button>
                               <button style={{...styles.taskDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
@@ -1069,7 +1069,7 @@ export default function DeanCRM() {
                               <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
-                          <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                          <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                             <span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,color:T.railOverdue,background:dark?"rgba(111,177,255,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}}>Due {formatTaskDue(h.due_date)}</span>
                             <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
@@ -1111,7 +1111,7 @@ export default function DeanCRM() {
                             <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteHealth(h.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                           </div>
                         </div>
-                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10}}>{h.note}</div>
+                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,fontWeight:500,marginBottom:10,overflowWrap:"anywhere",wordBreak:"break-word"}}>{h.note}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                           {h.due_date?<span style={{fontSize:11,fontWeight:600,borderRadius:6,padding:"3px 8px",fontFamily:T.fontMono,...(status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`})}}>{status==="today"?"Today":formatTaskDue(h.due_date)}</span>:<span style={{fontSize:11,color:T.textMuted}}>No due date</span>}
                           <button style={{fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#c7ecdb"}`,background:T.doneBadgeGreenBg,color:T.doneBadgeGreenColor}} onClick={()=>completeHealthNote(h.id)}>Done</button>
