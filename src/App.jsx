@@ -254,6 +254,13 @@ export default function DeanCRM() {
   const [healthDraftCategory, setHealthDraftCategory] = useState("general");
   // ── NEW: category filter for Health tab ──
   const [healthFilter, setHealthFilter] = useState("all");
+  // ── Task <-> Contact linking ──
+  const [newTaskContactId, setNewTaskContactId] = useState("");
+  const [taskDraftContactId, setTaskDraftContactId] = useState("");
+  const [addingContactTask, setAddingContactTask] = useState(false);
+  const [contactTaskNote, setContactTaskNote] = useState("");
+  const [contactTaskDate, setContactTaskDate] = useState("");
+  const [showCompletedContactTasks, setShowCompletedContactTasks] = useState(false);
   // ── Dark/Light mode ──
   const [dark, setDark] = useState(true);
 
@@ -314,14 +321,30 @@ export default function DeanCRM() {
   const addTask = async () => {
     if (!newTaskNote.trim()) return showToast("Task note is required");
     const isoDate = newTaskDate.trim() ? parseNextTouch(newTaskDate.trim()) || null : null;
-    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null };
+    const payload = { note: newTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, contact_id: newTaskContactId || null };
     try {
       const res = await api("tasks", { method:"POST", body: JSON.stringify(payload) });
       if (res.ok) {
         const created = await res.json();
         const t = Array.isArray(created) ? created[0] : created;
         setTasks(prev => [...prev, t].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
-        setNewTaskNote(""); setNewTaskDate(""); showToast("Task added!");
+        setNewTaskNote(""); setNewTaskDate(""); setNewTaskContactId(""); showToast("Task added!");
+      } else showToast("Error saving task");
+    } catch { showToast("Error saving task"); }
+  };
+
+  const addContactTask = async () => {
+    if (!contactTaskNote.trim()) return showToast("Task note is required");
+    const contact = contacts[selected];
+    const isoDate = contactTaskDate.trim() ? parseNextTouch(contactTaskDate.trim()) || null : null;
+    const payload = { note: contactTaskNote.trim(), due_date: isoDate, completed: false, completed_at: null, contact_id: contact.id };
+    try {
+      const res = await api("tasks", { method:"POST", body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        const t = Array.isArray(created) ? created[0] : created;
+        setTasks(prev => [...prev, t].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
+        setContactTaskNote(""); setContactTaskDate(""); setAddingContactTask(false); showToast("Task added!");
       } else showToast("Error saving task");
     } catch { showToast("Error saving task"); }
   };
@@ -343,7 +366,7 @@ export default function DeanCRM() {
   const saveTaskEdit = async (id) => {
     if (!taskDraftNote.trim()) return showToast("Task note is required");
     const isoDate = taskDraftDate.trim() ? parseNextTouch(taskDraftDate.trim()) || null : null;
-    const patch = { note: taskDraftNote.trim(), due_date: isoDate };
+    const patch = { note: taskDraftNote.trim(), due_date: isoDate, contact_id: taskDraftContactId || null };
     try {
       await api(`tasks?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
       setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
@@ -352,7 +375,7 @@ export default function DeanCRM() {
   };
 
   const startEditTask = (t) => {
-    setEditingTaskId(t.id); setTaskDraftNote(t.note);
+    setEditingTaskId(t.id); setTaskDraftNote(t.note); setTaskDraftContactId(t.contact_id || "");
     if (t.due_date) { const [yyyy,mm,dd] = t.due_date.slice(0,10).split("-"); setTaskDraftDate(`${mm}/${dd}/${yyyy}`); }
     else setTaskDraftDate("");
   };
@@ -938,6 +961,10 @@ export default function DeanCRM() {
             <div style={{...styles.taskAddPanel,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.taskAddTitle,color:T.textMuted}}>+ New Task</div>
               <div style={{marginBottom:8}}><NextTouchInput value={newTaskDate} onChange={setNewTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+              <select value={newTaskContactId} onChange={e=>setNewTaskContactId(e.target.value)} style={{width:"100%",padding:"9px 12px",marginBottom:8,border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}>
+                <option value="">No contact linked</option>
+                {contacts.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
               <textarea style={{...styles.taskAddTextarea,background:T.inputBg,border:`1px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What needs to be done?" value={newTaskNote} onChange={e=>setNewTaskNote(e.target.value)} rows={2}/>
               <button style={styles.taskAddBtn} onClick={addTask}>Add Task</button>
             </div>
@@ -955,6 +982,10 @@ export default function DeanCRM() {
                         {isEditing?(<>
                           <textarea style={{...styles.taskEditTextarea,background:T.inputBg,border:`1.5px solid ${T.inputBorder}`,color:T.inputColor}} value={taskDraftNote} onChange={e=>setTaskDraftNote(e.target.value)} rows={2} autoFocus/>
                           <NextTouchInput value={taskDraftDate} onChange={setTaskDraftDate} inputStyle={{flex:1,padding:"6px 10px",border:"none",outline:"none",fontSize:16,color:T.text,fontFamily:"inherit",background:"transparent"}}/>
+                          <select value={taskDraftContactId} onChange={e=>setTaskDraftContactId(e.target.value)} style={{width:"100%",padding:"8px 10px",marginTop:8,border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}}>
+                            <option value="">No contact linked</option>
+                            {contacts.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                          </select>
                           <div style={{display:"flex",gap:6,marginTop:9}}>
                             <button style={styles.taskEditSaveBtn} onClick={()=>saveTaskEdit(t.id)}>Save</button>
                             <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingTaskId(null)}>Cancel</button>
@@ -967,6 +998,12 @@ export default function DeanCRM() {
                               <button style={{...styles.taskDeleteBtn,color:T.deleteIcon}} onClick={()=>setConfirmDeleteTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                             </div>
                           </div>
+                          {t.contact_id&&(() => { const linkedIdx = contacts.findIndex(c=>c.id===t.contact_id); const linked = linkedIdx>=0?contacts[linkedIdx]:null; if(!linked) return null; return (
+                            <button style={{display:"inline-flex",alignItems:"center",gap:5,marginTop:6,marginBottom:2,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,borderRadius:20,padding:"3px 9px 3px 5px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setSelected(linkedIdx);setView("profile");}}>
+                              <span style={{width:14,height:14,borderRadius:"50%",background:avatarColor(linked.name),display:"flex",alignItems:"center",justifyContent:"center",fontSize:7,fontWeight:700,color:"#fff",flexShrink:0}}>{initials(linked.name)}</span>
+                              {linked.name}
+                            </button>
+                          );})()}
                           <div style={styles.taskCardFooter}>
                             {t.due_date?<span style={{...styles.taskDueChip,...(status==="overdue"?styles.taskDueOverdue:status==="today"?styles.taskDueToday:styles.taskDueUpcoming)}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>:<span style={{fontSize:11,color:T.textMuted,fontWeight:500}}>No due date</span>}
                             <button style={styles.taskCompleteBtn} onClick={()=>completeTask(t.id)}>Done</button>
@@ -1206,6 +1243,54 @@ export default function DeanCRM() {
                 )}
               </div></div>
             </div>
+
+            <div style={{...styles.touchSection,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
+              <div style={{...styles.touchHeader,borderBottom:`1px solid ${T.cardBorder}`}}>
+                <span style={{...styles.touchHeaderTitle,color:T.text}}>📋 Tasks</span>
+                <button style={styles.addNoteBtn} onClick={()=>{setAddingContactTask(true);setContactTaskNote("");setContactTaskDate("");}}>+ Add Task</button>
+              </div>
+              {addingContactTask&&(
+                <div style={styles.addNotePanel}>
+                  <div style={{marginBottom:8}}><NextTouchInput value={contactTaskDate} onChange={setContactTaskDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+                  <textarea style={{...styles.addNoteTextarea,background:T.inputBg,border:`1.5px solid ${T.inputBorder}`,color:T.inputColor}} placeholder="What needs to be done?" value={contactTaskNote} onChange={e=>setContactTaskNote(e.target.value)} rows={2} autoFocus/>
+                  <div style={{display:"flex",gap:8,marginTop:10}}><button style={styles.saveNoteBtn} onClick={addContactTask}>Save Task</button><button style={{...styles.cancelNoteBtn,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>{setAddingContactTask(false);setContactTaskNote("");setContactTaskDate("");}}>Cancel</button></div>
+                </div>
+              )}
+              {(() => {
+                const contactTasks = tasks.filter(t => t.contact_id === contact.id);
+                const openT = contactTasks.filter(t=>!t.completed).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1);
+                const doneT = contactTasks.filter(t=>t.completed);
+                if (contactTasks.length===0 && !addingContactTask) return <div style={{padding:"20px",fontSize:13,color:T.textMuted,textAlign:"center",lineHeight:1.6}}>No tasks linked to this contact yet.</div>;
+                return (<>
+                  {openT.map(t=>{
+                    const status=taskDueStatus(t.due_date);
+                    const rail = status==="overdue"?T.railOverdue:status==="today"?T.railToday:status==="upcoming"?T.railUpcoming:T.railNeutral;
+                    return (
+                      <div key={t.id} style={{margin:"10px 16px 8px",background:T.subtleBg,borderRadius:10,border:`1px solid ${T.subtleBorder}`,borderLeft:`3px solid ${rail}`,padding:"12px 14px",cursor:"pointer"}} onClick={()=>{setView("list");setHomeTab("tasks");startEditTask(t);}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:7}}>
+                          {t.due_date?<span style={{fontFamily:T.fontMono,fontSize:10,color:rail,background:dark?"rgba(111,177,255,0.1)":"rgba(1,118,211,0.08)",border:`1px solid ${rail}`,borderRadius:6,padding:"2px 7px"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":formatTaskDue(t.due_date)}</span>:<span style={{fontSize:10,color:T.textMuted}}>No due date</span>}
+                          <button style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:7,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`,background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,flexShrink:0}} onClick={(e)=>{e.stopPropagation();completeTask(t.id);}}>Done</button>
+                        </div>
+                        <div style={{fontSize:13,color:T.text,lineHeight:1.5,overflowWrap:"anywhere",wordBreak:"break-word"}}>{linkifyText(t.note, T.touchColor)}</div>
+                      </div>
+                    );
+                  })}
+                  {doneT.length>0&&(<>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 16px 8px"}}>
+                      <span style={{fontSize:11,color:T.textMuted,fontWeight:600}}>Completed ({doneT.length})</span>
+                      <button style={{fontSize:11,color:T.textSub,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowCompletedContactTasks(s=>!s)}>{showCompletedContactTasks?"Hide":"Show"}</button>
+                    </div>
+                    {showCompletedContactTasks&&doneT.map(t=>(
+                      <div key={t.id} style={{margin:"0 16px 8px",background:T.subtleBg2,borderRadius:10,border:`1px solid ${T.subtleBorder2}`,padding:"12px 14px"}}>
+                        <div style={{fontSize:13,color:T.completedNote,fontStyle:"italic",lineHeight:1.5}}>{linkifyText(t.note, T.touchColor)}</div>
+                      </div>
+                    ))}
+                  </>)}
+                  <div style={{height:6}}/>
+                </>);
+              })()}
+            </div>
+
             {contact.notes&&<div style={{...styles.card,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}><div style={{...styles.notesLabel,color:T.fieldLabel}}>📝 Notes</div><div style={{...styles.notesText,color:T.text}}>{linkifyText(contact.notes, T.touchColor)}</div></div>}
             <div style={{...styles.touchSection,background:T.cardBg,border:`1.5px solid ${T.cardBorder}`}}>
               <div style={{...styles.touchHeader,borderBottom:`1px solid ${T.cardBorder}`}}><span style={{...styles.touchHeaderTitle,color:T.text}}>🤝 Touch Log</span><button style={styles.addNoteBtn} onClick={()=>{setAddingNote(true);setNewNote("");setInlineNextTouch(contact.next_touch||"");}}>+ Add Note</button></div>
@@ -1293,6 +1378,7 @@ const styles = {
   addNotePanel:{padding:"14px 16px"},
   addNoteTextarea:{width:"100%",padding:"10px 12px",borderRadius:10,fontSize:16,fontFamily:"inherit",outline:"none",boxSizing:"border-box",resize:"vertical",lineHeight:1.6},
   saveNoteBtn:{flex:1,padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  cancelNoteBtn:{flex:1,padding:"10px",background:"transparent",borderRadius:9,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
   touchEntry:{padding:"13px 16px"},
   touchEntryHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6},
   touchDeleteBtn:{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",display:"flex",alignItems:"center",borderRadius:4},
