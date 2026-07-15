@@ -838,7 +838,7 @@ export default function DeanCRM() {
                 {upcomingTasks.map(t=>{
                   const status=taskDueStatus(t.due_date);
                   const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
-                  const chipStyle=status==="overdue"?{color:T.railOverdue,background:dark?"rgba(111,177,255,0.14)":"rgba(220,38,38,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(220,38,38,0.35)"}`}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
+                  const chipStyle=status==="overdue"?{color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"rgba(220,38,38,0.1)",border:`1px solid ${dark?T.railOverdue:"rgba(220,38,38,0.35)"}`,fontWeight:700}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
                   return(
                     <div key={t.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("tasks");startEditTask(t);}}>
                       <span style={{...styles.taskDueChip,...chipStyle,fontFamily:T.fontMono,fontSize:10,marginBottom:8,alignSelf:"flex-start"}}>{status==="overdue"?`Due ${formatTaskDue(t.due_date)}`:status==="today"?"Today":`${formatTaskDue(t.due_date)}`}</span>
@@ -860,7 +860,7 @@ export default function DeanCRM() {
                   const iso=parseNextTouch(c.next_touch);const status=nextTouchStatus(c.next_touch);
                   const origIdx=contacts.findIndex(x=>x.id===c.id);
                   const accentColor=status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
-                  const badgeStyle=status==="overdue"?{color:T.railOverdue,background:dark?"rgba(111,177,255,0.15)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`};
+                  const badgeStyle=status==="overdue"?{color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"#fdecea",border:`1px solid ${dark?T.railOverdue:"#f5c6c3"}`,fontWeight:700}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.15)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}:{color:T.doneBadgeBlueColor,background:T.doneBadgeBlueBg,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`};
                   return(
                     <div key={c.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:100,cursor:"pointer"}} onClick={()=>{setSelected(origIdx);setView("profile");}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
@@ -897,7 +897,7 @@ export default function DeanCRM() {
                     const cat = getCat(h.category);
                     const accentColor = status==="overdue" ? T.railOverdue : status==="today" ? T.railToday : T.railUpcoming;
                     const chipStyle = status==="overdue"
-                      ? {color:T.railOverdue,background:dark?"rgba(111,177,255,0.14)":"#fdecea",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#f5c6c3"}`}
+                      ? {color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"#fdecea",border:`1px solid ${dark?T.railOverdue:"#f5c6c3"}`,fontWeight:700}
                       : status==="today"
                       ? {color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"#fef3e2",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"#fbdca3"}`}
                       : {color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"#e3f5ec",border:`1px solid ${dark?"rgba(61,111,217,0.3)":"#c7ecdb"}`};
