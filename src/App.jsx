@@ -210,6 +210,17 @@ const HEALTH_CATEGORIES = [
 ];
 const getCat = (id) => HEALTH_CATEGORIES.find(c => c.id === id) || HEALTH_CATEGORIES[5];
 
+const EXPENSE_CATEGORIES = [
+  { id:"coffee",        label:"Coffee",        emoji:"☕", color:"#a97142", bg:"rgba(169,113,66,0.12)",  border:"rgba(169,113,66,0.3)"  },
+  { id:"eating_out",    label:"Eating Out",    emoji:"🍽️", color:"#f59e0b", bg:"rgba(245,158,11,0.12)",  border:"rgba(245,158,11,0.3)"  },
+  { id:"poker",         label:"Poker",         emoji:"🃏", color:"#8b5cf6", bg:"rgba(139,92,246,0.12)",  border:"rgba(139,92,246,0.3)"  },
+  { id:"groceries",     label:"Groceries",     emoji:"🛒", color:"#10b981", bg:"rgba(16,185,129,0.12)",  border:"rgba(16,185,129,0.3)"  },
+  { id:"gas",           label:"Gas",           emoji:"⛽", color:"#f472b6", bg:"rgba(244,114,182,0.12)", border:"rgba(244,114,182,0.3)" },
+  { id:"entertainment", label:"Entertainment", emoji:"🎬", color:"#3b82f6", bg:"rgba(59,130,246,0.12)",  border:"rgba(59,130,246,0.3)"  },
+  { id:"other",         label:"Other",         emoji:"📦", color:"#94a3b8", bg:"rgba(148,163,184,0.12)", border:"rgba(148,163,184,0.3)" },
+];
+const getExpCat = (id) => EXPENSE_CATEGORIES.find(c => c.id === id) || EXPENSE_CATEGORIES[6];
+
 // ── Main App ───────────────────────────────────────────────────────────
 export default function DeanCRM() {
   const [contacts, setContacts] = useState([]);
@@ -277,6 +288,20 @@ export default function DeanCRM() {
   const [subDraftTrial, setSubDraftTrial] = useState(false);
   const [confirmDeleteSub, setConfirmDeleteSub] = useState(null);
   const [showArchivedSubs, setShowArchivedSubs] = useState(false);
+  // ── Money tab (Subscriptions / Expenses) ──
+  const [moneyView, setMoneyView] = useState("subscriptions");
+  const [expenses, setExpenses] = useState([]);
+  const [expensesLoading, setExpensesLoading] = useState(false);
+  const [newExpAmount, setNewExpAmount] = useState("");
+  const [newExpCategory, setNewExpCategory] = useState("other");
+  const [newExpLocation, setNewExpLocation] = useState("");
+  const [newExpDate, setNewExpDate] = useState("");
+  const [editingExpId, setEditingExpId] = useState(null);
+  const [expDraftAmount, setExpDraftAmount] = useState("");
+  const [expDraftCategory, setExpDraftCategory] = useState("other");
+  const [expDraftLocation, setExpDraftLocation] = useState("");
+  const [expDraftDate, setExpDraftDate] = useState("");
+  const [confirmDeleteExp, setConfirmDeleteExp] = useState(null);
   // ── Dark/Light mode ──
   const [dark, setDark] = useState(true);
 
@@ -299,6 +324,7 @@ export default function DeanCRM() {
     fetchTasks();
     fetchHealthNotes();
     fetchSubscriptions();
+    fetchExpenses();
   }, []);
 
   useEffect(() => {
@@ -388,6 +414,54 @@ export default function DeanCRM() {
   const deleteSubscription = async (id) => {
     try { await api(`subscriptions?id=eq.${id}`, { method:"DELETE", prefer:"" }); setSubscriptions(prev => prev.filter(s => s.id !== id)); } catch {}
     setConfirmDeleteSub(null); showToast("Subscription deleted");
+  };
+
+  const fetchExpenses = async () => {
+    setExpensesLoading(true);
+    try {
+      const res = await api("expenses?order=date.desc,created_at.desc");
+      if (res.ok) { const data = await res.json(); setExpenses(data); }
+    } catch {}
+    setExpensesLoading(false);
+  };
+
+  const addExpense = async () => {
+    const amt = parseFloat(newExpAmount);
+    if (!newExpAmount.trim() || isNaN(amt) || amt <= 0) return showToast("Enter a valid amount");
+    const isoDate = newExpDate.trim() ? parseNextTouch(newExpDate.trim()) || new Date().toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+    const payload = { amount: amt, category: newExpCategory, location: newExpLocation.trim() || null, date: isoDate };
+    try {
+      const res = await api("expenses", { method:"POST", body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        const e = Array.isArray(created) ? created[0] : created;
+        setExpenses(prev => [e, ...prev].sort((a,b) => (b.date||"") > (a.date||"") ? 1 : -1));
+        setNewExpAmount(""); setNewExpCategory("other"); setNewExpLocation(""); setNewExpDate(""); showToast("Expense logged!");
+      } else showToast("Error saving expense");
+    } catch { showToast("Error saving expense"); }
+  };
+
+  const startEditExpense = (e) => {
+    setEditingExpId(e.id); setExpDraftAmount(e.amount!=null?String(e.amount):""); setExpDraftCategory(e.category||"other"); setExpDraftLocation(e.location||"");
+    if (e.date) { const [yyyy,mm,dd] = e.date.slice(0,10).split("-"); setExpDraftDate(`${mm}/${dd}/${yyyy}`); }
+    else setExpDraftDate("");
+  };
+
+  const saveExpenseEdit = async (id) => {
+    const amt = parseFloat(expDraftAmount);
+    if (!expDraftAmount.trim() || isNaN(amt) || amt <= 0) return showToast("Enter a valid amount");
+    const isoDate = expDraftDate.trim() ? parseNextTouch(expDraftDate.trim()) || null : null;
+    const patch = { amount: amt, category: expDraftCategory, location: expDraftLocation.trim() || null, date: isoDate };
+    try {
+      await api(`expenses?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
+      setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e).sort((a,b) => (b.date||"") > (a.date||"") ? 1 : -1));
+      setEditingExpId(null); showToast("Expense updated!");
+    } catch { showToast("Error updating expense"); }
+  };
+
+  const deleteExpense = async (id) => {
+    try { await api(`expenses?id=eq.${id}`, { method:"DELETE", prefer:"" }); setExpenses(prev => prev.filter(e => e.id !== id)); } catch {}
+    setConfirmDeleteExp(null); showToast("Expense deleted");
   };
 
   const addTask = async () => {
@@ -678,6 +752,22 @@ export default function DeanCRM() {
   const trialAlertCount = activeSubs.filter(s => s.is_trial && s.renewal_date && s.renewal_date <= in7DaysIso).length;
   const formatMoney = (n) => `$${(n||0).toFixed(2)}`;
 
+  // ── Expense helpers ──
+  const startOfWeekIso = (() => { const d=new Date(); const day=d.getDay(); const diff=d.getDate()-day; const sow=new Date(d.setDate(diff)); return sow.toISOString().slice(0,10); })();
+  const startOfMonthIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+  const expensesThisWeek = expenses.filter(e => e.date >= startOfWeekIso);
+  const expensesThisMonth = expenses.filter(e => e.date >= startOfMonthIso);
+  const weekTotal = expensesThisWeek.reduce((sum,e) => sum + (e.amount||0), 0);
+  const monthTotal = expensesThisMonth.reduce((sum,e) => sum + (e.amount||0), 0);
+  const topCategoryThisMonth = (() => {
+    const totals = {};
+    expensesThisMonth.forEach(e => { totals[e.category] = (totals[e.category]||0) + (e.amount||0); });
+    const entries = Object.entries(totals);
+    if (entries.length===0) return null;
+    entries.sort((a,b)=>b[1]-a[1]);
+    return getExpCat(entries[0][0]);
+  })();
+
   // ── Theme palette ──
   const T = dark ? {
     shell:        "#0A0F1C",
@@ -854,6 +944,7 @@ export default function DeanCRM() {
       {confirmDeleteTask&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Task?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteHealth&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Health Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteSub&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Subscription?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteSubscription(confirmDeleteSub)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteSub(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteExp&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Expense?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteExpense(confirmDeleteExp)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteExp(null)}>Cancel</button></div></div></div>)}
 
       <div style={{...styles.header,background:T.headerBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.headerBorder}`}}>
         {view!=="list"?(
@@ -880,7 +971,7 @@ export default function DeanCRM() {
 
       {view==="list"&&(
         <div style={{...styles.tabBar,background:T.tabBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.tabBorder}`}}>
-          {[["home","🏠","Home"],["contacts","👥","People"],["tasks","✅","Tasks"],["health","💊","Health"],["subscriptions","💳","Subs"]].map(([id,icon,label])=>(
+          {[["home","🏠","Home"],["contacts","👥","People"],["tasks","✅","Tasks"],["health","💊","Health"],["subscriptions","💰","Money"]].map(([id,icon,label])=>(
             <button key={id} style={{...styles.tab,fontSize:9,gap:2,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:`2px solid ${T.tabActive}`}:{})}} onClick={()=>setHomeTab(id)}>
               <span aria-hidden="true">{icon}</span>{label}
               {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
@@ -923,7 +1014,7 @@ export default function DeanCRM() {
                     const chipStyle = status==="overdue"?{color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"rgba(220,38,38,0.1)",border:`1px solid ${dark?T.railOverdue:"rgba(220,38,38,0.35)"}`,fontWeight:700}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
                     const dateLabel = status==="overdue"?`Renewed ${formatTaskDue(s.renewal_date)}`:status==="today"?"Today":formatTaskDue(s.renewal_date);
                     return (
-                      <div key={s.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("subscriptions");startEditSub(s);}}>
+                      <div key={s.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("subscriptions");setMoneyView("subscriptions");startEditSub(s);}}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:6,marginBottom:8}}>
                           <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,borderRadius:6,padding:"2px 7px"}}>{dateLabel}</span>
                           {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:8,borderRadius:20,padding:"2px 6px",fontWeight:700,flexShrink:0,...(urgent?{background:"#FBBF24",color:"#1F1300",border:"1px solid #FBBF24"}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫</span>}
@@ -1318,6 +1409,14 @@ export default function DeanCRM() {
         <div style={styles.body}>
           <div style={styles.listScroll}>
 
+            <div style={{display:"flex",gap:8,padding:"16px 16px 14px"}}>
+              {[["subscriptions","💳 Subscriptions"],["expenses","🧾 Expenses"]].map(([id,label])=>(
+                <button key={id} onClick={()=>setMoneyView(id)} style={{flex:1,padding:"10px 0",borderRadius:10,border:`1px solid ${moneyView===id?T.railUpcoming:T.cardBorder}`,background:moneyView===id?(dark?"rgba(61,111,217,0.18)":"rgba(37,99,235,0.08)"):"transparent",color:moneyView===id?T.railUpcoming:T.textSub,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{label}</button>
+              ))}
+            </div>
+
+            {moneyView==="subscriptions"&&(<>
+
             <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:dark?"1px solid rgba(140,180,255,.12)":`1px solid ${T.headerBorder}`}}>
               <div style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12,fontFamily:T.fontDisplay}}>Subscriptions</div>
               <div style={{display:"flex",gap:8}}>
@@ -1428,6 +1527,87 @@ export default function DeanCRM() {
                   </div>
                 </div>
               ))}
+            </>)}
+
+            </>)}
+
+            {moneyView==="expenses"&&(<>
+
+            <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:dark?"1px solid rgba(140,180,255,.12)":`1px solid ${T.headerBorder}`}}>
+              <div style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12,fontFamily:T.fontDisplay}}>Expenses</div>
+              <div style={{display:"flex",gap:8}}>
+                {[
+                  {label:"This Week",  val:formatMoney(weekTotal),  rail:T.railUpcoming},
+                  {label:"This Month", val:formatMoney(monthTotal), rail:T.railUpcoming},
+                  {label:"Top Category", val:topCategoryThisMonth?`${topCategoryThisMonth.emoji}`:"—", rail:T.railNeutral},
+                  {label:"Entries", val:expenses.length, rail:T.railNeutral},
+                ].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:T.cardBg,borderTop:`2px solid ${kpi.rail}`,borderRadius:"0 0 8px 8px",padding:"10px 6px"}}>
+                    <div style={{fontSize:15,fontWeight:500,color:T.text,lineHeight:1,fontFamily:T.fontMono,fontVariantNumeric:"tabular-nums",whiteSpace:"nowrap"}}>{kpi.val}</div>
+                    <div style={{fontSize:9,color:T.textMuted,marginTop:4,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.04em"}}>{kpi.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:`2px solid ${dark?"rgba(111,177,255,0.3)":T.kpiBorder}`,padding:"16px"}}>
+              <div style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ Log Expense</div>
+              <input style={{width:"100%",padding:"10px 12px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="number" inputMode="decimal" step="0.01" placeholder="Amount $" value={newExpAmount} onChange={e=>setNewExpAmount(e.target.value)}/>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+                {EXPENSE_CATEGORIES.map(cat=>(
+                  <button key={cat.id} onClick={()=>setNewExpCategory(cat.id)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${newExpCategory===cat.id?cat.color:cat.border}`,background:newExpCategory===cat.id?cat.bg:"transparent",color:newExpCategory===cat.id?cat.color:T.textSub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{cat.emoji} {cat.label}</button>
+                ))}
+              </div>
+              <input style={{width:"100%",padding:"10px 12px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="text" placeholder="Location (optional)" value={newExpLocation} onChange={e=>setNewExpLocation(e.target.value)}/>
+              <div style={{marginBottom:10}}><NextTouchInput value={newExpDate} onChange={setNewExpDate} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+              <div style={{fontSize:10,color:T.textMuted,marginBottom:10}}>Leave date blank to use today.</div>
+              <button style={{display:"block",width:"100%",padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addExpense}>Log Expense</button>
+            </div>
+
+            <div style={{padding:"18px 16px 8px"}}>
+              <span style={{fontSize:11,fontWeight:700,color:T.textSub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Recent ({expenses.length})</span>
+            </div>
+
+            {expensesLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
+            :expenses.length===0?<div style={{padding:"14px",fontSize:13,color:T.textSub,textAlign:"center"}}>No expenses logged yet</div>
+            :expenses.map(e=>{
+              const cat=getExpCat(e.category);
+              const isEditing=editingExpId===e.id;
+              return (
+                <div key={e.id} style={{margin:"0 16px 8px",background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderLeft:`3px solid ${cat.color}`,padding:"14px"}}>
+                  {isEditing?(<>
+                    <input style={{width:"100%",padding:"8px 10px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="number" inputMode="decimal" step="0.01" value={expDraftAmount} onChange={e2=>setExpDraftAmount(e2.target.value)} autoFocus/>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+                      {EXPENSE_CATEGORIES.map(c=>(
+                        <button key={c.id} onClick={()=>setExpDraftCategory(c.id)} style={{padding:"4px 10px",borderRadius:20,border:`1px solid ${expDraftCategory===c.id?c.color:c.border}`,background:expDraftCategory===c.id?c.bg:"transparent",color:expDraftCategory===c.id?c.color:T.textSub,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{c.emoji} {c.label}</button>
+                      ))}
+                    </div>
+                    <input style={{width:"100%",padding:"8px 10px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="text" placeholder="Location (optional)" value={expDraftLocation} onChange={e2=>setExpDraftLocation(e2.target.value)}/>
+                    <NextTouchInput value={expDraftDate} onChange={setExpDraftDate} inputStyle={{flex:1,padding:"8px 10px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:8,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/>
+                    <div style={{display:"flex",gap:6,marginTop:10}}>
+                      <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveExpenseEdit(e.id)}>Save</button>
+                      <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingExpId(null)}>Cancel</button>
+                    </div>
+                  </>):(<>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:15,fontWeight:600,color:T.text,fontFamily:T.fontMono,fontVariantNumeric:"tabular-nums"}}>{formatMoney(e.amount)}</div>
+                        <div style={{display:"flex",alignItems:"center",gap:6,marginTop:5,flexWrap:"wrap"}}>
+                          <span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:20,border:`1px solid ${cat.border}`,background:cat.bg,color:cat.color}}>{cat.emoji} {cat.label}</span>
+                          {e.location&&<span style={{fontSize:11,color:T.textSub}}>📍 {e.location}</span>}
+                        </div>
+                        <div style={{fontSize:10,color:T.textMuted,fontFamily:T.fontMono,marginTop:5}}>{formatTaskDue(e.date)}</div>
+                      </div>
+                      <div style={{display:"flex",gap:5,flexShrink:0}}>
+                        <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditExpense(e)}>Edit</button>
+                        <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteExp(e.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                      </div>
+                    </div>
+                  </>)}
+                </div>
+              );
+            })}
+
             </>)}
 
             <div style={{height:40}}/>
