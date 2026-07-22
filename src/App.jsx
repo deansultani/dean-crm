@@ -885,7 +885,7 @@ export default function DeanCRM() {
               <span aria-hidden="true">{icon}</span>{label}
               {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
               {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:T.railOverdue}}>{healthOverdueCount}</span>}
-              {id==="subscriptions"&&trialAlertCount>0&&<span style={{...styles.tabBadge,background:T.railOverdue}}>{trialAlertCount}</span>}
+              {id==="subscriptions"&&trialAlertCount>0&&<span style={{...styles.tabBadge,background:"#FBBF24",color:"#1F1300"}}>{trialAlertCount}</span>}
             </button>
           ))}
         </div>
@@ -926,7 +926,7 @@ export default function DeanCRM() {
                       <div key={s.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("subscriptions");startEditSub(s);}}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:6,marginBottom:8}}>
                           <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,borderRadius:6,padding:"2px 7px"}}>{dateLabel}</span>
-                          {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:8,borderRadius:20,padding:"2px 6px",fontWeight:700,flexShrink:0,...(urgent?{background:T.railOverdue,color:dark?"#0A0F1C":"#fff",border:`1px solid ${T.railOverdue}`}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫</span>}
+                          {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:8,borderRadius:20,padding:"2px 6px",fontWeight:700,flexShrink:0,...(urgent?{background:"#FBBF24",color:"#1F1300",border:"1px solid #FBBF24"}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫</span>}
                         </div>
                         <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{s.name}</div>
                         <div style={{fontSize:10,color:T.textMuted,fontFamily:T.fontMono,marginTop:8}}>{formatMoney(s.cost)} / {s.billing_cycle==="yearly"?"yr":"mo"}</div>
@@ -1401,7 +1401,7 @@ export default function DeanCRM() {
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                       <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,borderRadius:6,padding:"2px 8px"}}>{dateLabel}</span>
-                      {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:9,borderRadius:20,padding:"2px 8px",fontWeight:700,...(urgent?{background:T.railOverdue,color:dark?"#0A0F1C":"#fff",border:`1px solid ${T.railOverdue}`}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫 TRIAL{urgent?" · ACT NOW":""}</span>}
+                      {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:9,borderRadius:20,padding:"2px 8px",fontWeight:700,...(urgent?{background:"#FBBF24",color:"#1F1300",border:"1px solid #FBBF24"}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫 TRIAL{urgent?" · ACT NOW":""}</span>}
                     </div>
                     <button style={{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${T.btnSecBorder}`,background:"transparent",color:T.btnSecColor}} onClick={()=>archiveSubscription(s.id,true)}>Archive</button>
                   </>)}
