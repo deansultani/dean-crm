@@ -261,6 +261,22 @@ export default function DeanCRM() {
   const [contactTaskNote, setContactTaskNote] = useState("");
   const [contactTaskDate, setContactTaskDate] = useState("");
   const [showCompletedContactTasks, setShowCompletedContactTasks] = useState(false);
+  // ── Subscriptions ──
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(false);
+  const [newSubName, setNewSubName] = useState("");
+  const [newSubCost, setNewSubCost] = useState("");
+  const [newSubCycle, setNewSubCycle] = useState("monthly");
+  const [newSubRenewal, setNewSubRenewal] = useState("");
+  const [newSubTrial, setNewSubTrial] = useState(false);
+  const [editingSubId, setEditingSubId] = useState(null);
+  const [subDraftName, setSubDraftName] = useState("");
+  const [subDraftCost, setSubDraftCost] = useState("");
+  const [subDraftCycle, setSubDraftCycle] = useState("monthly");
+  const [subDraftRenewal, setSubDraftRenewal] = useState("");
+  const [subDraftTrial, setSubDraftTrial] = useState(false);
+  const [confirmDeleteSub, setConfirmDeleteSub] = useState(null);
+  const [showArchivedSubs, setShowArchivedSubs] = useState(false);
   // ── Dark/Light mode ──
   const [dark, setDark] = useState(true);
 
@@ -282,6 +298,7 @@ export default function DeanCRM() {
     fetchContacts();
     fetchTasks();
     fetchHealthNotes();
+    fetchSubscriptions();
   }, []);
 
   useEffect(() => {
@@ -316,6 +333,61 @@ export default function DeanCRM() {
       if (res.ok) { const data = await res.json(); setHealthNotes(data); }
     } catch {}
     setHealthLoading(false);
+  };
+
+  const fetchSubscriptions = async () => {
+    setSubscriptionsLoading(true);
+    try {
+      const res = await api("subscriptions?order=renewal_date.asc");
+      if (res.ok) { const data = await res.json(); setSubscriptions(data); }
+    } catch {}
+    setSubscriptionsLoading(false);
+  };
+
+  const addSubscription = async () => {
+    if (!newSubName.trim()) return showToast("Service name is required");
+    const isoDate = newSubRenewal.trim() ? parseNextTouch(newSubRenewal.trim()) || null : null;
+    const payload = { name: newSubName.trim(), cost: parseFloat(newSubCost) || 0, billing_cycle: newSubCycle, renewal_date: isoDate, is_trial: newSubTrial, archived: false };
+    try {
+      const res = await api("subscriptions", { method:"POST", body: JSON.stringify(payload) });
+      if (res.ok) {
+        const created = await res.json();
+        const s = Array.isArray(created) ? created[0] : created;
+        setSubscriptions(prev => [...prev, s].sort((a,b) => (a.renewal_date||"9999") > (b.renewal_date||"9999") ? 1 : -1));
+        setNewSubName(""); setNewSubCost(""); setNewSubCycle("monthly"); setNewSubRenewal(""); setNewSubTrial(false);
+        showToast("Subscription added!");
+      } else showToast("Error saving subscription");
+    } catch { showToast("Error saving subscription"); }
+  };
+
+  const startEditSub = (s) => {
+    setEditingSubId(s.id); setSubDraftName(s.name); setSubDraftCost(s.cost!=null?String(s.cost):""); setSubDraftCycle(s.billing_cycle || "monthly"); setSubDraftTrial(!!s.is_trial);
+    if (s.renewal_date) { const [yyyy,mm,dd] = s.renewal_date.slice(0,10).split("-"); setSubDraftRenewal(`${mm}/${dd}/${yyyy}`); }
+    else setSubDraftRenewal("");
+  };
+
+  const saveSubEdit = async (id) => {
+    if (!subDraftName.trim()) return showToast("Service name is required");
+    const isoDate = subDraftRenewal.trim() ? parseNextTouch(subDraftRenewal.trim()) || null : null;
+    const patch = { name: subDraftName.trim(), cost: parseFloat(subDraftCost) || 0, billing_cycle: subDraftCycle, renewal_date: isoDate, is_trial: subDraftTrial };
+    try {
+      await api(`subscriptions?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify(patch) });
+      setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+      setEditingSubId(null); showToast("Subscription updated!");
+    } catch { showToast("Error updating subscription"); }
+  };
+
+  const archiveSubscription = async (id, archived) => {
+    try {
+      await api(`subscriptions?id=eq.${id}`, { method:"PATCH", prefer:"", body: JSON.stringify({ archived }) });
+      setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, archived } : s));
+      showToast(archived ? "Archived" : "Restored");
+    } catch { showToast("Error updating subscription"); }
+  };
+
+  const deleteSubscription = async (id) => {
+    try { await api(`subscriptions?id=eq.${id}`, { method:"DELETE", prefer:"" }); setSubscriptions(prev => prev.filter(s => s.id !== id)); } catch {}
+    setConfirmDeleteSub(null); showToast("Subscription deleted");
   };
 
   const addTask = async () => {
@@ -598,6 +670,14 @@ export default function DeanCRM() {
   const healthNonOverdue = healthOpen.filter(h => taskDueStatus(h.due_date) !== "overdue");
   const healthDone       = applyHealthFilter(healthNotes.filter(h => h.completed));
 
+  // ── Subscription helpers ──
+  const activeSubs = subscriptions.filter(s => !s.archived).sort((a,b) => (a.renewal_date||"9999") > (b.renewal_date||"9999") ? 1 : -1);
+  const archivedSubs = subscriptions.filter(s => s.archived);
+  const monthlyCostTotal = activeSubs.reduce((sum,s) => sum + (s.billing_cycle==="yearly" ? (s.cost||0)/12 : (s.cost||0)), 0);
+  const yearlyCostTotal = activeSubs.reduce((sum,s) => sum + (s.billing_cycle==="yearly" ? (s.cost||0) : (s.cost||0)*12), 0);
+  const trialAlertCount = activeSubs.filter(s => s.is_trial && s.renewal_date && s.renewal_date <= in7DaysIso).length;
+  const formatMoney = (n) => `$${(n||0).toFixed(2)}`;
+
   // ── Theme palette ──
   const T = dark ? {
     shell:        "#0A0F1C",
@@ -773,6 +853,7 @@ export default function DeanCRM() {
       {confirmDeleteTouch&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTouchNote(confirmDeleteTouch)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTouch(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteTask&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Task?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteTask(confirmDeleteTask)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteTask(null)}>Cancel</button></div></div></div>)}
       {confirmDeleteHealth&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Health Note?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteHealthNote(confirmDeleteHealth)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteHealth(null)}>Cancel</button></div></div></div>)}
+      {confirmDeleteSub&&(<div style={{...styles.overlay,background:T.overlayBg}}><div style={{...styles.modal,background:T.modalBg}}><p style={{...styles.modalTitle,color:T.text}}>Delete Subscription?</p><p style={{...styles.modalSub,color:T.textSub}}>This cannot be undone.</p><div style={{display:"flex",gap:10,marginTop:18}}><button style={styles.btnDanger} onClick={()=>deleteSubscription(confirmDeleteSub)}>Delete</button><button style={{...styles.btnSecondary,border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor}} onClick={()=>setConfirmDeleteSub(null)}>Cancel</button></div></div></div>)}
 
       <div style={{...styles.header,background:T.headerBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.headerBorder}`}}>
         {view!=="list"?(
@@ -799,11 +880,12 @@ export default function DeanCRM() {
 
       {view==="list"&&(
         <div style={{...styles.tabBar,background:T.tabBg,borderBottom:dark?"1px solid rgba(140,180,255,0.12)":`1px solid ${T.tabBorder}`}}>
-          {[["home","🏠 Home"],["contacts","Contacts"],["tasks","Tasks"],["health","Health"]].map(([id,label])=>(
-            <button key={id} style={{...styles.tab,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:`2px solid ${T.tabActive}`}:{})}} onClick={()=>setHomeTab(id)}>
-              {label}
+          {[["home","🏠","Home"],["contacts","👥","People"],["tasks","✅","Tasks"],["health","💊","Health"],["subscriptions","💳","Subs"]].map(([id,icon,label])=>(
+            <button key={id} style={{...styles.tab,fontSize:9,gap:2,color:homeTab===id?T.tabActive:T.tabColor,...(homeTab===id?{borderBottom:`2px solid ${T.tabActive}`}:{})}} onClick={()=>setHomeTab(id)}>
+              <span aria-hidden="true">{icon}</span>{label}
               {id==="tasks"&&tasks.filter(t=>!t.completed).length>0&&<span style={styles.tabBadge}>{tasks.filter(t=>!t.completed).length}</span>}
               {id==="health"&&healthOverdueCount>0&&<span style={{...styles.tabBadge,background:T.railOverdue}}>{healthOverdueCount}</span>}
+              {id==="subscriptions"&&trialAlertCount>0&&<span style={{...styles.tabBadge,background:T.railOverdue}}>{trialAlertCount}</span>}
             </button>
           ))}
         </div>
@@ -1195,6 +1277,127 @@ export default function DeanCRM() {
                   );
                 })}
               </>)}
+            </>)}
+
+            <div style={{height:40}}/>
+          </div>
+        </div>
+      )}
+
+      {view==="list"&&homeTab==="subscriptions"&&(
+        <div style={styles.body}>
+          <div style={styles.listScroll}>
+
+            <div style={{background:T.heroBg,padding:"16px 16px 18px",borderBottom:dark?"1px solid rgba(140,180,255,.12)":`1px solid ${T.headerBorder}`}}>
+              <div style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12,fontFamily:T.fontDisplay}}>Subscriptions</div>
+              <div style={{display:"flex",gap:8}}>
+                {[
+                  {label:"Per Month", val:formatMoney(monthlyCostTotal), rail:T.railUpcoming},
+                  {label:"Per Year",  val:formatMoney(yearlyCostTotal),  rail:T.railUpcoming},
+                  {label:"Trials",    val:activeSubs.filter(s=>s.is_trial).length, rail:trialAlertCount>0?T.railOverdue:T.railNeutral},
+                  {label:"Archived",  val:archivedSubs.length, rail:T.railNeutral},
+                ].map(kpi=>(
+                  <div key={kpi.label} style={{flex:1,background:T.cardBg,borderTop:`2px solid ${kpi.rail}`,borderRadius:"0 0 8px 8px",padding:"10px 6px"}}>
+                    <div style={{fontSize:15,fontWeight:500,color:T.text,lineHeight:1,fontFamily:T.fontMono,fontVariantNumeric:"tabular-nums",whiteSpace:"nowrap"}}>{kpi.val}</div>
+                    <div style={{fontSize:9,color:T.textMuted,marginTop:4,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.04em"}}>{kpi.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{margin:"16px 16px 0",background:T.cardBg,borderRadius:12,border:`2px solid ${dark?"rgba(111,177,255,0.3)":T.kpiBorder}`,padding:"16px"}}>
+              <div style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>+ New Subscription</div>
+              <input style={{width:"100%",padding:"10px 12px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="text" placeholder="Service name (e.g. Netflix)" value={newSubName} onChange={e=>setNewSubName(e.target.value)}/>
+              <div style={{display:"flex",gap:8,marginBottom:8}}>
+                <input style={{flex:1,padding:"10px 12px",border:`1px solid ${T.inputBorder}`,borderRadius:10,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="number" inputMode="decimal" step="0.01" placeholder="Cost $" value={newSubCost} onChange={e=>setNewSubCost(e.target.value)}/>
+                <div style={{display:"flex",gap:6}}>
+                  {["monthly","yearly"].map(cyc=>(
+                    <button key={cyc} onClick={()=>setNewSubCycle(cyc)} style={{padding:"0 14px",borderRadius:10,border:`1px solid ${newSubCycle===cyc?T.railUpcoming:T.inputBorder}`,background:newSubCycle===cyc?(dark?"rgba(61,111,217,0.2)":"rgba(37,99,235,0.1)"):"transparent",color:newSubCycle===cyc?T.railUpcoming:T.textSub,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{cyc==="monthly"?"Mo":"Yr"}</button>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginBottom:8}}><NextTouchInput value={newSubRenewal} onChange={setNewSubRenewal} inputStyle={{flex:1,padding:"9px 12px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:10,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/></div>
+              <button onClick={()=>setNewSubTrial(t=>!t)} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 14px",borderRadius:10,border:`1px solid ${newSubTrial?T.railOverdue:T.inputBorder}`,background:newSubTrial?(dark?"rgba(111,177,255,0.16)":"rgba(220,38,38,0.08)"):"transparent",color:newSubTrial?T.railOverdue:T.textSub,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",width:"100%",marginBottom:10}}>
+                <span style={{width:16,height:16,borderRadius:4,border:`1.5px solid currentColor`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{newSubTrial?"✓":""}</span>
+                🎫 This is a trial — alert me before it converts
+              </button>
+              <button style={{display:"block",width:"100%",padding:"10px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={addSubscription}>Add Subscription</button>
+            </div>
+
+            <div style={{padding:"18px 16px 8px"}}>
+              <span style={{fontSize:11,fontWeight:700,color:T.textSub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Active ({activeSubs.length})</span>
+            </div>
+
+            {subscriptionsLoading?<div style={styles.empty}><div style={styles.splashSpinner}/></div>
+            :activeSubs.length===0?<div style={{padding:"14px",fontSize:13,color:T.textSub,textAlign:"center"}}>No active subscriptions yet</div>
+            :activeSubs.map(s=>{
+              const status=taskDueStatus(s.renewal_date);
+              const isEditing=editingSubId===s.id;
+              const urgent = s.is_trial && s.renewal_date && s.renewal_date<=in7DaysIso;
+              const rail = status==="overdue"?T.railOverdue:status==="today"?T.railToday:status==="upcoming"?T.railUpcoming:T.railNeutral;
+              const chipStyle = status==="overdue"?{color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"rgba(220,38,38,0.1)",border:`1px solid ${dark?T.railOverdue:"rgba(220,38,38,0.35)"}`,fontWeight:700}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
+              const dateLabel = !s.renewal_date?"No renewal date":status==="overdue"?`Renewed ${formatTaskDue(s.renewal_date)}`:status==="today"?"Renews today":`Renews ${formatTaskDue(s.renewal_date)}`;
+              return (
+                <div key={s.id} style={{margin:"0 16px 8px",background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderLeft:`3px solid ${rail}`,padding:"14px"}}>
+                  {isEditing?(<>
+                    <input style={{width:"100%",padding:"8px 10px",marginBottom:8,border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="text" value={subDraftName} onChange={e=>setSubDraftName(e.target.value)} autoFocus/>
+                    <div style={{display:"flex",gap:8,marginBottom:8}}>
+                      <input style={{flex:1,padding:"8px 10px",border:`1px solid ${T.inputBorder}`,borderRadius:8,fontSize:16,color:T.inputColor,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputBg}} type="number" inputMode="decimal" step="0.01" value={subDraftCost} onChange={e=>setSubDraftCost(e.target.value)}/>
+                      <div style={{display:"flex",gap:6}}>
+                        {["monthly","yearly"].map(cyc=>(
+                          <button key={cyc} onClick={()=>setSubDraftCycle(cyc)} style={{padding:"0 14px",borderRadius:8,border:`1px solid ${subDraftCycle===cyc?T.railUpcoming:T.inputBorder}`,background:subDraftCycle===cyc?(dark?"rgba(61,111,217,0.2)":"rgba(37,99,235,0.1)"):"transparent",color:subDraftCycle===cyc?T.railUpcoming:T.textSub,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{cyc==="monthly"?"Mo":"Yr"}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <NextTouchInput value={subDraftRenewal} onChange={setSubDraftRenewal} inputStyle={{flex:1,padding:"8px 10px",border:`1px solid ${T.inputBorderAlt}`,borderRadius:8,fontSize:16,color:T.text,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:T.inputFillAlt}}/>
+                    <button onClick={()=>setSubDraftTrial(t=>!t)} style={{display:"flex",alignItems:"center",gap:7,padding:"8px 12px",borderRadius:8,border:`1px solid ${subDraftTrial?T.railOverdue:T.inputBorder}`,background:subDraftTrial?(dark?"rgba(111,177,255,0.16)":"rgba(220,38,38,0.08)"):"transparent",color:subDraftTrial?T.railOverdue:T.textSub,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",width:"100%",marginTop:8}}>
+                      <span style={{width:14,height:14,borderRadius:4,border:`1.5px solid currentColor`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{subDraftTrial?"✓":""}</span>
+                      🎫 Trial subscription
+                    </button>
+                    <div style={{display:"flex",gap:6,marginTop:10}}>
+                      <button style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#2563eb,#3b82f6)",border:"none",color:"#fff",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>saveSubEdit(s.id)}>Save</button>
+                      <button style={{flex:1,padding:"8px",background:"transparent",border:`1px solid ${T.btnSecBorder}`,color:T.btnSecColor,borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setEditingSubId(null)}>Cancel</button>
+                    </div>
+                  </>):(<>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:600,color:T.text,fontFamily:T.fontDisplay}}>{s.name}</div>
+                        <div style={{fontSize:12,color:T.textSub,fontFamily:T.fontMono,marginTop:2}}>{formatMoney(s.cost)} / {s.billing_cycle==="yearly"?"yr":"mo"}</div>
+                      </div>
+                      <div style={{display:"flex",gap:5,flexShrink:0}}>
+                        <button style={{background:"none",border:`1px solid ${T.cardBorder}`,borderRadius:6,cursor:"pointer",color:T.textSub,padding:"3px 8px",fontSize:10,fontWeight:600,fontFamily:"inherit"}} onClick={()=>startEditSub(s)}>Edit</button>
+                        <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteSub(s.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                      <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,borderRadius:6,padding:"2px 8px"}}>{dateLabel}</span>
+                      {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:9,borderRadius:20,padding:"2px 8px",fontWeight:700,...(urgent?{background:T.railOverdue,color:dark?"#0A0F1C":"#fff",border:`1px solid ${T.railOverdue}`}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫 TRIAL{urgent?" · ACT NOW":""}</span>}
+                    </div>
+                    <button style={{marginTop:10,fontSize:11,fontWeight:600,padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${T.btnSecBorder}`,background:"transparent",color:T.btnSecColor}} onClick={()=>archiveSubscription(s.id,true)}>Archive</button>
+                  </>)}
+                </div>
+              );
+            })}
+
+            {archivedSubs.length>0&&(<>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 16px 8px"}}>
+                <span style={{fontSize:11,fontWeight:700,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>Archived ({archivedSubs.length})</span>
+                <button style={{fontSize:12,color:T.textSub,fontWeight:500,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={()=>setShowArchivedSubs(s=>!s)}>{showArchivedSubs?"Hide":"Show"}</button>
+              </div>
+              {showArchivedSubs&&archivedSubs.map(s=>(
+                <div key={s.id} style={{margin:"0 16px 8px",background:T.subtleBg2,borderRadius:12,border:`1px solid ${T.subtleBorder2}`,padding:"14px"}}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:14,fontWeight:600,color:T.completedNote,fontFamily:T.fontDisplay,fontStyle:"italic"}}>{s.name}</div>
+                      <div style={{fontSize:12,color:T.textMuted,fontFamily:T.fontMono,marginTop:2}}>{formatMoney(s.cost)} / {s.billing_cycle==="yearly"?"yr":"mo"}</div>
+                    </div>
+                    <div style={{display:"flex",gap:5,flexShrink:0}}>
+                      <button style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",background:T.doneBadgeBlueBg,color:T.doneBadgeBlueColor,border:`1px solid ${dark?"rgba(59,130,246,0.25)":T.kpiBorder}`}} onClick={()=>{archiveSubscription(s.id,false);startEditSub(s);}}>Restore</button>
+                      <button style={{background:"none",border:"none",cursor:"pointer",color:T.deleteIcon,padding:"2px 4px",display:"flex",alignItems:"center"}} onClick={()=>setConfirmDeleteSub(s.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </>)}
 
             <div style={{height:40}}/>
