@@ -907,6 +907,36 @@ export default function DeanCRM() {
               </div>
             </div>
 
+            {(() => {
+              const homeSubs = activeSubs.filter(s => s.renewal_date && s.renewal_date <= in7DaysIso);
+              if (homeSubs.length === 0) return null;
+              return (<>
+                <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em"}}>💳 Subscriptions</span>
+                  <span style={{fontSize:11,color:T.textMuted}}>{homeSubs.length} · next 7 days</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,padding:"0 16px 8px"}}>
+                  {homeSubs.map(s=>{
+                    const status=taskDueStatus(s.renewal_date);
+                    const urgent = s.is_trial && s.renewal_date && s.renewal_date<=in7DaysIso;
+                    const accentColor = status==="overdue"?T.railOverdue:status==="today"?T.railToday:T.railUpcoming;
+                    const chipStyle = status==="overdue"?{color:dark?"#0A0F1C":"#dc2626",background:dark?T.railOverdue:"rgba(220,38,38,0.1)",border:`1px solid ${dark?T.railOverdue:"rgba(220,38,38,0.35)"}`,fontWeight:700}:status==="today"?{color:T.railToday,background:dark?"rgba(111,177,255,0.14)":"rgba(217,119,6,0.1)",border:`1px solid ${dark?"rgba(111,177,255,0.3)":"rgba(217,119,6,0.35)"}`}:{color:T.railUpcoming,background:dark?"rgba(61,111,217,0.14)":"rgba(37,99,235,0.1)",border:`1px solid ${dark?"rgba(61,111,217,0.35)":"rgba(37,99,235,0.35)"}`};
+                    const dateLabel = status==="overdue"?`Renewed ${formatTaskDue(s.renewal_date)}`:status==="today"?"Today":formatTaskDue(s.renewal_date);
+                    return (
+                      <div key={s.id} style={{background:T.cardBg,borderRadius:12,border:`1.5px solid ${T.cardBorder}`,borderTop:`4px solid ${accentColor}`,padding:"14px",display:"flex",flexDirection:"column",minHeight:110,cursor:"pointer"}} onClick={()=>{setHomeTab("subscriptions");startEditSub(s);}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:6,marginBottom:8}}>
+                          <span style={{...chipStyle,fontFamily:T.fontMono,fontSize:10,borderRadius:6,padding:"2px 7px"}}>{dateLabel}</span>
+                          {s.is_trial&&<span style={{fontFamily:T.fontMono,fontSize:8,borderRadius:20,padding:"2px 6px",fontWeight:700,flexShrink:0,...(urgent?{background:T.railOverdue,color:dark?"#0A0F1C":"#fff",border:`1px solid ${T.railOverdue}`}:{background:dark?"rgba(111,177,255,0.12)":"rgba(1,118,211,0.08)",color:T.railUpcoming,border:`1px solid ${T.railUpcoming}`})}}>🎫</span>}
+                        </div>
+                        <div style={{fontSize:12,color:T.text,lineHeight:1.45,fontWeight:500,flex:1,overflowWrap:"anywhere",wordBreak:"break-word"}}>{s.name}</div>
+                        <div style={{fontSize:10,color:T.textMuted,fontFamily:T.fontMono,marginTop:8}}>{formatMoney(s.cost)} / {s.billing_cycle==="yearly"?"yr":"mo"}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>);
+            })()}
+
             <div style={{padding:"18px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <span style={{fontSize:11,fontWeight:700,color:T.sectionColor,textTransform:"uppercase",letterSpacing:"0.08em"}}>📋 Upcoming Tasks</span>
               <span style={{fontSize:11,color:T.textMuted}}>{upcomingTasks.length} · next 7 days</span>
